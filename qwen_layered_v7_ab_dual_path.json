@@ -1,0 +1,2307 @@
+{
+  "last_node_id": 216,
+  "last_link_id": 120,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "LoadImage",
+      "pos": [
+        80,
+        60
+      ],
+      "size": [
+        320,
+        314
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            1
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "input.png",
+        "image"
+      ],
+      "title": "[输入] 设计稿图像"
+    },
+    {
+      "id": 5,
+      "type": "ImageScaleToMaxDimension",
+      "pos": [
+        450,
+        60
+      ],
+      "size": [
+        280,
+        100
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageScaleToMaxDimension"
+      },
+      "widgets_values": [
+        "lanczos",
+        1024
+      ],
+      "title": "缩放到 ≤1024"
+    },
+    {
+      "id": 6,
+      "type": "GetImageSize",
+      "pos": [
+        450,
+        180
+      ],
+      "size": [
+        280,
+        80
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "width",
+          "type": "INT",
+          "links": [
+            80
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "links": [
+            81
+          ],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "GetImageSize"
+      },
+      "widgets_values": [],
+      "title": "获取尺寸"
+    },
+    {
+      "id": 101,
+      "type": "PreviewImage",
+      "pos": [
+        450,
+        280
+      ],
+      "size": [
+        320,
+        320
+      ],
+      "flags": {},
+      "order": 101,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 3
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": [],
+      "title": "🔍 [诊断1] 缩放后输入图"
+    },
+    {
+      "id": 10,
+      "type": "easy sam3ModelLoader",
+      "pos": [
+        80,
+        450
+      ],
+      "size": [
+        320,
+        160
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "sam3_model",
+          "type": "EASY_SAM3_MODEL",
+          "links": [
+            10
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "easy sam3ModelLoader"
+      },
+      "widgets_values": [
+        "sam3.pt",
+        "image",
+        "cuda",
+        "fp16"
+      ],
+      "title": "[SAM3] 加载模型"
+    },
+    {
+      "id": 11,
+      "type": "easy sam3ImageSegmentation",
+      "pos": [
+        450,
+        660
+      ],
+      "size": [
+        340,
+        280
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "sam3_model",
+          "type": "EASY_SAM3_MODEL",
+          "link": 10
+        },
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 5
+        }
+      ],
+      "outputs": [
+        {
+          "name": "masks",
+          "type": "MASK",
+          "links": [
+            11,
+            12
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [
+            14
+          ],
+          "slot_index": 1
+        },
+        {
+          "name": "obj_masks",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 2
+        },
+        {
+          "name": "boxes",
+          "type": "BBOX",
+          "links": [],
+          "slot_index": 3
+        },
+        {
+          "name": "scores",
+          "type": "FLOAT",
+          "links": [],
+          "slot_index": 4
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "easy sam3ImageSegmentation"
+      },
+      "widgets_values": [
+        "cat",
+        0.4,
+        false,
+        "none",
+        -1
+      ],
+      "title": "[SAM3] 分割"
+    },
+    {
+      "id": 20,
+      "type": "MaskFix+",
+      "pos": [
+        820,
+        660
+      ],
+      "size": [
+        280,
+        180
+      ],
+      "flags": {},
+      "order": 20,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 11
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            13,
+            18,
+            104
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MaskFix+"
+      },
+      "widgets_values": [
+        3,
+        1,
+        5,
+        4,
+        4
+      ],
+      "title": "[Mask] MaskFix+ 修复"
+    },
+    {
+      "id": 102,
+      "type": "MaskPreview+",
+      "pos": [
+        820,
+        870
+      ],
+      "size": [
+        300,
+        220
+      ],
+      "flags": {},
+      "order": 102,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 12
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MaskPreview+"
+      },
+      "widgets_values": [],
+      "title": "🔍 [诊断2] SAM3 原始 mask"
+    },
+    {
+      "id": 103,
+      "type": "MaskPreview+",
+      "pos": [
+        1140,
+        870
+      ],
+      "size": [
+        300,
+        220
+      ],
+      "flags": {},
+      "order": 103,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 13
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MaskPreview+"
+      },
+      "widgets_values": [],
+      "title": "🔍 [诊断3] MaskFix+ 后 mask"
+    },
+    {
+      "id": 104,
+      "type": "PreviewImage",
+      "pos": [
+        1460,
+        870
+      ],
+      "size": [
+        300,
+        220
+      ],
+      "flags": {},
+      "order": 104,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 14
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": [],
+      "title": "🔍 [诊断4] SAM3 分割可视化"
+    },
+    {
+      "id": 201,
+      "type": "EmptyImage",
+      "pos": [
+        820,
+        1110
+      ],
+      "size": [
+        280,
+        100
+      ],
+      "flags": {},
+      "order": 201,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            17
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EmptyImage"
+      },
+      "widgets_values": [
+        1024,
+        1024,
+        1,
+        16711680
+      ],
+      "title": "[画笔] 纯红底图 (R=255)"
+    },
+    {
+      "id": 202,
+      "type": "EmptyImage",
+      "pos": [
+        1140,
+        1110
+      ],
+      "size": [
+        280,
+        100
+      ],
+      "flags": {},
+      "order": 202,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            16
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EmptyImage"
+      },
+      "widgets_values": [
+        1024,
+        1024,
+        1,
+        0
+      ],
+      "title": "[画笔] 纯黑底图"
+    },
+    {
+      "id": 203,
+      "type": "ImageCompositeMasked",
+      "pos": [
+        1460,
+        1110
+      ],
+      "size": [
+        320,
+        160
+      ],
+      "flags": {},
+      "order": 203,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "destination",
+          "type": "IMAGE",
+          "link": 16
+        },
+        {
+          "name": "source",
+          "type": "IMAGE",
+          "link": 17
+        },
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 18,
+          "optional": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            19,
+            107
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageCompositeMasked"
+      },
+      "widgets_values": [
+        0,
+        0,
+        false
+      ],
+      "title": "[画笔] 合成: 黑底 + 红色 mask 区"
+    },
+    {
+      "id": 105,
+      "type": "PreviewImage",
+      "pos": [
+        1780,
+        1110
+      ],
+      "size": [
+        280,
+        220
+      ],
+      "flags": {},
+      "order": 105,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 19
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": [],
+      "title": "🔍 [诊断6] 红色正向画笔图"
+    },
+    {
+      "id": 30,
+      "type": "UNETLoader",
+      "pos": [
+        80,
+        1280
+      ],
+      "size": [
+        320,
+        90
+      ],
+      "flags": {},
+      "order": 30,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            30
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UNETLoader"
+      },
+      "widgets_values": [
+        "qwen_image_layered_control_bf16.safetensors",
+        "fp8_e4m3fn"
+      ],
+      "title": "[模型] V1 base UNet"
+    },
+    {
+      "id": 31,
+      "type": "LoraLoaderModelOnly",
+      "pos": [
+        80,
+        1390
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 31,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 30
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            31
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoraLoaderModelOnly"
+      },
+      "widgets_values": [
+        "qwen_image_layered_control_v2.safetensors",
+        1.0
+      ],
+      "title": "[模型] V2 LoRA (画笔能力)"
+    },
+    {
+      "id": 32,
+      "type": "ModelSamplingAuraFlow",
+      "pos": [
+        80,
+        1510
+      ],
+      "size": [
+        320,
+        80
+      ],
+      "flags": {},
+      "order": 32,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 31
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            90,
+            112
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ModelSamplingAuraFlow"
+      },
+      "widgets_values": [
+        1.0
+      ],
+      "title": "[模型] AuraFlow Shift"
+    },
+    {
+      "id": 33,
+      "type": "CLIPLoader",
+      "pos": [
+        80,
+        1610
+      ],
+      "size": [
+        320,
+        110
+      ],
+      "flags": {},
+      "order": 33,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            40
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPLoader"
+      },
+      "widgets_values": [
+        "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+        "qwen_image",
+        "default"
+      ],
+      "title": "[模型] CLIP"
+    },
+    {
+      "id": 34,
+      "type": "VAELoader",
+      "pos": [
+        80,
+        1750
+      ],
+      "size": [
+        320,
+        60
+      ],
+      "flags": {},
+      "order": 34,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            50,
+            51,
+            52,
+            118
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "qwen_image_layered_vae.safetensors"
+      ],
+      "title": "[模型] VAE"
+    },
+    {
+      "id": 40,
+      "type": "CLIPTextEncode",
+      "pos": [
+        450,
+        1280
+      ],
+      "size": [
+        340,
+        140
+      ],
+      "flags": {},
+      "order": 40,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 40
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            60
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        "A picture with two cute cartoon cats"
+      ],
+      "title": "[条件] +Prompt (整图描述)"
+    },
+    {
+      "id": 50,
+      "type": "VAEEncode",
+      "pos": [
+        820,
+        1280
+      ],
+      "size": [
+        240,
+        60
+      ],
+      "flags": {},
+      "order": 50,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "pixels",
+          "type": "IMAGE",
+          "link": 4
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 50
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            61
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEEncode"
+      },
+      "widgets_values": [],
+      "title": "[Latent] 原图编码"
+    },
+    {
+      "id": 51,
+      "type": "VAEEncode",
+      "pos": [
+        820,
+        1360
+      ],
+      "size": [
+        240,
+        60
+      ],
+      "flags": {},
+      "order": 51,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "pixels",
+          "type": "IMAGE",
+          "link": 111
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 51
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            63
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEEncode"
+      },
+      "widgets_values": [],
+      "title": "[Latent] ★ 最终红绿 Brush 图编码"
+    },
+    {
+      "id": 52,
+      "type": "ReferenceLatent",
+      "pos": [
+        1100,
+        1280
+      ],
+      "size": [
+        240,
+        60
+      ],
+      "flags": {},
+      "order": 52,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "link": 60
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "link": 61
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            62,
+            70
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ReferenceLatent"
+      },
+      "widgets_values": [],
+      "title": "[条件] RefLatent #1: 原图"
+    },
+    {
+      "id": 53,
+      "type": "ReferenceLatent",
+      "pos": [
+        1380,
+        1280
+      ],
+      "size": [
+        240,
+        60
+      ],
+      "flags": {},
+      "order": 53,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "link": 62
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "link": 63
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            91,
+            113
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ReferenceLatent"
+      },
+      "widgets_values": [],
+      "title": "[条件] ★ RefLatent #2: 画笔"
+    },
+    {
+      "id": 54,
+      "type": "ConditioningZeroOut",
+      "pos": [
+        1380,
+        1380
+      ],
+      "size": [
+        240,
+        60
+      ],
+      "flags": {},
+      "order": 54,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "link": 70
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            92,
+            114
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ConditioningZeroOut"
+      },
+      "widgets_values": [],
+      "title": "[条件] 负向 (Zero Out)"
+    },
+    {
+      "id": 55,
+      "type": "EmptyQwenImageLayeredLatentImage",
+      "pos": [
+        1660,
+        1280
+      ],
+      "size": [
+        240,
+        120
+      ],
+      "flags": {},
+      "order": 55,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "width",
+          "type": "INT",
+          "link": 80,
+          "widget": {
+            "name": "width"
+          }
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "link": 81,
+          "widget": {
+            "name": "height"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            93,
+            115
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EmptyQwenImageLayeredLatentImage"
+      },
+      "widgets_values": [
+        1024,
+        1024,
+        1,
+        1
+      ],
+      "title": "[Latent] 单层空 Latent"
+    },
+    {
+      "id": 60,
+      "type": "KSampler",
+      "pos": [
+        1940,
+        1280
+      ],
+      "size": [
+        320,
+        280
+      ],
+      "flags": {},
+      "order": 60,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 90
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 91
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 92
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 93
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            100
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KSampler"
+      },
+      "widgets_values": [
+        351393078324112,
+        "randomize",
+        7,
+        0.8,
+        "euler",
+        "simple",
+        1.0
+      ],
+      "title": "[A 前景] 采样 - Extraction"
+    },
+    {
+      "id": 61,
+      "type": "LatentCutToBatch",
+      "pos": [
+        2280,
+        1280
+      ],
+      "size": [
+        280,
+        90
+      ],
+      "flags": {},
+      "order": 61,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 100
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            101
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LatentCutToBatch"
+      },
+      "widgets_values": [
+        "t",
+        1
+      ],
+      "title": "[Latent] 切片"
+    },
+    {
+      "id": 62,
+      "type": "VAEDecode",
+      "pos": [
+        2280,
+        1390
+      ],
+      "size": [
+        280,
+        60
+      ],
+      "flags": {},
+      "order": 62,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 101
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 52
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            102,
+            103
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEDecode"
+      },
+      "widgets_values": [],
+      "title": "[A 前景] VAE Decode"
+    },
+    {
+      "id": 106,
+      "type": "PreviewImage",
+      "pos": [
+        2280,
+        1480
+      ],
+      "size": [
+        280,
+        280
+      ],
+      "flags": {},
+      "order": 106,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 102
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": [],
+      "title": "🔍 [A 前景] 输出预览"
+    },
+    {
+      "id": 63,
+      "type": "SaveImage",
+      "pos": [
+        2280,
+        1780
+      ],
+      "size": [
+        280,
+        90
+      ],
+      "flags": {},
+      "order": 63,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 103
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "qwen_layer_A_foreground_extract"
+      ],
+      "title": "📤 [A 前景] 保存 RGBA"
+    },
+    {
+      "id": 90,
+      "type": "MarkdownNote",
+      "pos": [
+        2080,
+        60
+      ],
+      "size": [
+        600,
+        500
+      ],
+      "flags": {},
+      "order": 90,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MarkdownNote"
+      },
+      "widgets_values": [
+        "# v3.5: 真正接入 mask 到 V2\n\n## 关键架构突破\n\nV2 的 `context_image` (画笔) 在 ComfyUI 中通过\n**串联两个 ReferenceLatent** 实现:\n\n```\nReferenceLatent #1 (原图) → ReferenceLatent #2 (画笔图) → KSampler\n```\n\n源码证据 (`nodes_edit_model.py`):\n```python\nconditioning_set_values(cond, \n  {'reference_latents': [latent['samples']]}, \n  append=True)  # ← 可以多次 append\n```\n\n## 红色画笔图怎么做的\n\n1. SAM3 出 mask\n2. MaskFix+ 修复\n3. **黑底 + mask 区域涂红 = 红色画笔图**\n4. 这张图 VAEEncode 后送给第 2 个 ReferenceLatent\n\n## 官方对齐的参数\n\n- steps = **10** (画笔模式专用)\n- cfg = **1.0** (画笔模式专用)\n- 负向: 用 ConditioningZeroOut\n\n## 反查思路\n\n- 🔍6 红色画笔图: 黑底+红色目标区域,应清晰\n- 🔍5 V2 输出: 应该是红色区域对应的 RGBA 层\n\n## 不要做的事\n\n- 不要把 layers 改成 >1 (Control 模型架构限制)\n- 不要把 cfg 改回 4.0 (画笔模式会过曝)\n\n## v4.1 更新：绿色负向 brush\n\n- 新增 `GrowMask → InvertMask`：由正向 mask 膨胀后取反，生成绿色负向区域。\n- 去掉 `MaskSubtract`，避免未知节点包报错。\n- 新增诊断：`🔍 [诊断7] 绿色负向 mask（膨胀取反）`。\n- 新增诊断：`🔍 [诊断8] 最终红绿 Brush 图（送给 V2）`。\n- 第 2 个 ReferenceLatent 现在接收最终红绿 Brush 图，而不是仅红色画笔图。"
+      ],
+      "title": "📘 v3.5 说明"
+    },
+    {
+      "id": 204,
+      "type": "GrowMask",
+      "pos": [
+        1140,
+        660
+      ],
+      "size": [
+        280,
+        120
+      ],
+      "flags": {},
+      "order": 21,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 104
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            105
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "GrowMask"
+      },
+      "widgets_values": [
+        48,
+        true
+      ],
+      "title": "[Mask] 正向 mask 膨胀"
+    },
+    {
+      "id": 205,
+      "type": "InvertMask",
+      "pos": [
+        1460,
+        660
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 22,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 105
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            106,
+            109
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "InvertMask"
+      },
+      "widgets_values": [],
+      "title": "[Mask] 膨胀后取反 = 绿色负向 mask"
+    },
+    {
+      "id": 206,
+      "type": "MaskPreview+",
+      "pos": [
+        1780,
+        660
+      ],
+      "size": [
+        300,
+        220
+      ],
+      "flags": {},
+      "order": 23,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 106
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MaskPreview+"
+      },
+      "widgets_values": [],
+      "title": "🔍 [诊断7] 绿色负向 mask（膨胀取反）"
+    },
+    {
+      "id": 207,
+      "type": "EmptyImage",
+      "pos": [
+        1140,
+        1360
+      ],
+      "size": [
+        280,
+        100
+      ],
+      "flags": {},
+      "order": 204,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            108
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EmptyImage"
+      },
+      "widgets_values": [
+        1024,
+        1024,
+        1,
+        65280
+      ],
+      "title": "[画笔] 纯绿底图 (G=255)"
+    },
+    {
+      "id": 208,
+      "type": "ImageCompositeMasked",
+      "pos": [
+        1460,
+        1360
+      ],
+      "size": [
+        320,
+        160
+      ],
+      "flags": {},
+      "order": 205,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "destination",
+          "type": "IMAGE",
+          "link": 107
+        },
+        {
+          "name": "source",
+          "type": "IMAGE",
+          "link": 108
+        },
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 109,
+          "optional": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            110,
+            111
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageCompositeMasked"
+      },
+      "widgets_values": [
+        0,
+        0,
+        false
+      ],
+      "title": "[画笔] 合成: 红色目标 + 绿色负向"
+    },
+    {
+      "id": 209,
+      "type": "PreviewImage",
+      "pos": [
+        1780,
+        1360
+      ],
+      "size": [
+        300,
+        220
+      ],
+      "flags": {},
+      "order": 206,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 110
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": [],
+      "title": "🔍 [诊断8] 最终红绿 Brush 图（送给 V2）"
+    },
+    {
+      "id": 210,
+      "type": "KSampler",
+      "pos": [
+        1940,
+        1680
+      ],
+      "size": [
+        320,
+        280
+      ],
+      "flags": {},
+      "order": 160,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 112
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 113
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 114
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 115
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            116
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KSampler"
+      },
+      "widgets_values": [
+        351393078324112,
+        "randomize",
+        16,
+        1.0,
+        "euler",
+        "simple",
+        1.0
+      ],
+      "title": "[B 背景/主体] 采样 - Reconstruction"
+    },
+    {
+      "id": 211,
+      "type": "LatentCutToBatch",
+      "pos": [
+        2280,
+        1680
+      ],
+      "size": [
+        280,
+        90
+      ],
+      "flags": {},
+      "order": 161,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 116
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            117
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LatentCutToBatch"
+      },
+      "widgets_values": [
+        "t",
+        1
+      ],
+      "title": "[B 背景/主体] Latent 切片"
+    },
+    {
+      "id": 212,
+      "type": "VAEDecode",
+      "pos": [
+        2280,
+        1790
+      ],
+      "size": [
+        280,
+        60
+      ],
+      "flags": {},
+      "order": 162,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 117
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 118
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            119,
+            120
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEDecode"
+      },
+      "widgets_values": [],
+      "title": "[B 背景/主体] VAE Decode"
+    },
+    {
+      "id": 213,
+      "type": "PreviewImage",
+      "pos": [
+        2280,
+        1880
+      ],
+      "size": [
+        280,
+        280
+      ],
+      "flags": {},
+      "order": 163,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 119
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": [],
+      "title": "🔍 [B 背景/主体] Reconstruction 输出"
+    },
+    {
+      "id": 214,
+      "type": "SaveImage",
+      "pos": [
+        2280,
+        2190
+      ],
+      "size": [
+        280,
+        90
+      ],
+      "flags": {},
+      "order": 164,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 120
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "qwen_layer_B_background_reconstruct"
+      ],
+      "title": "📤 [B 背景/主体] 保存重建 RGBA"
+    },
+    {
+      "id": 215,
+      "type": "PrimitiveNode",
+      "pos": [
+        1660,
+        1040
+      ],
+      "size": [
+        320,
+        90
+      ],
+      "flags": {},
+      "order": 30,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "BOOLEAN",
+          "type": "BOOLEAN",
+          "links": [],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveNode"
+      },
+      "widgets_values": [
+        true
+      ],
+      "title": "模式选择: foreground_mode=true 走A；false看B"
+    },
+    {
+      "id": 216,
+      "type": "MarkdownNote",
+      "pos": [
+        2620,
+        1480
+      ],
+      "size": [
+        760,
+        620
+      ],
+      "flags": {},
+      "order": 999,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MarkdownNote"
+      },
+      "widgets_values": [
+        "# v7 真正实现 A/B 双路径\n\n## A 前景 Extraction\n用于猫、星星、文字、小装饰。\n\n特点：\n- 更低 steps / cfg\n- 减少重绘\n- 目标是保留可见层\n- 输出前缀：qwen_layer_A_foreground_extract\n\n## B 背景/主体 Reconstruction\n用于主体框架、UI底板、卡片底板、被遮挡的渐变主体。\n\n特点：\n- 更高 steps\n- 允许结构补全\n- 目标是去掉前景遮挡并补完整层\n- 输出前缀：qwen_layer_B_background_reconstruct\n\n## 注意\nComfyUI 原生没有稳定通用的 bool 路由节点。\n所以本版采用双输出路径：\n- foreground_mode=true：使用 A 输出\n- foreground_mode=false：使用 B 输出\n\n这比引入未知 Switch 包更稳定，不会再出现 MaskSubtract 这类未知包报错。\n\n## 下一步如需自动 bool 切换\n需要你本地确认是否已有 Impact Pack / rgthree / KJNodes 的 Switch 节点。\n"
+      ],
+      "title": "📘 v7 A/B 双路径说明"
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      5,
+      0,
+      "IMAGE"
+    ],
+    [
+      2,
+      5,
+      0,
+      6,
+      0,
+      "IMAGE"
+    ],
+    [
+      3,
+      5,
+      0,
+      101,
+      0,
+      "IMAGE"
+    ],
+    [
+      4,
+      5,
+      0,
+      50,
+      0,
+      "IMAGE"
+    ],
+    [
+      5,
+      5,
+      0,
+      11,
+      1,
+      "IMAGE"
+    ],
+    [
+      10,
+      10,
+      0,
+      11,
+      0,
+      "EASY_SAM3_MODEL"
+    ],
+    [
+      11,
+      11,
+      0,
+      20,
+      0,
+      "MASK"
+    ],
+    [
+      12,
+      11,
+      0,
+      102,
+      0,
+      "MASK"
+    ],
+    [
+      13,
+      20,
+      0,
+      103,
+      0,
+      "MASK"
+    ],
+    [
+      14,
+      11,
+      1,
+      104,
+      0,
+      "IMAGE"
+    ],
+    [
+      16,
+      202,
+      0,
+      203,
+      0,
+      "IMAGE"
+    ],
+    [
+      17,
+      201,
+      0,
+      203,
+      1,
+      "IMAGE"
+    ],
+    [
+      18,
+      20,
+      0,
+      203,
+      2,
+      "MASK"
+    ],
+    [
+      19,
+      203,
+      0,
+      105,
+      0,
+      "IMAGE"
+    ],
+    [
+      30,
+      30,
+      0,
+      31,
+      0,
+      "MODEL"
+    ],
+    [
+      31,
+      31,
+      0,
+      32,
+      0,
+      "MODEL"
+    ],
+    [
+      40,
+      33,
+      0,
+      40,
+      0,
+      "CLIP"
+    ],
+    [
+      50,
+      34,
+      0,
+      50,
+      1,
+      "VAE"
+    ],
+    [
+      51,
+      34,
+      0,
+      51,
+      1,
+      "VAE"
+    ],
+    [
+      52,
+      34,
+      0,
+      62,
+      1,
+      "VAE"
+    ],
+    [
+      60,
+      40,
+      0,
+      52,
+      0,
+      "CONDITIONING"
+    ],
+    [
+      61,
+      50,
+      0,
+      52,
+      1,
+      "LATENT"
+    ],
+    [
+      62,
+      52,
+      0,
+      53,
+      0,
+      "CONDITIONING"
+    ],
+    [
+      63,
+      51,
+      0,
+      53,
+      1,
+      "LATENT"
+    ],
+    [
+      70,
+      52,
+      0,
+      54,
+      0,
+      "CONDITIONING"
+    ],
+    [
+      80,
+      6,
+      0,
+      55,
+      0,
+      "INT"
+    ],
+    [
+      81,
+      6,
+      1,
+      55,
+      1,
+      "INT"
+    ],
+    [
+      90,
+      32,
+      0,
+      60,
+      0,
+      "MODEL"
+    ],
+    [
+      91,
+      53,
+      0,
+      60,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      92,
+      54,
+      0,
+      60,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      93,
+      55,
+      0,
+      60,
+      3,
+      "LATENT"
+    ],
+    [
+      100,
+      60,
+      0,
+      61,
+      0,
+      "LATENT"
+    ],
+    [
+      101,
+      61,
+      0,
+      62,
+      0,
+      "LATENT"
+    ],
+    [
+      102,
+      62,
+      0,
+      106,
+      0,
+      "IMAGE"
+    ],
+    [
+      103,
+      62,
+      0,
+      63,
+      0,
+      "IMAGE"
+    ],
+    [
+      104,
+      20,
+      0,
+      204,
+      0,
+      "MASK"
+    ],
+    [
+      105,
+      204,
+      0,
+      205,
+      0,
+      "MASK"
+    ],
+    [
+      106,
+      205,
+      0,
+      206,
+      0,
+      "MASK"
+    ],
+    [
+      107,
+      203,
+      0,
+      208,
+      0,
+      "IMAGE"
+    ],
+    [
+      108,
+      207,
+      0,
+      208,
+      1,
+      "IMAGE"
+    ],
+    [
+      109,
+      205,
+      0,
+      208,
+      2,
+      "MASK"
+    ],
+    [
+      110,
+      208,
+      0,
+      209,
+      0,
+      "IMAGE"
+    ],
+    [
+      111,
+      208,
+      0,
+      51,
+      0,
+      "IMAGE"
+    ],
+    [
+      112,
+      32,
+      0,
+      210,
+      0,
+      "MODEL"
+    ],
+    [
+      113,
+      53,
+      0,
+      210,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      114,
+      54,
+      0,
+      210,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      115,
+      55,
+      0,
+      210,
+      3,
+      "LATENT"
+    ],
+    [
+      116,
+      210,
+      0,
+      211,
+      0,
+      "LATENT"
+    ],
+    [
+      117,
+      211,
+      0,
+      212,
+      0,
+      "LATENT"
+    ],
+    [
+      118,
+      34,
+      0,
+      212,
+      1,
+      "VAE"
+    ],
+    [
+      119,
+      212,
+      0,
+      213,
+      0,
+      "IMAGE"
+    ],
+    [
+      120,
+      212,
+      0,
+      214,
+      0,
+      "IMAGE"
+    ]
+  ],
+  "groups": [
+    {
+      "title": "📥 输入",
+      "bounding": [
+        60,
+        40,
+        730,
+        380
+      ],
+      "color": "#3f789e",
+      "font_size": 24,
+      "locked": false
+    },
+    {
+      "title": "🎯 SAM3 + Mask 修复",
+      "bounding": [
+        60,
+        430,
+        1700,
+        670
+      ],
+      "color": "#a1309b",
+      "font_size": 24,
+      "locked": false
+    },
+    {
+      "title": "🖌️ 红色画笔图制作 (★ 核心)",
+      "bounding": [
+        800,
+        1090,
+        1280,
+        280
+      ],
+      "color": "#c44",
+      "font_size": 24,
+      "locked": false
+    },
+    {
+      "title": "🧠 模型加载",
+      "bounding": [
+        60,
+        1260,
+        360,
+        580
+      ],
+      "color": "#8aa",
+      "font_size": 24,
+      "locked": false
+    },
+    {
+      "title": "⚙️ 双 ReferenceLatent",
+      "bounding": [
+        440,
+        1260,
+        1480,
+        280
+      ],
+      "color": "#a18b30",
+      "font_size": 24,
+      "locked": false
+    },
+    {
+      "title": "📤 采样 (画笔模式)",
+      "bounding": [
+        1930,
+        1260,
+        660,
+        660
+      ],
+      "color": "#5e8a3f",
+      "font_size": 24,
+      "locked": false
+    },
+    {
+      "title": "🟢 绿色负向画笔生成（无 MaskSubtract 版）",
+      "bounding": [
+        1120,
+        620,
+        1000,
+        980
+      ],
+      "color": "#3f8a5e",
+      "font_size": 24,
+      "locked": false
+    },
+    {
+      "title": "🅰️ Foreground Extraction Path",
+      "bounding": [
+        1920,
+        1260,
+        680,
+        620
+      ],
+      "color": "#4776a8",
+      "font_size": 24,
+      "locked": false
+    },
+    {
+      "title": "🅱️ Background / Main Body Reconstruction Path",
+      "bounding": [
+        1920,
+        1660,
+        680,
+        680
+      ],
+      "color": "#a87938",
+      "font_size": 24,
+      "locked": false
+    },
+    {
+      "title": "🔀 Mode Selection",
+      "bounding": [
+        1640,
+        1020,
+        360,
+        130
+      ],
+      "color": "#8a8a8a",
+      "font_size": 24,
+      "locked": false
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.4,
+      "offset": [
+        0,
+        0
+      ]
+    },
+    "_workflow_meta": {
+      "name": "Qwen-Image-Layered V2 (画笔模式)",
+      "version": "v7_ab_dual_path",
+      "key_changes": [
+        "真正实现 A/B 双路径，而非仅说明",
+        "A: foreground extraction, 低 steps/cfg，减少重绘",
+        "B: background/main-body reconstruction, 更高 steps，允许遮挡补全",
+        "移除 MaskSubtract 依赖，避免未知包报错",
+        "采用双输出路径，避免依赖未知 Switch 节点"
+      ]
+    }
+  },
+  "version": 0.4
+}

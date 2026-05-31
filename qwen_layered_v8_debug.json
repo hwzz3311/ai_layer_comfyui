@@ -1,0 +1,4611 @@
+{
+  "last_node_id": 265,
+  "last_link_id": 199,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "LoadImage",
+      "pos": [
+        80,
+        60
+      ],
+      "size": [
+        320,
+        314
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            1
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "input.png",
+        "image"
+      ],
+      "title": "[输入] 设计稿图像"
+    },
+    {
+      "id": 5,
+      "type": "ImageScaleToMaxDimension",
+      "pos": [
+        450,
+        60
+      ],
+      "size": [
+        280,
+        100
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            2,
+            3,
+            4,
+            5,
+            127,
+            130,
+            136,
+            151,
+            152,
+            153,
+            158
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageScaleToMaxDimension"
+      },
+      "widgets_values": [
+        "lanczos",
+        1024
+      ],
+      "title": "缩放到 ≤1024"
+    },
+    {
+      "id": 6,
+      "type": "GetImageSize",
+      "pos": [
+        450,
+        180
+      ],
+      "size": [
+        280,
+        80
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "width",
+          "type": "INT",
+          "links": [
+            80
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "links": [
+            81
+          ],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "GetImageSize"
+      },
+      "widgets_values": [],
+      "title": "获取尺寸"
+    },
+    {
+      "id": 101,
+      "type": "PreviewImage",
+      "pos": [
+        450,
+        280
+      ],
+      "size": [
+        320,
+        320
+      ],
+      "flags": {},
+      "order": 101,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 3
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": [],
+      "title": "🔍 [诊断1] 缩放后输入图"
+    },
+    {
+      "id": 10,
+      "type": "easy sam3ModelLoader",
+      "pos": [
+        80,
+        450
+      ],
+      "size": [
+        320,
+        160
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "sam3_model",
+          "type": "EASY_SAM3_MODEL",
+          "links": [
+            10
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "easy sam3ModelLoader"
+      },
+      "widgets_values": [
+        "sam3.pt",
+        "image",
+        "cuda",
+        "fp16"
+      ],
+      "title": "[SAM3] 加载模型"
+    },
+    {
+      "id": 11,
+      "type": "easy sam3ImageSegmentation",
+      "pos": [
+        450,
+        660
+      ],
+      "size": [
+        340,
+        280
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "sam3_model",
+          "type": "EASY_SAM3_MODEL",
+          "link": 10
+        },
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 5
+        },
+        {
+          "name": "bboxes",
+          "type": "BBOX",
+          "link": 128
+        }
+      ],
+      "outputs": [
+        {
+          "name": "masks",
+          "type": "MASK",
+          "links": [
+            11,
+            12
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [
+            14
+          ],
+          "slot_index": 1
+        },
+        {
+          "name": "obj_masks",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 2
+        },
+        {
+          "name": "boxes",
+          "type": "BBOX",
+          "links": [],
+          "slot_index": 3
+        },
+        {
+          "name": "scores",
+          "type": "FLOAT",
+          "links": [],
+          "slot_index": 4
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "easy sam3ImageSegmentation"
+      },
+      "widgets_values": [
+        "",
+        0.4,
+        false,
+        "none",
+        -1
+      ],
+      "title": "[SAM3] 分割"
+    },
+    {
+      "id": 20,
+      "type": "MaskFix+",
+      "pos": [
+        820,
+        660
+      ],
+      "size": [
+        280,
+        180
+      ],
+      "flags": {},
+      "order": 20,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 11
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            13,
+            131
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MaskFix+"
+      },
+      "widgets_values": [
+        3,
+        1,
+        5,
+        4,
+        4
+      ],
+      "title": "[Mask] MaskFix+ 修复"
+    },
+    {
+      "id": 102,
+      "type": "MaskPreview+",
+      "pos": [
+        820,
+        870
+      ],
+      "size": [
+        300,
+        220
+      ],
+      "flags": {},
+      "order": 102,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 12
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MaskPreview+"
+      },
+      "widgets_values": [],
+      "title": "🔍 [诊断2] SAM3 原始 mask"
+    },
+    {
+      "id": 103,
+      "type": "MaskPreview+",
+      "pos": [
+        1140,
+        870
+      ],
+      "size": [
+        300,
+        220
+      ],
+      "flags": {},
+      "order": 103,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 13
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MaskPreview+"
+      },
+      "widgets_values": [],
+      "title": "🔍 [诊断3] MaskFix+ 后 mask"
+    },
+    {
+      "id": 104,
+      "type": "PreviewImage",
+      "pos": [
+        1460,
+        870
+      ],
+      "size": [
+        300,
+        220
+      ],
+      "flags": {},
+      "order": 104,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 14
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": [],
+      "title": "🔍 [诊断4] SAM3 分割可视化"
+    },
+    {
+      "id": 201,
+      "type": "VR_EmptyImageLike",
+      "pos": [
+        820,
+        1110
+      ],
+      "size": [
+        280,
+        100
+      ],
+      "flags": {},
+      "order": 201,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "reference",
+          "type": "IMAGE",
+          "link": 151
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            17
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_EmptyImageLike"
+      },
+      "widgets_values": [
+        255,
+        0,
+        0
+      ],
+      "title": "[画笔] 纯红底图 (R=255)"
+    },
+    {
+      "id": 202,
+      "type": "VR_EmptyImageLike",
+      "pos": [
+        1140,
+        1110
+      ],
+      "size": [
+        280,
+        100
+      ],
+      "flags": {},
+      "order": 202,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "reference",
+          "type": "IMAGE",
+          "link": 152
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            16
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_EmptyImageLike"
+      },
+      "widgets_values": [
+        0,
+        0,
+        0
+      ],
+      "title": "[画笔] 纯黑底图"
+    },
+    {
+      "id": 203,
+      "type": "ImageCompositeMasked",
+      "pos": [
+        1460,
+        1110
+      ],
+      "size": [
+        320,
+        160
+      ],
+      "flags": {},
+      "order": 203,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "destination",
+          "type": "IMAGE",
+          "link": 16
+        },
+        {
+          "name": "source",
+          "type": "IMAGE",
+          "link": 17
+        },
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 134,
+          "optional": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            19,
+            107
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageCompositeMasked"
+      },
+      "widgets_values": [
+        0,
+        0,
+        false
+      ],
+      "title": "[画笔] 合成: 黑底 + 红色 mask 区"
+    },
+    {
+      "id": 105,
+      "type": "PreviewImage",
+      "pos": [
+        1780,
+        1110
+      ],
+      "size": [
+        280,
+        220
+      ],
+      "flags": {},
+      "order": 105,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 19
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": [],
+      "title": "🔍 [诊断6] 红色正向画笔图"
+    },
+    {
+      "id": 30,
+      "type": "UNETLoader",
+      "pos": [
+        80,
+        1280
+      ],
+      "size": [
+        320,
+        90
+      ],
+      "flags": {},
+      "order": 30,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            30
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UNETLoader"
+      },
+      "widgets_values": [
+        "qwen_image_layered_control_bf16.safetensors",
+        "fp8_e4m3fn"
+      ],
+      "title": "[模型] V1 base UNet"
+    },
+    {
+      "id": 31,
+      "type": "LoraLoaderModelOnly",
+      "pos": [
+        80,
+        1390
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 31,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 30
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            31
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoraLoaderModelOnly"
+      },
+      "widgets_values": [
+        "qwen_image_layered_control_v2.safetensors",
+        1.0
+      ],
+      "title": "[模型] V2 LoRA (画笔能力)"
+    },
+    {
+      "id": 32,
+      "type": "ModelSamplingAuraFlow",
+      "pos": [
+        80,
+        1510
+      ],
+      "size": [
+        320,
+        80
+      ],
+      "flags": {},
+      "order": 32,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 31
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            90,
+            112
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ModelSamplingAuraFlow"
+      },
+      "widgets_values": [
+        1.0
+      ],
+      "title": "[模型] AuraFlow Shift"
+    },
+    {
+      "id": 33,
+      "type": "CLIPLoader",
+      "pos": [
+        80,
+        1610
+      ],
+      "size": [
+        320,
+        110
+      ],
+      "flags": {},
+      "order": 33,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            40
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPLoader"
+      },
+      "widgets_values": [
+        "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+        "qwen_image",
+        "default"
+      ],
+      "title": "[模型] CLIP"
+    },
+    {
+      "id": 34,
+      "type": "VAELoader",
+      "pos": [
+        80,
+        1750
+      ],
+      "size": [
+        320,
+        60
+      ],
+      "flags": {},
+      "order": 34,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            50,
+            51,
+            52,
+            118
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "qwen_image_layered_vae.safetensors"
+      ],
+      "title": "[模型] VAE"
+    },
+    {
+      "id": 40,
+      "type": "CLIPTextEncode",
+      "pos": [
+        450,
+        1280
+      ],
+      "size": [
+        340,
+        140
+      ],
+      "flags": {},
+      "order": 40,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 40
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            60
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        "A picture with two cute cartoon cats"
+      ],
+      "title": "[条件] +Prompt (整图描述)"
+    },
+    {
+      "id": 50,
+      "type": "VAEEncode",
+      "pos": [
+        820,
+        1280
+      ],
+      "size": [
+        240,
+        60
+      ],
+      "flags": {},
+      "order": 50,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "pixels",
+          "type": "IMAGE",
+          "link": 4
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 50
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            61
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEEncode"
+      },
+      "widgets_values": [],
+      "title": "[Latent] 原图编码"
+    },
+    {
+      "id": 51,
+      "type": "VAEEncode",
+      "pos": [
+        820,
+        1360
+      ],
+      "size": [
+        240,
+        60
+      ],
+      "flags": {},
+      "order": 51,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "pixels",
+          "type": "IMAGE",
+          "link": 111
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 51
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            63
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEEncode"
+      },
+      "widgets_values": [],
+      "title": "[Latent] ★ 最终红绿 Brush 图编码"
+    },
+    {
+      "id": 52,
+      "type": "ReferenceLatent",
+      "pos": [
+        1100,
+        1280
+      ],
+      "size": [
+        240,
+        60
+      ],
+      "flags": {},
+      "order": 52,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "link": 60
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "link": 61
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            62,
+            70
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ReferenceLatent"
+      },
+      "widgets_values": [],
+      "title": "[条件] RefLatent #1: 原图"
+    },
+    {
+      "id": 53,
+      "type": "VR_ReferenceLatentIfMaskUsable",
+      "pos": [
+        1380,
+        1280
+      ],
+      "size": [
+        240,
+        60
+      ],
+      "flags": {},
+      "order": 53,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "link": 62
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "link": 63
+        },
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 154
+        }
+      ],
+      "outputs": [
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "links": [
+            91,
+            113
+          ]
+        },
+        {
+          "name": "mask_usable",
+          "type": "BOOLEAN",
+          "links": []
+        },
+        {
+          "name": "status_image",
+          "type": "IMAGE",
+          "links": [
+            155
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_ReferenceLatentIfMaskUsable"
+      },
+      "widgets_values": [
+        0.5,
+        0.002,
+        0.9,
+        64
+      ],
+      "title": "[条件] ★ RefLatent #2: 画笔 (mask 可用时追加)"
+    },
+    {
+      "id": 54,
+      "type": "ConditioningZeroOut",
+      "pos": [
+        1380,
+        1380
+      ],
+      "size": [
+        240,
+        60
+      ],
+      "flags": {},
+      "order": 54,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "link": 70
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            92,
+            114
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ConditioningZeroOut"
+      },
+      "widgets_values": [],
+      "title": "[条件] 负向 (Zero Out)"
+    },
+    {
+      "id": 55,
+      "type": "EmptyQwenImageLayeredLatentImage",
+      "pos": [
+        1660,
+        1280
+      ],
+      "size": [
+        240,
+        120
+      ],
+      "flags": {},
+      "order": 55,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "width",
+          "type": "INT",
+          "link": 80,
+          "widget": {
+            "name": "width"
+          }
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "link": 81,
+          "widget": {
+            "name": "height"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            121,
+            123
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EmptyQwenImageLayeredLatentImage"
+      },
+      "widgets_values": [
+        1024,
+        1024,
+        1,
+        1
+      ],
+      "title": "[Latent] 单层空 Latent"
+    },
+    {
+      "id": 60,
+      "type": "KSampler",
+      "pos": [
+        1940,
+        1280
+      ],
+      "size": [
+        320,
+        280
+      ],
+      "flags": {},
+      "order": 60,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 90
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 91
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 92
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 122
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            100
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KSampler"
+      },
+      "widgets_values": [
+        351393078324112,
+        "randomize",
+        7,
+        0.8,
+        "euler",
+        "simple",
+        1.0
+      ],
+      "title": "[A 前景] 采样 - Extraction"
+    },
+    {
+      "id": 61,
+      "type": "LatentCutToBatch",
+      "pos": [
+        2280,
+        1280
+      ],
+      "size": [
+        280,
+        90
+      ],
+      "flags": {},
+      "order": 61,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 100
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            101
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LatentCutToBatch"
+      },
+      "widgets_values": [
+        "t",
+        1
+      ],
+      "title": "[Latent] 切片"
+    },
+    {
+      "id": 62,
+      "type": "VAEDecode",
+      "pos": [
+        2280,
+        1390
+      ],
+      "size": [
+        280,
+        60
+      ],
+      "flags": {},
+      "order": 62,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 101
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 52
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            102,
+            156
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEDecode"
+      },
+      "widgets_values": [],
+      "title": "[A 前景] VAE Decode"
+    },
+    {
+      "id": 106,
+      "type": "PreviewImage",
+      "pos": [
+        2280,
+        1480
+      ],
+      "size": [
+        280,
+        280
+      ],
+      "flags": {},
+      "order": 106,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 102
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": [],
+      "title": "🔍 [A 前景] 输出预览"
+    },
+    {
+      "id": 63,
+      "type": "SaveImage",
+      "pos": [
+        2280,
+        1780
+      ],
+      "size": [
+        280,
+        90
+      ],
+      "flags": {},
+      "order": 63,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 149
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "v8_A_foreground_RGBA"
+      ],
+      "title": "📤 [A 前景] 保存 RGBA"
+    },
+    {
+      "id": 90,
+      "type": "MarkdownNote",
+      "pos": [
+        2080,
+        60
+      ],
+      "size": [
+        600,
+        500
+      ],
+      "flags": {},
+      "order": 90,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MarkdownNote"
+      },
+      "widgets_values": [
+        "# v3.5: 真正接入 mask 到 V2\n\n## 关键架构突破\n\nV2 的 `context_image` (画笔) 在 ComfyUI 中通过\n**串联两个 ReferenceLatent** 实现:\n\n```\nReferenceLatent #1 (原图) → ReferenceLatent #2 (画笔图) → KSampler\n```\n\n源码证据 (`nodes_edit_model.py`):\n```python\nconditioning_set_values(cond, \n  {'reference_latents': [latent['samples']]}, \n  append=True)  # ← 可以多次 append\n```\n\n## 红色画笔图怎么做的\n\n1. SAM3 出 mask\n2. MaskFix+ 修复\n3. **黑底 + mask 区域涂红 = 红色画笔图**\n4. 这张图 VAEEncode 后送给第 2 个 ReferenceLatent\n\n## 官方对齐的参数\n\n- steps = **10** (画笔模式专用)\n- cfg = **1.0** (画笔模式专用)\n- 负向: 用 ConditioningZeroOut\n\n## 反查思路\n\n- 🔍6 红色画笔图: 黑底+红色目标区域,应清晰\n- 🔍5 V2 输出: 应该是红色区域对应的 RGBA 层\n\n## 不要做的事\n\n- 不要把 layers 改成 >1 (Control 模型架构限制)\n- 不要把 cfg 改回 4.0 (画笔模式会过曝)\n\n## v4.1 更新：绿色负向 brush\n\n- 新增 `GrowMask → InvertMask`：由正向 mask 膨胀后取反，生成绿色负向区域。\n- 去掉 `MaskSubtract`，避免未知节点包报错。\n- 新增诊断：`🔍 [诊断7] 绿色负向 mask（膨胀取反）`。\n- 新增诊断：`🔍 [诊断8] 最终红绿 Brush 图（送给 V2）`。\n- 第 2 个 ReferenceLatent 现在接收最终红绿 Brush 图，而不是仅红色画笔图。"
+      ],
+      "title": "📘 v3.5 说明"
+    },
+    {
+      "id": 204,
+      "type": "GrowMask",
+      "pos": [
+        1140,
+        660
+      ],
+      "size": [
+        280,
+        120
+      ],
+      "flags": {},
+      "order": 21,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 135
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            105
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "GrowMask"
+      },
+      "widgets_values": [
+        18,
+        true
+      ],
+      "title": "[Mask] 正向 mask 膨胀"
+    },
+    {
+      "id": 205,
+      "type": "InvertMask",
+      "pos": [
+        1460,
+        660
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 22,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 105
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            106,
+            109,
+            188
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "InvertMask"
+      },
+      "widgets_values": [],
+      "title": "[Mask] 膨胀后取反 = 绿色负向 mask"
+    },
+    {
+      "id": 206,
+      "type": "MaskPreview+",
+      "pos": [
+        1780,
+        660
+      ],
+      "size": [
+        300,
+        220
+      ],
+      "flags": {},
+      "order": 23,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 106
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MaskPreview+"
+      },
+      "widgets_values": [],
+      "title": "🔍 [诊断7] 绿色负向 mask（膨胀取反）"
+    },
+    {
+      "id": 207,
+      "type": "VR_EmptyImageLike",
+      "pos": [
+        1140,
+        1360
+      ],
+      "size": [
+        280,
+        100
+      ],
+      "flags": {},
+      "order": 204,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "reference",
+          "type": "IMAGE",
+          "link": 153
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            108
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_EmptyImageLike"
+      },
+      "widgets_values": [
+        0,
+        255,
+        0
+      ],
+      "title": "[画笔] 纯绿底图 (G=255)"
+    },
+    {
+      "id": 208,
+      "type": "ImageCompositeMasked",
+      "pos": [
+        1460,
+        1360
+      ],
+      "size": [
+        320,
+        160
+      ],
+      "flags": {},
+      "order": 205,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "destination",
+          "type": "IMAGE",
+          "link": 107
+        },
+        {
+          "name": "source",
+          "type": "IMAGE",
+          "link": 108
+        },
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 109,
+          "optional": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            110,
+            111
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageCompositeMasked"
+      },
+      "widgets_values": [
+        0,
+        0,
+        false
+      ],
+      "title": "[画笔] 合成: 红色目标 + 绿色负向"
+    },
+    {
+      "id": 209,
+      "type": "PreviewImage",
+      "pos": [
+        1780,
+        1360
+      ],
+      "size": [
+        300,
+        220
+      ],
+      "flags": {},
+      "order": 206,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 110
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": [],
+      "title": "🔍 [诊断8] 最终红绿 Brush 图（送给 V2）"
+    },
+    {
+      "id": 210,
+      "type": "KSampler",
+      "pos": [
+        1940,
+        1680
+      ],
+      "size": [
+        320,
+        280
+      ],
+      "flags": {},
+      "order": 160,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 112
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 113
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 114
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 124
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            116
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KSampler"
+      },
+      "widgets_values": [
+        351393078324112,
+        "randomize",
+        16,
+        1.0,
+        "euler",
+        "simple",
+        1.0
+      ],
+      "title": "[B 背景/主体] 采样 - Reconstruction"
+    },
+    {
+      "id": 211,
+      "type": "LatentCutToBatch",
+      "pos": [
+        2280,
+        1680
+      ],
+      "size": [
+        280,
+        90
+      ],
+      "flags": {},
+      "order": 161,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 116
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            117
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LatentCutToBatch"
+      },
+      "widgets_values": [
+        "t",
+        1
+      ],
+      "title": "[B 背景/主体] Latent 切片"
+    },
+    {
+      "id": 212,
+      "type": "VAEDecode",
+      "pos": [
+        2280,
+        1790
+      ],
+      "size": [
+        280,
+        60
+      ],
+      "flags": {},
+      "order": 162,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 117
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 118
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            119,
+            187
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEDecode"
+      },
+      "widgets_values": [],
+      "title": "[B 背景/主体] VAE Decode"
+    },
+    {
+      "id": 213,
+      "type": "PreviewImage",
+      "pos": [
+        2280,
+        1880
+      ],
+      "size": [
+        280,
+        280
+      ],
+      "flags": {},
+      "order": 163,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 119
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": [],
+      "title": "🔍 [B 背景/主体] Reconstruction 输出"
+    },
+    {
+      "id": 214,
+      "type": "SaveImage",
+      "pos": [
+        2280,
+        2190
+      ],
+      "size": [
+        280,
+        90
+      ],
+      "flags": {},
+      "order": 164,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 150
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "v8_B_background_RGBA"
+      ],
+      "title": "📤 [B 背景/主体] 保存重建 RGBA"
+    },
+    {
+      "id": 215,
+      "type": "PrimitiveNode",
+      "pos": [
+        1660,
+        1040
+      ],
+      "size": [
+        320,
+        90
+      ],
+      "flags": {},
+      "order": 30,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "BOOLEAN",
+          "type": "BOOLEAN",
+          "links": [
+            125,
+            126
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveNode"
+      },
+      "widgets_values": [
+        true
+      ],
+      "title": "模式选择: foreground_mode=true 走A；false看B"
+    },
+    {
+      "id": 216,
+      "type": "MarkdownNote",
+      "pos": [
+        2620,
+        1480
+      ],
+      "size": [
+        760,
+        620
+      ],
+      "flags": {},
+      "order": 999,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MarkdownNote"
+      },
+      "widgets_values": [
+        "# v7 真正实现 A/B 双路径\n\n## A 前景 Extraction\n用于猫、星星、文字、小装饰。\n\n特点：\n- 更低 steps / cfg\n- 减少重绘\n- 目标是保留可见层\n- 输出前缀：qwen_layer_A_foreground_extract\n\n## B 背景/主体 Reconstruction\n用于主体框架、UI底板、卡片底板、被遮挡的渐变主体。\n\n特点：\n- 更高 steps\n- 允许结构补全\n- 目标是去掉前景遮挡并补完整层\n- 输出前缀：qwen_layer_B_background_reconstruct\n\n## 注意\nComfyUI 原生没有稳定通用的 bool 路由节点。\n所以本版采用双输出路径：\n- foreground_mode=true：使用 A 输出\n- foreground_mode=false：使用 B 输出\n\n这比引入未知 Switch 包更稳定，不会再出现 MaskSubtract 这类未知包报错。\n\n## 下一步如需自动 bool 切换\n需要你本地确认是否已有 Impact Pack / rgthree / KJNodes 的 Switch 节点。\n"
+      ],
+      "title": "📘 v7 A/B 双路径说明"
+    },
+    {
+      "id": 217,
+      "type": "VR_GatedPassthrough",
+      "pos": [
+        2200,
+        100
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔀 Gate A (foreground_mode=true → pass)",
+      "inputs": [
+        {
+          "name": "value",
+          "type": "LATENT",
+          "link": 121
+        },
+        {
+          "name": "enable",
+          "type": "BOOLEAN",
+          "link": 125,
+          "widget": {
+            "name": "enable"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "LATENT",
+          "links": [
+            122
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_GatedPassthrough"
+      },
+      "widgets_values": [
+        true,
+        false
+      ]
+    },
+    {
+      "id": 218,
+      "type": "VR_GatedPassthrough",
+      "pos": [
+        2200,
+        320
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔀 Gate B (foreground_mode=false → pass)",
+      "inputs": [
+        {
+          "name": "value",
+          "type": "LATENT",
+          "link": 123
+        },
+        {
+          "name": "enable",
+          "type": "BOOLEAN",
+          "link": 126,
+          "widget": {
+            "name": "enable"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "LATENT",
+          "links": [
+            124
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_GatedPassthrough"
+      },
+      "widgets_values": [
+        true,
+        true
+      ]
+    },
+    {
+      "id": 219,
+      "type": "VR_LocateAnythingBox",
+      "pos": [
+        840,
+        430
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "📍 LocateAnything · Target Box",
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 127
+        }
+      ],
+      "outputs": [
+        {
+          "name": "box_mask",
+          "type": "MASK",
+          "links": [
+            132
+          ]
+        },
+        {
+          "name": "preview_image",
+          "type": "IMAGE",
+          "links": [
+            129
+          ]
+        },
+        {
+          "name": "bbox_json",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "name": "box_usable",
+          "type": "BOOLEAN",
+          "links": []
+        },
+        {
+          "name": "bboxes",
+          "type": "BBOX",
+          "links": [
+            128
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_LocateAnythingBox"
+      },
+      "widgets_values": [
+        "main target object",
+        "/root/ComfyUI/models/LocateAnything-3B",
+        "auto",
+        "hybrid",
+        "single",
+        8,
+        2048,
+        0.7
+      ]
+    },
+    {
+      "id": 220,
+      "type": "PreviewImage",
+      "pos": [
+        1180,
+        430
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [诊断10] LocateAnything 矩形框",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 129
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 221,
+      "type": "VR_TargetMaskResolver",
+      "pos": [
+        1180,
+        700
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🎯 Target Mask Resolver (SAM优先/矩形兜底)",
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 130
+        },
+        {
+          "name": "sam_mask",
+          "type": "MASK",
+          "link": 131
+        },
+        {
+          "name": "fallback_mask",
+          "type": "MASK",
+          "link": 132
+        }
+      ],
+      "outputs": [
+        {
+          "name": "resolved_mask",
+          "type": "MASK",
+          "links": [
+            134,
+            135,
+            137,
+            154,
+            157
+          ]
+        },
+        {
+          "name": "quality_preview",
+          "type": "IMAGE",
+          "links": [
+            133
+          ]
+        },
+        {
+          "name": "sam_usable",
+          "type": "BOOLEAN",
+          "links": []
+        },
+        {
+          "name": "fallback_used",
+          "type": "BOOLEAN",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_TargetMaskResolver"
+      },
+      "widgets_values": [
+        0.5,
+        0.002,
+        0.9,
+        0.02,
+        0,
+        true
+      ]
+    },
+    {
+      "id": 222,
+      "type": "PreviewImage",
+      "pos": [
+        1540,
+        700
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [诊断11] Resolver 最终目标 mask",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 133
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 223,
+      "type": "VR_HFMattingAlpha",
+      "pos": [
+        3100,
+        -120
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🧠 HF Matting Alpha (A path)",
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 136
+        },
+        {
+          "name": "candidate_mask",
+          "type": "MASK",
+          "link": 137
+        }
+      ],
+      "outputs": [
+        {
+          "name": "matte_alpha",
+          "type": "MASK",
+          "links": [
+            159
+          ]
+        },
+        {
+          "name": "confidence",
+          "type": "MASK",
+          "links": [
+            160
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_HFMattingAlpha"
+      },
+      "widgets_values": [
+        "/root/ComfyUI/models/RMBG-2.0",
+        1024,
+        "auto"
+      ]
+    },
+    {
+      "id": 226,
+      "type": "VR_JoinRGBA",
+      "pos": [
+        3800,
+        100
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🧷 RGBA Join (A)",
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 161
+        },
+        {
+          "name": "alpha",
+          "type": "MASK",
+          "link": 162
+        }
+      ],
+      "outputs": [
+        {
+          "name": "rgba",
+          "type": "IMAGE",
+          "links": [
+            149
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_JoinRGBA"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 227,
+      "type": "VR_JoinRGBA",
+      "pos": [
+        3800,
+        360
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🧷 RGBA Join (B)",
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 189
+        },
+        {
+          "name": "alpha",
+          "type": "MASK",
+          "link": 190
+        }
+      ],
+      "outputs": [
+        {
+          "name": "rgba",
+          "type": "IMAGE",
+          "links": [
+            150
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_JoinRGBA"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 228,
+      "type": "MarkdownNote",
+      "pos": [
+        2200,
+        600
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "📘 v8.0 说明",
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MarkdownNote"
+      },
+      "widgets_values": [
+        "## v8.0 · A/B 真正分流 + VectorReady\n\n**A/B 切换**: 节点 215 (foreground_mode) → 两个 VR_GatedPassthrough\n- Gate A: enable=215, invert=false → 只在 true 时放行\n- Gate B: enable=215, invert=true  → 只在 false 时放行\n未选中的分支会因为 ExecutionBlocker 被自动跳过整条管线\n(KSampler + VAEDecode + VectorReady + SaveImage 全部不执行)\n\n**VectorReady**:\n- A 路径: VR_PipelineLight (alpha 源 = TargetMaskResolver)\n- B 路径: VR_PipelineStrong (alpha 源 = InvertMask 节点 205)\nalpha 当前是 mask 复用占位,v8.1 接入 ViTMatte/RMBG 替换\n\n**定位兜底**:\n- LocateAnything 生成目标矩形 mask\n- SAM/MaskFix 可用时优先使用 SAM\n- SAM 不可用时回退到矩形 mask,保证 Qwen V2 仍收到 brush\n\n**输出**: RGBA PNG via VR_JoinRGBA\n- A: v8_A_foreground_RGBA_*.png\n- B: v8_B_background_RGBA_*.png"
+      ]
+    },
+    {
+      "id": 229,
+      "type": "PreviewImage",
+      "pos": [
+        2550,
+        900
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [诊断9] Brush 是否送入 Qwen (绿=使用, 红=跳过)",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 155
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 230,
+      "type": "VR_PipelineLightDebug",
+      "pos": [
+        3500,
+        100
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔬 VectorReady Light DEBUG (A path, 24 outs)",
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 156
+        },
+        {
+          "name": "alpha",
+          "type": "MASK",
+          "link": 157
+        },
+        {
+          "name": "source_image",
+          "type": "IMAGE",
+          "link": 158
+        },
+        {
+          "name": "external_matte_alpha",
+          "type": "MASK",
+          "link": 159
+        },
+        {
+          "name": "external_confidence",
+          "type": "MASK",
+          "link": 160
+        }
+      ],
+      "outputs": [
+        {
+          "name": "input_rgb",
+          "type": "IMAGE",
+          "links": [
+            163
+          ]
+        },
+        {
+          "name": "native_alpha_viz",
+          "type": "IMAGE",
+          "links": [
+            164
+          ]
+        },
+        {
+          "name": "alpha_cleaned_viz",
+          "type": "IMAGE",
+          "links": [
+            165
+          ]
+        },
+        {
+          "name": "sure_foreground_viz",
+          "type": "IMAGE",
+          "links": [
+            166
+          ]
+        },
+        {
+          "name": "sure_background_viz",
+          "type": "IMAGE",
+          "links": [
+            167
+          ]
+        },
+        {
+          "name": "trimap_unknown_viz",
+          "type": "IMAGE",
+          "links": [
+            168
+          ]
+        },
+        {
+          "name": "trimap_viz",
+          "type": "IMAGE",
+          "links": [
+            169
+          ]
+        },
+        {
+          "name": "matting_rgb",
+          "type": "IMAGE",
+          "links": [
+            170
+          ]
+        },
+        {
+          "name": "visible_alpha_viz",
+          "type": "IMAGE",
+          "links": [
+            171
+          ]
+        },
+        {
+          "name": "unknown_region_viz",
+          "type": "IMAGE",
+          "links": [
+            172
+          ]
+        },
+        {
+          "name": "matte_confidence_viz",
+          "type": "IMAGE",
+          "links": [
+            173
+          ]
+        },
+        {
+          "name": "source_composed",
+          "type": "IMAGE",
+          "links": [
+            174
+          ]
+        },
+        {
+          "name": "original_region_viz",
+          "type": "IMAGE",
+          "links": [
+            175
+          ]
+        },
+        {
+          "name": "qwen_region_viz",
+          "type": "IMAGE",
+          "links": [
+            176
+          ]
+        },
+        {
+          "name": "transparent_region_viz",
+          "type": "IMAGE",
+          "links": [
+            177
+          ]
+        },
+        {
+          "name": "low_confidence_viz",
+          "type": "IMAGE",
+          "links": [
+            178
+          ]
+        },
+        {
+          "name": "hole_viz",
+          "type": "IMAGE",
+          "links": [
+            179
+          ]
+        },
+        {
+          "name": "detail_viz",
+          "type": "IMAGE",
+          "links": [
+            180
+          ]
+        },
+        {
+          "name": "line_viz",
+          "type": "IMAGE",
+          "links": [
+            181
+          ]
+        },
+        {
+          "name": "bilateral_smooth",
+          "type": "IMAGE",
+          "links": [
+            182
+          ]
+        },
+        {
+          "name": "palette_quantized",
+          "type": "IMAGE",
+          "links": [
+            183
+          ]
+        },
+        {
+          "name": "canny_edges_viz",
+          "type": "IMAGE",
+          "links": [
+            184
+          ]
+        },
+        {
+          "name": "roi_sharpened",
+          "type": "IMAGE",
+          "links": [
+            161,
+            185
+          ]
+        },
+        {
+          "name": "alpha_stepified",
+          "type": "MASK",
+          "links": [
+            162,
+            186
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_PipelineLightDebug"
+      },
+      "widgets_values": [
+        0,
+        3,
+        1500,
+        "mask_socket",
+        "external_matte"
+      ]
+    },
+    {
+      "id": 231,
+      "type": "PreviewImage",
+      "pos": [
+        3800,
+        -800
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [0] input_rgb",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 163
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 232,
+      "type": "PreviewImage",
+      "pos": [
+        4120,
+        -800
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [1] native_alpha_viz",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 164
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 233,
+      "type": "PreviewImage",
+      "pos": [
+        4440,
+        -800
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [2] alpha_cleaned_viz",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 165
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 234,
+      "type": "PreviewImage",
+      "pos": [
+        4760,
+        -800
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [3] sure_foreground_viz",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 166
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 235,
+      "type": "PreviewImage",
+      "pos": [
+        3800,
+        -540
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [4] sure_background_viz",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 167
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 236,
+      "type": "PreviewImage",
+      "pos": [
+        4120,
+        -540
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [5] trimap_unknown_viz",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 168
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 237,
+      "type": "PreviewImage",
+      "pos": [
+        4440,
+        -540
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [6] trimap_viz",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 169
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 238,
+      "type": "PreviewImage",
+      "pos": [
+        4760,
+        -540
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [7] matting_rgb",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 170
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 239,
+      "type": "PreviewImage",
+      "pos": [
+        3800,
+        -280
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [8] visible_alpha_viz",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 171
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 240,
+      "type": "PreviewImage",
+      "pos": [
+        4120,
+        -280
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [9] unknown_region_viz",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 172
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 241,
+      "type": "PreviewImage",
+      "pos": [
+        4440,
+        -280
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [10] matte_confidence_viz",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 173
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 242,
+      "type": "PreviewImage",
+      "pos": [
+        4760,
+        -280
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [11] source_composed",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 174
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 243,
+      "type": "PreviewImage",
+      "pos": [
+        3800,
+        -20
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [12] original_region_viz",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 175
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 244,
+      "type": "PreviewImage",
+      "pos": [
+        4120,
+        -20
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [13] qwen_region_viz",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 176
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 245,
+      "type": "PreviewImage",
+      "pos": [
+        4440,
+        -20
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [14] transparent_region_viz",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 177
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 246,
+      "type": "PreviewImage",
+      "pos": [
+        4760,
+        -20
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [15] low_confidence_viz",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 178
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 247,
+      "type": "PreviewImage",
+      "pos": [
+        3800,
+        240
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [16] hole_viz",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 179
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 248,
+      "type": "PreviewImage",
+      "pos": [
+        4120,
+        240
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [17] detail_viz",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 180
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 249,
+      "type": "PreviewImage",
+      "pos": [
+        4440,
+        240
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [18] line_viz",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 181
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 250,
+      "type": "PreviewImage",
+      "pos": [
+        4760,
+        240
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [19] bilateral_smooth",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 182
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 251,
+      "type": "PreviewImage",
+      "pos": [
+        3800,
+        500
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [20] palette_quantized",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 183
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 252,
+      "type": "PreviewImage",
+      "pos": [
+        4120,
+        500
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [21] canny_edges_viz",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 184
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 253,
+      "type": "PreviewImage",
+      "pos": [
+        4440,
+        500
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [22] roi_sharpened",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 185
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 254,
+      "type": "MaskPreview+",
+      "pos": [
+        4760,
+        500
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [23] alpha_stepified",
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 186
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MaskPreview+"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 255,
+      "type": "VR_PipelineStrongDebug",
+      "pos": [
+        3500,
+        360
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔬 VectorReady Strong DEBUG (B path, 9 outs)",
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 187
+        },
+        {
+          "name": "alpha",
+          "type": "MASK",
+          "link": 188
+        }
+      ],
+      "outputs": [
+        {
+          "name": "input_rgb",
+          "type": "IMAGE",
+          "links": [
+            191
+          ]
+        },
+        {
+          "name": "native_alpha_viz",
+          "type": "IMAGE",
+          "links": [
+            192
+          ]
+        },
+        {
+          "name": "alpha_cleaned_viz",
+          "type": "IMAGE",
+          "links": [
+            193
+          ]
+        },
+        {
+          "name": "bilateral_smooth",
+          "type": "IMAGE",
+          "links": [
+            194
+          ]
+        },
+        {
+          "name": "canny_edges_viz",
+          "type": "IMAGE",
+          "links": [
+            195
+          ]
+        },
+        {
+          "name": "kmeans_quantized",
+          "type": "IMAGE",
+          "links": [
+            196
+          ]
+        },
+        {
+          "name": "region_merged",
+          "type": "IMAGE",
+          "links": [
+            197
+          ]
+        },
+        {
+          "name": "roi_sharpened",
+          "type": "IMAGE",
+          "links": [
+            189,
+            198
+          ]
+        },
+        {
+          "name": "alpha_stepified",
+          "type": "MASK",
+          "links": [
+            190,
+            199
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_PipelineStrongDebug"
+      },
+      "widgets_values": [
+        12,
+        6.0,
+        3,
+        1500,
+        "auto"
+      ]
+    },
+    {
+      "id": 256,
+      "type": "PreviewImage",
+      "pos": [
+        3800,
+        800
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [0] input_rgb",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 191
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 257,
+      "type": "PreviewImage",
+      "pos": [
+        4120,
+        800
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [1] native_alpha_viz",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 192
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 258,
+      "type": "PreviewImage",
+      "pos": [
+        4440,
+        800
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [2] alpha_cleaned_viz",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 193
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 259,
+      "type": "PreviewImage",
+      "pos": [
+        4760,
+        800
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [3] bilateral_smooth",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 194
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 260,
+      "type": "PreviewImage",
+      "pos": [
+        3800,
+        1060
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [4] canny_edges_viz",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 195
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 261,
+      "type": "PreviewImage",
+      "pos": [
+        4120,
+        1060
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [5] kmeans_quantized",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 196
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 262,
+      "type": "PreviewImage",
+      "pos": [
+        4440,
+        1060
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [6] region_merged",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 197
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 263,
+      "type": "PreviewImage",
+      "pos": [
+        4760,
+        1060
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [7] roi_sharpened",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 198
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 264,
+      "type": "MaskPreview+",
+      "pos": [
+        3800,
+        1320
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [8] alpha_stepified",
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 199
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MaskPreview+"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 265,
+      "type": "MarkdownNote",
+      "pos": [
+        3400,
+        1500
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "📘 v8 DEBUG 说明",
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MarkdownNote"
+      },
+      "widgets_values": [
+        "## v8 DEBUG (A + B 双路径)\n\nA 路径: VR_PipelineLightDebug (11 stage outputs, includes edge restore diagnostics)\nB 路径: VR_PipelineStrongDebug (9 stage outputs)\n\n**日志**: `/root/ComfyUI/custom_nodes/comfyui_vector_ready/vr_debug.log`\n**生产输出**: 两条路径的 SaveImage 仍然正常工作\n**执行**: ExecutionBlocker 仍生效,foreground_mode 切换只跑一条链路"
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      5,
+      0,
+      "IMAGE"
+    ],
+    [
+      2,
+      5,
+      0,
+      6,
+      0,
+      "IMAGE"
+    ],
+    [
+      3,
+      5,
+      0,
+      101,
+      0,
+      "IMAGE"
+    ],
+    [
+      4,
+      5,
+      0,
+      50,
+      0,
+      "IMAGE"
+    ],
+    [
+      5,
+      5,
+      0,
+      11,
+      1,
+      "IMAGE"
+    ],
+    [
+      10,
+      10,
+      0,
+      11,
+      0,
+      "EASY_SAM3_MODEL"
+    ],
+    [
+      11,
+      11,
+      0,
+      20,
+      0,
+      "MASK"
+    ],
+    [
+      12,
+      11,
+      0,
+      102,
+      0,
+      "MASK"
+    ],
+    [
+      13,
+      20,
+      0,
+      103,
+      0,
+      "MASK"
+    ],
+    [
+      14,
+      11,
+      1,
+      104,
+      0,
+      "IMAGE"
+    ],
+    [
+      16,
+      202,
+      0,
+      203,
+      0,
+      "IMAGE"
+    ],
+    [
+      17,
+      201,
+      0,
+      203,
+      1,
+      "IMAGE"
+    ],
+    [
+      19,
+      203,
+      0,
+      105,
+      0,
+      "IMAGE"
+    ],
+    [
+      30,
+      30,
+      0,
+      31,
+      0,
+      "MODEL"
+    ],
+    [
+      31,
+      31,
+      0,
+      32,
+      0,
+      "MODEL"
+    ],
+    [
+      40,
+      33,
+      0,
+      40,
+      0,
+      "CLIP"
+    ],
+    [
+      50,
+      34,
+      0,
+      50,
+      1,
+      "VAE"
+    ],
+    [
+      51,
+      34,
+      0,
+      51,
+      1,
+      "VAE"
+    ],
+    [
+      52,
+      34,
+      0,
+      62,
+      1,
+      "VAE"
+    ],
+    [
+      60,
+      40,
+      0,
+      52,
+      0,
+      "CONDITIONING"
+    ],
+    [
+      61,
+      50,
+      0,
+      52,
+      1,
+      "LATENT"
+    ],
+    [
+      62,
+      52,
+      0,
+      53,
+      0,
+      "CONDITIONING"
+    ],
+    [
+      63,
+      51,
+      0,
+      53,
+      1,
+      "LATENT"
+    ],
+    [
+      70,
+      52,
+      0,
+      54,
+      0,
+      "CONDITIONING"
+    ],
+    [
+      80,
+      6,
+      0,
+      55,
+      0,
+      "INT"
+    ],
+    [
+      81,
+      6,
+      1,
+      55,
+      1,
+      "INT"
+    ],
+    [
+      90,
+      32,
+      0,
+      60,
+      0,
+      "MODEL"
+    ],
+    [
+      91,
+      53,
+      0,
+      60,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      92,
+      54,
+      0,
+      60,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      100,
+      60,
+      0,
+      61,
+      0,
+      "LATENT"
+    ],
+    [
+      101,
+      61,
+      0,
+      62,
+      0,
+      "LATENT"
+    ],
+    [
+      102,
+      62,
+      0,
+      106,
+      0,
+      "IMAGE"
+    ],
+    [
+      105,
+      204,
+      0,
+      205,
+      0,
+      "MASK"
+    ],
+    [
+      106,
+      205,
+      0,
+      206,
+      0,
+      "MASK"
+    ],
+    [
+      107,
+      203,
+      0,
+      208,
+      0,
+      "IMAGE"
+    ],
+    [
+      108,
+      207,
+      0,
+      208,
+      1,
+      "IMAGE"
+    ],
+    [
+      109,
+      205,
+      0,
+      208,
+      2,
+      "MASK"
+    ],
+    [
+      110,
+      208,
+      0,
+      209,
+      0,
+      "IMAGE"
+    ],
+    [
+      111,
+      208,
+      0,
+      51,
+      0,
+      "IMAGE"
+    ],
+    [
+      112,
+      32,
+      0,
+      210,
+      0,
+      "MODEL"
+    ],
+    [
+      113,
+      53,
+      0,
+      210,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      114,
+      54,
+      0,
+      210,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      116,
+      210,
+      0,
+      211,
+      0,
+      "LATENT"
+    ],
+    [
+      117,
+      211,
+      0,
+      212,
+      0,
+      "LATENT"
+    ],
+    [
+      118,
+      34,
+      0,
+      212,
+      1,
+      "VAE"
+    ],
+    [
+      119,
+      212,
+      0,
+      213,
+      0,
+      "IMAGE"
+    ],
+    [
+      121,
+      55,
+      0,
+      217,
+      0,
+      "LATENT"
+    ],
+    [
+      122,
+      217,
+      0,
+      60,
+      3,
+      "LATENT"
+    ],
+    [
+      123,
+      55,
+      0,
+      218,
+      0,
+      "LATENT"
+    ],
+    [
+      124,
+      218,
+      0,
+      210,
+      3,
+      "LATENT"
+    ],
+    [
+      125,
+      215,
+      0,
+      217,
+      1,
+      "BOOLEAN"
+    ],
+    [
+      126,
+      215,
+      0,
+      218,
+      1,
+      "BOOLEAN"
+    ],
+    [
+      127,
+      5,
+      0,
+      219,
+      0,
+      "IMAGE"
+    ],
+    [
+      128,
+      219,
+      4,
+      11,
+      2,
+      "BBOX"
+    ],
+    [
+      129,
+      219,
+      1,
+      220,
+      0,
+      "IMAGE"
+    ],
+    [
+      130,
+      5,
+      0,
+      221,
+      0,
+      "IMAGE"
+    ],
+    [
+      131,
+      20,
+      0,
+      221,
+      1,
+      "MASK"
+    ],
+    [
+      132,
+      219,
+      0,
+      221,
+      2,
+      "MASK"
+    ],
+    [
+      133,
+      221,
+      1,
+      222,
+      0,
+      "IMAGE"
+    ],
+    [
+      134,
+      221,
+      0,
+      203,
+      2,
+      "MASK"
+    ],
+    [
+      135,
+      221,
+      0,
+      204,
+      0,
+      "MASK"
+    ],
+    [
+      136,
+      5,
+      0,
+      223,
+      0,
+      "IMAGE"
+    ],
+    [
+      137,
+      221,
+      0,
+      223,
+      1,
+      "MASK"
+    ],
+    [
+      149,
+      226,
+      0,
+      63,
+      0,
+      "IMAGE"
+    ],
+    [
+      150,
+      227,
+      0,
+      214,
+      0,
+      "IMAGE"
+    ],
+    [
+      151,
+      5,
+      0,
+      201,
+      0,
+      "IMAGE"
+    ],
+    [
+      152,
+      5,
+      0,
+      202,
+      0,
+      "IMAGE"
+    ],
+    [
+      153,
+      5,
+      0,
+      207,
+      0,
+      "IMAGE"
+    ],
+    [
+      154,
+      221,
+      0,
+      53,
+      2,
+      "MASK"
+    ],
+    [
+      155,
+      53,
+      2,
+      229,
+      0,
+      "IMAGE"
+    ],
+    [
+      156,
+      62,
+      0,
+      230,
+      0,
+      "IMAGE"
+    ],
+    [
+      157,
+      221,
+      0,
+      230,
+      1,
+      "MASK"
+    ],
+    [
+      158,
+      5,
+      0,
+      230,
+      2,
+      "IMAGE"
+    ],
+    [
+      159,
+      223,
+      0,
+      230,
+      3,
+      "MASK"
+    ],
+    [
+      160,
+      223,
+      1,
+      230,
+      4,
+      "MASK"
+    ],
+    [
+      161,
+      230,
+      22,
+      226,
+      0,
+      "IMAGE"
+    ],
+    [
+      162,
+      230,
+      23,
+      226,
+      1,
+      "MASK"
+    ],
+    [
+      163,
+      230,
+      0,
+      231,
+      0,
+      "IMAGE"
+    ],
+    [
+      164,
+      230,
+      1,
+      232,
+      0,
+      "IMAGE"
+    ],
+    [
+      165,
+      230,
+      2,
+      233,
+      0,
+      "IMAGE"
+    ],
+    [
+      166,
+      230,
+      3,
+      234,
+      0,
+      "IMAGE"
+    ],
+    [
+      167,
+      230,
+      4,
+      235,
+      0,
+      "IMAGE"
+    ],
+    [
+      168,
+      230,
+      5,
+      236,
+      0,
+      "IMAGE"
+    ],
+    [
+      169,
+      230,
+      6,
+      237,
+      0,
+      "IMAGE"
+    ],
+    [
+      170,
+      230,
+      7,
+      238,
+      0,
+      "IMAGE"
+    ],
+    [
+      171,
+      230,
+      8,
+      239,
+      0,
+      "IMAGE"
+    ],
+    [
+      172,
+      230,
+      9,
+      240,
+      0,
+      "IMAGE"
+    ],
+    [
+      173,
+      230,
+      10,
+      241,
+      0,
+      "IMAGE"
+    ],
+    [
+      174,
+      230,
+      11,
+      242,
+      0,
+      "IMAGE"
+    ],
+    [
+      175,
+      230,
+      12,
+      243,
+      0,
+      "IMAGE"
+    ],
+    [
+      176,
+      230,
+      13,
+      244,
+      0,
+      "IMAGE"
+    ],
+    [
+      177,
+      230,
+      14,
+      245,
+      0,
+      "IMAGE"
+    ],
+    [
+      178,
+      230,
+      15,
+      246,
+      0,
+      "IMAGE"
+    ],
+    [
+      179,
+      230,
+      16,
+      247,
+      0,
+      "IMAGE"
+    ],
+    [
+      180,
+      230,
+      17,
+      248,
+      0,
+      "IMAGE"
+    ],
+    [
+      181,
+      230,
+      18,
+      249,
+      0,
+      "IMAGE"
+    ],
+    [
+      182,
+      230,
+      19,
+      250,
+      0,
+      "IMAGE"
+    ],
+    [
+      183,
+      230,
+      20,
+      251,
+      0,
+      "IMAGE"
+    ],
+    [
+      184,
+      230,
+      21,
+      252,
+      0,
+      "IMAGE"
+    ],
+    [
+      185,
+      230,
+      22,
+      253,
+      0,
+      "IMAGE"
+    ],
+    [
+      186,
+      230,
+      23,
+      254,
+      0,
+      "MASK"
+    ],
+    [
+      187,
+      212,
+      0,
+      255,
+      0,
+      "IMAGE"
+    ],
+    [
+      188,
+      205,
+      0,
+      255,
+      1,
+      "MASK"
+    ],
+    [
+      189,
+      255,
+      7,
+      227,
+      0,
+      "IMAGE"
+    ],
+    [
+      190,
+      255,
+      8,
+      227,
+      1,
+      "MASK"
+    ],
+    [
+      191,
+      255,
+      0,
+      256,
+      0,
+      "IMAGE"
+    ],
+    [
+      192,
+      255,
+      1,
+      257,
+      0,
+      "IMAGE"
+    ],
+    [
+      193,
+      255,
+      2,
+      258,
+      0,
+      "IMAGE"
+    ],
+    [
+      194,
+      255,
+      3,
+      259,
+      0,
+      "IMAGE"
+    ],
+    [
+      195,
+      255,
+      4,
+      260,
+      0,
+      "IMAGE"
+    ],
+    [
+      196,
+      255,
+      5,
+      261,
+      0,
+      "IMAGE"
+    ],
+    [
+      197,
+      255,
+      6,
+      262,
+      0,
+      "IMAGE"
+    ],
+    [
+      198,
+      255,
+      7,
+      263,
+      0,
+      "IMAGE"
+    ],
+    [
+      199,
+      255,
+      8,
+      264,
+      0,
+      "MASK"
+    ]
+  ],
+  "groups": [
+    {
+      "title": "📥 输入",
+      "bounding": [
+        60,
+        40,
+        730,
+        380
+      ],
+      "color": "#3f789e",
+      "font_size": 24,
+      "locked": false
+    },
+    {
+      "title": "🎯 SAM3 + Mask 修复",
+      "bounding": [
+        60,
+        430,
+        1700,
+        670
+      ],
+      "color": "#a1309b",
+      "font_size": 24,
+      "locked": false
+    },
+    {
+      "title": "🖌️ 红色画笔图制作 (★ 核心)",
+      "bounding": [
+        800,
+        1090,
+        1280,
+        280
+      ],
+      "color": "#c44",
+      "font_size": 24,
+      "locked": false
+    },
+    {
+      "title": "🧠 模型加载",
+      "bounding": [
+        60,
+        1260,
+        360,
+        580
+      ],
+      "color": "#8aa",
+      "font_size": 24,
+      "locked": false
+    },
+    {
+      "title": "⚙️ 双 ReferenceLatent",
+      "bounding": [
+        440,
+        1260,
+        1480,
+        280
+      ],
+      "color": "#a18b30",
+      "font_size": 24,
+      "locked": false
+    },
+    {
+      "title": "📤 采样 (画笔模式)",
+      "bounding": [
+        1930,
+        1260,
+        660,
+        660
+      ],
+      "color": "#5e8a3f",
+      "font_size": 24,
+      "locked": false
+    },
+    {
+      "title": "🟢 绿色负向画笔生成（无 MaskSubtract 版）",
+      "bounding": [
+        1120,
+        620,
+        1000,
+        980
+      ],
+      "color": "#3f8a5e",
+      "font_size": 24,
+      "locked": false
+    },
+    {
+      "title": "🅰️ Foreground Extraction Path",
+      "bounding": [
+        1920,
+        1260,
+        680,
+        620
+      ],
+      "color": "#4776a8",
+      "font_size": 24,
+      "locked": false
+    },
+    {
+      "title": "🅱️ Background / Main Body Reconstruction Path",
+      "bounding": [
+        1920,
+        1660,
+        680,
+        680
+      ],
+      "color": "#a87938",
+      "font_size": 24,
+      "locked": false
+    },
+    {
+      "title": "🔀 Mode Selection",
+      "bounding": [
+        1640,
+        1020,
+        360,
+        130
+      ],
+      "color": "#8a8a8a",
+      "font_size": 24,
+      "locked": false
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.4,
+      "offset": [
+        0,
+        0
+      ]
+    },
+    "_workflow_meta": {
+      "name": "Qwen-Image-Layered V2 (画笔模式)",
+      "version": "v7_ab_dual_path",
+      "key_changes": [
+        "真正实现 A/B 双路径，而非仅说明",
+        "A: foreground extraction, 低 steps/cfg，减少重绘",
+        "B: background/main-body reconstruction, 更高 steps，允许遮挡补全",
+        "移除 MaskSubtract 依赖，避免未知包报错",
+        "采用双输出路径，避免依赖未知 Switch 节点"
+      ]
+    }
+  },
+  "version": 0.4
+}

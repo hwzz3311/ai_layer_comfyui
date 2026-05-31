@@ -1,0 +1,15 @@
+[project]
+name = "comfyui_vector_ready"
+version = "0.1.0"
+description = "Vectorization-friendly RGBA post-processing nodes for ComfyUI / Qwen Layered workflows."
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "opencv-python>=4.8",
+    "scipy>=1.10",
+    "torch>=2.0",
+    "transformers>=4.40",
+]
+
+[project.urls]
+Repository = "https://github.com/leon-zheng/comfyui_vector_ready"
