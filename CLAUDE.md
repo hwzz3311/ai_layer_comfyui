@@ -13,10 +13,19 @@ Two execution archetypes flow through the same ComfyUI workflow, selected by a `
 
 The runtime selector is `VR_GatedPassthrough` on each KSampler's `latent_image` input — the unselected branch receives `ExecutionBlocker`, pruning its downstream chain.
 
+### Subject mask construction (v8.2)
+
+Both paths share the same upstream silhouette pipeline:
+
+- **Positive chain**: `PrimitiveNode "Target Query"` (node 219) drives both `VR_LocateAnythingBox` (LA #1, node 220) and `easy sam3ImageSegmentation` (SAM3 #1, node 11) — dual-prompt (text + bbox). SAM3 → `MaskFix+` (node 20) → `VR_TargetMaskResolver` (LA-rectangle fallback when SAM3 fails).
+- **Negative cutout chain** (mirrors the positive chain for topological holes — card-slot windows, frame cut-outs, donut shapes): `PrimitiveNode "Cutout Query"` (node 224) → LA #2 (node 225) → SAM3 #2 (node 227, shares the model loader node 10) → `MaskFix+` (node 228). **No Resolver fallback** on this chain: an empty SAM3 must result in zero subtraction, never a full-bbox over-subtract.
+- **`VR_MaskSubtract`** (node 230) consumes both chains: `final_alpha = clamp(outer − dilate(inner, inner_dilate_px), 0, 1)`. All downstream consumers (brush ref, trimap, RMBG, VectorReady) read this single output.
+- **Zero-cost passthrough**: when `Cutout Query` value is `""`, `VR_LocateAnythingBox.locate` early-returns without loading the 3B model, the SAM3 output is empty, and `VR_MaskSubtract` short-circuits to outer-passthrough. Subjects without cutouts pay no extra inference.
+
 ## Repository layout
 
 - `comfyui_vector_ready/` — the ComfyUI custom-nodes package. Installed by symlinking/copying into `ComfyUI/custom_nodes/`.
-  - `nodes/` — atomic RGBA post-processing ops (LAB convert, k-means, bilateral, edge-aware merge, ROI unsharp, canny, alpha stepify, gated passthrough, join RGBA, debug probes).
+  - `nodes/` — atomic RGBA post-processing ops (LAB convert, k-means, bilateral, edge-aware merge, ROI unsharp, canny, alpha stepify, gated passthrough, join RGBA, debug probes), grounding (`locate_anything_box`), mask math (`mask_subtract` — used by the v8.2 negative-cutout chain).
   - `presets/pipeline.py` — `VR_PipelineLight` (A) and `VR_PipelineStrong` (B) composite nodes that wire the atomic ops in the canonical order.
   - `presets/pipeline_debug.py` — DEBUG variants that expose every intermediate stage as an extra output (used by the debug workflow JSON).
   - `nodes/_utils.py` — the **only** correct way to bridge ComfyUI tensors ↔ numpy/cv2. Use these helpers; don't roll your own conversions.

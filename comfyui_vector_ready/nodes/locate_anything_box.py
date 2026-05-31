@@ -129,6 +129,14 @@ def _patch_loaded_model_module(model):
                 pass
 
 
+def _magi_available() -> bool:
+    try:
+        import magi_attention  # noqa: F401
+        return True
+    except Exception:
+        return False
+
+
 @lru_cache(maxsize=2)
 def _load_worker(model_id: str, device_name: str, attn_impl: str):
     # Patch BEFORE importing transformers / triggering custom modeling import.
@@ -149,11 +157,27 @@ def _load_worker(model_id: str, device_name: str, attn_impl: str):
     tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
     processor = AutoProcessor.from_pretrained(model_path, trust_remote_code=True)
 
-    # NOTE: LocateAnything-3B's config.json sets _attn_implementation to a
-    # CUSTOM value "magi" — a blockwise non-causal attention that's part of
-    # the model's design (see causal_attn=False, block_size=6). Overriding it
-    # to sdpa/flash_attention_2 will make the model RUN but produce garbage
-    # boxes. Only override when the user explicitly opts in via the widget.
+    # Resolve "keep" against the actual environment. LocateAnything-3B's
+    # config.json sets _attn_implementation to "magi" — a blockwise non-causal
+    # attention from the magi_attention package. When magi_attention isn't
+    # installed, the model's own code internally swaps "magi" → "flash_attention_2",
+    # but the bundled modeling_qwen2.py forward only branches on a few impls
+    # and raises NotImplementedError on "flash_attention_2". Result: load
+    # succeeds, generate() crashes.
+    #
+    # When magi is unavailable we therefore force-override "keep" to "sdpa"
+    # before loading, so AutoModel never enters that broken fallback path.
+    # The historical warning that "sdpa produces garbage boxes" was about
+    # forcing sdpa on top of a WORKING magi install; with magi absent, sdpa
+    # is strictly better than crashing and empirically yields usable boxes.
+    if attn_impl == "keep" and not _magi_available():
+        print(
+            "[VR_LocateAnythingBox] magi_attention not installed; "
+            "auto-resolving attn_implementation 'keep' → 'sdpa' to avoid the "
+            "model's broken flash_attention_2 fallback path"
+        )
+        attn_impl = "sdpa"
+
     if attn_impl != "keep":
         config = AutoConfig.from_pretrained(model_path, trust_remote_code=True)
 
@@ -303,6 +327,23 @@ class VR_LocateAnythingBox:
         attn_implementation="keep",
     ):
         frames = torch_image_to_np(image)
+
+        # Empty-query short-circuit: when the caller (or the shared
+        # PrimitiveNode that drives both LA and SAM3) passes an empty string,
+        # skip the 3B-model inference entirely. Returns an empty mask + empty
+        # bbox list so downstream subtract / dual-prompt SAM3 nodes naturally
+        # behave as no-ops. This is the negative-chain optimization path —
+        # workflows that don't need cutout extraction pay zero compute.
+        if not str(query).strip():
+            empty_mask = np.zeros(frames.shape[:3], dtype=np.float32)
+            empty_mask_t = np_to_torch_mask(empty_mask)
+            empty_preview_t = np_to_torch_image(frames)
+            vr_log(
+                "VR_LocateAnythingBox",
+                f"empty query → short-circuit (no inference) shape={tuple(empty_mask.shape)}",
+            )
+            return (empty_mask_t, empty_preview_t, "[]", False, [])
+
         tokenizer, processor, model, resolved_device, dtype = _load_worker(
             str(model_id), str(device), str(attn_implementation)
         )

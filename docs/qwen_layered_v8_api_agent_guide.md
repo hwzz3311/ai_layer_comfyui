@@ -15,8 +15,8 @@ qwen_layered_v8_ab_vector_ready.json
 | 节点 | 字段 | 必填 | 说明 |
 |---|---|---:|---|
 | `1 LoadImage` | `inputs.image` | 是 | ComfyUI input 目录里的源图文件名 |
-| `219 VR_LocateAnythingBox` | `inputs.query` | 是 | LocateAnything 目标定位描述；用于生成 bbox 并喂给 SAM3 |
-| `11 easy sam3ImageSegmentation` | `inputs.prompt` | 否 | 使用 LocateAnything bbox 时建议留空；Easy-SAM3 只有 prompt 为空时才会处理 bbox |
+| `219 PrimitiveNode (Target Query)` | `inputs.value` | 是 | 主体定位描述，**自动同步**到 `220 LA` 和 `11 SAM3.text`（编辑一处即可） |
+| `224 PrimitiveNode (Cutout Query)` | `inputs.value` | 否 | 主体内部镂空描述（卡套卡槽 / 相框窗口 / 圈环洞）；留空 `""` = 不做减法，整条 negative 链零开销 |
 | `40 CLIPTextEncode` | `inputs.text` | 是 | Qwen Layered 整图/任务描述，建议英文自然句 |
 | `217 VR_GatedPassthrough` | `inputs.enable` | 是 | A 路径 gate |
 | `218 VR_GatedPassthrough` | `inputs.enable` | 是 | B 路径 gate |
@@ -25,7 +25,14 @@ qwen_layered_v8_ab_vector_ready.json
 | `63 SaveImage` | `inputs.filename_prefix` | 可选 | A 输出文件名前缀 |
 | `214 SaveImage` | `inputs.filename_prefix` | 可选 | B 输出文件名前缀 |
 
-不要把中文写进模型 prompt。中文可以用于 agent 内部备注，但实际写入 `11.prompt` 和 `40.text` 时建议使用英文。
+不要把中文写进模型 prompt。中文可以用于 agent 内部备注，但实际写入 query / `40.text` 时建议使用英文。
+
+### Target Query 与 Cutout Query 的语义边界
+
+- **Target Query** = "what to extract"。例如 `"card holder frame"`、`"the cat decorations on top"`。
+- **Cutout Query** = "what hole(s) the subject contains"。例如卡套传 `"rectangular photo window inside the card holder"`；实心主体（卡通插画、Logo 等）传 `""`。
+- v8.2 起，主体 silhouette 减去 cutout silhouette 后再喂给下游 brush / RMBG / VectorReady。这把"镂空"从 Qwen V2 不稳定的生成责任，转为 LA+SAM3 的显式分割责任。
+- Cutout Query 是**对称镜像**的 LA+SAM3 通道，参数和正向链一致（dual-prompt: text+bbox 共享 PrimitiveNode）。但 cutout 链**不带 Resolver 矩形兜底**：SAM3 找不到就不减，不会过减成整个 bbox。
 
 ## A/B 路径选择
 
@@ -99,9 +106,20 @@ snapshot_download(
 
 ## Prompt 写法
 
-### `11.inputs.prompt`: SAM3 分割 prompt
+### `219.inputs.value`: Target Query (主体定位)
 
-当前主线里,目标语义优先写入 `219 VR_LocateAnythingBox.query`;LocateAnything 产出的 bbox 会接入 SAM3 的 `bboxes` 输入。Easy-SAM3 的实现只有在 `prompt` 为空时才处理 bbox,所以使用 LocateAnything 引导时,`11.prompt` 建议留空。
+v8.2 起，主体语义集中写在 `219 PrimitiveNode (Target Query)` 一个地方，会**自动**分发到 `220 VR_LocateAnythingBox.query` 和 `11 SAM3.text` 两个节点（widget-as-input 转换）。Agent 只改这一个字段即可同步更新 LA + SAM3 双提示。
+
+> ⚠️ 旧版本（v8.1 及之前）让 agent 直接改 `220 LA.query` 或 `11 SAM3.prompt` 已废弃；改 PrimitiveNode 一处更稳。
+
+### `224.inputs.value`: Cutout Query (镂空定位)
+
+对应 negative 链的 PrimitiveNode，同样自动分发到 `225 LA #2.query` 和 `227 SAM3 #2.text`。
+
+- 主体内有镂空（卡套卡槽 / 相框窗口 / 圆环 / 戒指 / 镂空贴纸）：填一句简短英文描述，如 `"rectangular photo window inside the card holder"`、`"circular hole in the center of the ring"`。
+- 实心主体：留空 `""`。LA #2 的 query 早返回机制会跳过整条 negative 推理，`230 VR_MaskSubtract` 转为透传，行为与无 negative 链的 v8.1 完全一致。
+
+### 历史回退（仅诊断）
 
 如果临时关闭 LocateAnything 或手工回退到纯文本 SAM3,再使用下面的写法。写法要短、具体、像检测类别。
 
@@ -192,11 +210,11 @@ make it good
 | 黑色线稿 | `black outline` | `Extract the visible black outline details...` | A，但 SAM3 可能不稳 |
 | 可见框体 | `photo frame body` | `Extract the visible photo frame body...` | A |
 | 干净框体补全 | 遮挡物 prompt，例如 `three cats` 或 `sticker decorations` | `Reconstruct the clean underlying photo frame body after removing...` | B |
-| 中间窗口扣洞 | 不建议走 prompt | 用几何圆角矩形 mask 后处理 | 非 A/B |
+| 中间窗口扣洞 | 走 `224.value` (Cutout Query) | 同主体 prompt | 任意路径，由 `230 MaskSubtract` 在 alpha 上扣除 |
 
 ## API 修改示例
 
-A 路径抽三只猫:
+A 路径抽三只猫（实心主体，无镂空）:
 
 ```json
 {
@@ -205,15 +223,14 @@ A 路径抽三只猫:
       "image": "input.png"
     }
   },
-  "11": {
-    "inputs": {
-      "prompt": "",
-      "threshold": 0.4
-    }
-  },
   "219": {
     "inputs": {
-      "query": "the three cat decorations on top"
+      "value": "the three cat decorations on top"
+    }
+  },
+  "224": {
+    "inputs": {
+      "value": ""
     }
   },
   "40": {
@@ -239,6 +256,48 @@ A 路径抽三只猫:
 }
 ```
 
+A 路径抽卡套框体（有镂空 — 中间是照片窗口）:
+
+```json
+{
+  "1": {
+    "inputs": {
+      "image": "input.png"
+    }
+  },
+  "219": {
+    "inputs": {
+      "value": "card holder frame body"
+    }
+  },
+  "224": {
+    "inputs": {
+      "value": "rectangular photo window inside the card holder"
+    }
+  },
+  "40": {
+    "inputs": {
+      "text": "A pastel card holder with cat-ear top decorations. Extract the card holder frame body as a clean RGBA layer, with the inner photo slot transparent."
+    }
+  },
+  "217": {
+    "inputs": {
+      "enable": true
+    }
+  },
+  "218": {
+    "inputs": {
+      "enable": true
+    }
+  },
+  "63": {
+    "inputs": {
+      "filename_prefix": "layer_A_card_frame"
+    }
+  }
+}
+```
+
 B 路径重建干净框体:
 
 ```json
@@ -248,15 +307,14 @@ B 路径重建干净框体:
       "image": "input.png"
     }
   },
-  "11": {
-    "inputs": {
-      "prompt": "",
-      "threshold": 0.4
-    }
-  },
   "219": {
     "inputs": {
-      "query": "the cat decorations and small sticker decorations on the frame"
+      "value": "the cat decorations and small sticker decorations on the frame"
+    }
+  },
+  "224": {
+    "inputs": {
+      "value": ""
     }
   },
   "40": {

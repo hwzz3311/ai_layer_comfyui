@@ -1,6 +1,6 @@
 {
-  "last_node_id": 265,
-  "last_link_id": 199,
+  "last_node_id": 273,
+  "last_link_id": 212,
   "nodes": [
     {
       "id": 1,
@@ -73,12 +73,14 @@
             4,
             5,
             127,
-            130,
+            132,
             136,
-            151,
-            152,
-            153,
-            158
+            140,
+            149,
+            164,
+            165,
+            166,
+            171
           ],
           "slot_index": 0
         }
@@ -185,7 +187,8 @@
           "name": "sam3_model",
           "type": "EASY_SAM3_MODEL",
           "links": [
-            10
+            10,
+            139
           ],
           "slot_index": 0
         }
@@ -227,9 +230,17 @@
           "link": 5
         },
         {
+          "name": "text",
+          "type": "STRING",
+          "link": 129,
+          "widget": {
+            "name": "text"
+          }
+        },
+        {
           "name": "bboxes",
           "type": "BBOX",
-          "link": 128
+          "link": 130
         }
       ],
       "outputs": [
@@ -273,7 +284,7 @@
         "Node name for S&R": "easy sam3ImageSegmentation"
       },
       "widgets_values": [
-        "",
+        "main target object",
         0.4,
         false,
         "none",
@@ -308,7 +319,7 @@
           "type": "MASK",
           "links": [
             13,
-            131
+            133
           ],
           "slot_index": 0
         }
@@ -427,7 +438,7 @@
         {
           "name": "reference",
           "type": "IMAGE",
-          "link": 151
+          "link": 164
         }
       ],
       "outputs": [
@@ -468,7 +479,7 @@
         {
           "name": "reference",
           "type": "IMAGE",
-          "link": 152
+          "link": 165
         }
       ],
       "outputs": [
@@ -519,7 +530,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 134,
+          "link": 147,
           "optional": true
         }
       ],
@@ -951,7 +962,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 154
+          "link": 167
         }
       ],
       "outputs": [
@@ -972,7 +983,7 @@
           "name": "status_image",
           "type": "IMAGE",
           "links": [
-            155
+            168
           ]
         }
       ],
@@ -1211,7 +1222,7 @@
           "type": "IMAGE",
           "links": [
             102,
-            156
+            169
           ],
           "slot_index": 0
         }
@@ -1268,7 +1279,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 149
+          "link": 162
         }
       ],
       "outputs": [],
@@ -1322,7 +1333,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 135
+          "link": 148
         }
       ],
       "outputs": [
@@ -1372,7 +1383,7 @@
           "links": [
             106,
             109,
-            188
+            201
           ],
           "slot_index": 0
         }
@@ -1429,7 +1440,7 @@
         {
           "name": "reference",
           "type": "IMAGE",
-          "link": 153
+          "link": 166
         }
       ],
       "outputs": [
@@ -1665,7 +1676,7 @@
           "type": "IMAGE",
           "links": [
             119,
-            187
+            200
           ],
           "slot_index": 0
         }
@@ -1722,7 +1733,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 150
+          "link": 163
         }
       ],
       "outputs": [],
@@ -1888,6 +1899,42 @@
     },
     {
       "id": 219,
+      "type": "PrimitiveNode",
+      "pos": [
+        480,
+        380
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🎯 Target Query (shared: LA + SAM3)",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            128,
+            129
+          ],
+          "widget": {
+            "name": "value"
+          }
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveNode"
+      },
+      "widgets_values": [
+        "main target object"
+      ]
+    },
+    {
+      "id": 220,
       "type": "VR_LocateAnythingBox",
       "pos": [
         840,
@@ -1906,6 +1953,14 @@
           "name": "image",
           "type": "IMAGE",
           "link": 127
+        },
+        {
+          "name": "query",
+          "type": "STRING",
+          "link": 128,
+          "widget": {
+            "name": "query"
+          }
         }
       ],
       "outputs": [
@@ -1913,14 +1968,14 @@
           "name": "box_mask",
           "type": "MASK",
           "links": [
-            132
+            134
           ]
         },
         {
           "name": "preview_image",
           "type": "IMAGE",
           "links": [
-            129
+            131
           ]
         },
         {
@@ -1937,7 +1992,7 @@
           "name": "bboxes",
           "type": "BBOX",
           "links": [
-            128
+            130
           ]
         }
       ],
@@ -1956,7 +2011,7 @@
       ]
     },
     {
-      "id": 220,
+      "id": 221,
       "type": "PreviewImage",
       "pos": [
         1180,
@@ -1974,7 +2029,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 129
+          "link": 131
         }
       ],
       "outputs": [],
@@ -1984,7 +2039,7 @@
       "widgets_values": []
     },
     {
-      "id": 221,
+      "id": 222,
       "type": "VR_TargetMaskResolver",
       "pos": [
         1180,
@@ -2002,17 +2057,17 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 130
+          "link": 132
         },
         {
           "name": "sam_mask",
           "type": "MASK",
-          "link": 131
+          "link": 133
         },
         {
           "name": "fallback_mask",
           "type": "MASK",
-          "link": 132
+          "link": 134
         }
       ],
       "outputs": [
@@ -2020,18 +2075,14 @@
           "name": "resolved_mask",
           "type": "MASK",
           "links": [
-            134,
-            135,
-            137,
-            154,
-            157
+            145
           ]
         },
         {
           "name": "quality_preview",
           "type": "IMAGE",
           "links": [
-            133
+            135
           ]
         },
         {
@@ -2058,7 +2109,7 @@
       ]
     },
     {
-      "id": 222,
+      "id": 223,
       "type": "PreviewImage",
       "pos": [
         1540,
@@ -2076,7 +2127,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 133
+          "link": 135
         }
       ],
       "outputs": [],
@@ -2086,7 +2137,346 @@
       "widgets_values": []
     },
     {
-      "id": 223,
+      "id": 224,
+      "type": "PrimitiveNode",
+      "pos": [
+        480,
+        1080
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🕳 Cutout Query (shared: LA#2 + SAM3#2; empty = no subtraction)",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            137,
+            141
+          ],
+          "widget": {
+            "name": "value"
+          }
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveNode"
+      },
+      "widgets_values": [
+        ""
+      ]
+    },
+    {
+      "id": 225,
+      "type": "VR_LocateAnythingBox",
+      "pos": [
+        840,
+        1130
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "📍 LocateAnything · Cutout Box (negative)",
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 136
+        },
+        {
+          "name": "query",
+          "type": "STRING",
+          "link": 137,
+          "widget": {
+            "name": "query"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "box_mask",
+          "type": "MASK",
+          "links": []
+        },
+        {
+          "name": "preview_image",
+          "type": "IMAGE",
+          "links": [
+            138
+          ]
+        },
+        {
+          "name": "bbox_json",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "name": "box_usable",
+          "type": "BOOLEAN",
+          "links": []
+        },
+        {
+          "name": "bboxes",
+          "type": "BBOX",
+          "links": [
+            142
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_LocateAnythingBox"
+      },
+      "widgets_values": [
+        "",
+        "/root/ComfyUI/models/LocateAnything-3B",
+        "auto",
+        "hybrid",
+        "multi",
+        8,
+        2048,
+        0.7
+      ]
+    },
+    {
+      "id": 226,
+      "type": "PreviewImage",
+      "pos": [
+        1180,
+        1130
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [诊断12] Cutout LocateAnything 矩形框",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 138
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 227,
+      "type": "easy sam3ImageSegmentation",
+      "pos": [
+        1540,
+        1130
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "[SAM3] 分割 (Cutout / negative)",
+      "inputs": [
+        {
+          "name": "sam3_model",
+          "type": "EASY_SAM3_MODEL",
+          "link": 139
+        },
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 140
+        },
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 141,
+          "widget": {
+            "name": "text"
+          }
+        },
+        {
+          "name": "bboxes",
+          "type": "BBOX",
+          "link": 142
+        }
+      ],
+      "outputs": [
+        {
+          "name": "masks",
+          "type": "MASK",
+          "links": [
+            143
+          ]
+        },
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [
+            144
+          ]
+        },
+        {
+          "name": "obj_masks",
+          "type": "MASK",
+          "links": []
+        },
+        {
+          "name": "boxes",
+          "type": "BBOX",
+          "links": []
+        },
+        {
+          "name": "scores",
+          "type": "FLOAT",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "easy sam3ImageSegmentation"
+      },
+      "widgets_values": [
+        "",
+        0.4,
+        false,
+        "none",
+        -1
+      ]
+    },
+    {
+      "id": 228,
+      "type": "MaskFix+",
+      "pos": [
+        1900,
+        1130
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "[Mask] MaskFix+ 修复 (Cutout / negative)",
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 143
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            146
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MaskFix+"
+      },
+      "widgets_values": [
+        3,
+        1,
+        5,
+        4,
+        4
+      ]
+    },
+    {
+      "id": 229,
+      "type": "PreviewImage",
+      "pos": [
+        2240,
+        1130
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [诊断13] Cutout SAM3 + MaskFix mask",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 144
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 230,
+      "type": "VR_MaskSubtract",
+      "pos": [
+        2240,
+        700
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🎯− Mask Subtract (positive − cutout)",
+      "inputs": [
+        {
+          "name": "outer",
+          "type": "MASK",
+          "link": 145
+        },
+        {
+          "name": "inner",
+          "type": "MASK",
+          "link": 146
+        }
+      ],
+      "outputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "links": [
+            147,
+            148,
+            150,
+            167,
+            170
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_MaskSubtract"
+      },
+      "widgets_values": [
+        2,
+        0.0005
+      ]
+    },
+    {
+      "id": 231,
       "type": "VR_HFMattingAlpha",
       "pos": [
         3100,
@@ -2104,12 +2494,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 136
+          "link": 149
         },
         {
           "name": "candidate_mask",
           "type": "MASK",
-          "link": 137
+          "link": 150
         }
       ],
       "outputs": [
@@ -2117,14 +2507,14 @@
           "name": "matte_alpha",
           "type": "MASK",
           "links": [
-            159
+            172
           ]
         },
         {
           "name": "confidence",
           "type": "MASK",
           "links": [
-            160
+            173
           ]
         }
       ],
@@ -2138,7 +2528,7 @@
       ]
     },
     {
-      "id": 226,
+      "id": 234,
       "type": "VR_JoinRGBA",
       "pos": [
         3800,
@@ -2156,12 +2546,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 161
+          "link": 174
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 162
+          "link": 175
         }
       ],
       "outputs": [
@@ -2169,7 +2559,7 @@
           "name": "rgba",
           "type": "IMAGE",
           "links": [
-            149
+            162
           ]
         }
       ],
@@ -2179,7 +2569,7 @@
       "widgets_values": []
     },
     {
-      "id": 227,
+      "id": 235,
       "type": "VR_JoinRGBA",
       "pos": [
         3800,
@@ -2197,12 +2587,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 189
+          "link": 202
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 190
+          "link": 203
         }
       ],
       "outputs": [
@@ -2210,7 +2600,7 @@
           "name": "rgba",
           "type": "IMAGE",
           "links": [
-            150
+            163
           ]
         }
       ],
@@ -2220,7 +2610,7 @@
       "widgets_values": []
     },
     {
-      "id": 228,
+      "id": 236,
       "type": "MarkdownNote",
       "pos": [
         2200,
@@ -2240,11 +2630,11 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "## v8.0 · A/B 真正分流 + VectorReady\n\n**A/B 切换**: 节点 215 (foreground_mode) → 两个 VR_GatedPassthrough\n- Gate A: enable=215, invert=false → 只在 true 时放行\n- Gate B: enable=215, invert=true  → 只在 false 时放行\n未选中的分支会因为 ExecutionBlocker 被自动跳过整条管线\n(KSampler + VAEDecode + VectorReady + SaveImage 全部不执行)\n\n**VectorReady**:\n- A 路径: VR_PipelineLight (alpha 源 = TargetMaskResolver)\n- B 路径: VR_PipelineStrong (alpha 源 = InvertMask 节点 205)\nalpha 当前是 mask 复用占位,v8.1 接入 ViTMatte/RMBG 替换\n\n**定位兜底**:\n- LocateAnything 生成目标矩形 mask\n- SAM/MaskFix 可用时优先使用 SAM\n- SAM 不可用时回退到矩形 mask,保证 Qwen V2 仍收到 brush\n\n**输出**: RGBA PNG via VR_JoinRGBA\n- A: v8_A_foreground_RGBA_*.png\n- B: v8_B_background_RGBA_*.png"
+        "## v8.2 · A/B 分流 + VectorReady + 镂空通道\n\n**A/B 切换**: 节点 215 (foreground_mode) → 两个 VR_GatedPassthrough\n\n**正向 silhouette 通道** (Target Query → LA → SAM3 双提示 → MaskFix → Resolver):\n- 改 Target Query 一处，LA + SAM3.text 同步更新\n- SAM3 不可用时 Resolver 回退到 LA 矩形\n\n**镂空通道 (v8.2 新增)** (Cutout Query → LA#2 → SAM3#2 双提示 → MaskFix → MaskSubtract):\n- Cutout Query 留空 = 整链零计算 (LA 短路, MaskSubtract 透传)\n- 镂空主体 (卡套/相框/圈环) 填 'rectangular photo window inside the card holder' 等\n- 减法在 Resolver 输出后单点应用, 下游消费者无需感知\n- 不复用 Resolver 矩形兜底: cutout SAM3 找不到 = 不减, 决不过减\n\n**VectorReady**:\n- A 路径: VR_PipelineLight (alpha = MaskSubtract 输出)\n- B 路径: VR_PipelineStrong (alpha = InvertMask 节点 205)\n\n**输出**: RGBA PNG via VR_JoinRGBA\n- A: v8_A_foreground_RGBA_*.png\n- B: v8_B_background_RGBA_*.png"
       ]
     },
     {
-      "id": 229,
+      "id": 237,
       "type": "PreviewImage",
       "pos": [
         2550,
@@ -2262,7 +2652,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 155
+          "link": 168
         }
       ],
       "outputs": [],
@@ -2272,7 +2662,7 @@
       "widgets_values": []
     },
     {
-      "id": 230,
+      "id": 238,
       "type": "VR_PipelineLightDebug",
       "pos": [
         3500,
@@ -2290,27 +2680,27 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 156
+          "link": 169
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 157
+          "link": 170
         },
         {
           "name": "source_image",
           "type": "IMAGE",
-          "link": 158
+          "link": 171
         },
         {
           "name": "external_matte_alpha",
           "type": "MASK",
-          "link": 159
+          "link": 172
         },
         {
           "name": "external_confidence",
           "type": "MASK",
-          "link": 160
+          "link": 173
         }
       ],
       "outputs": [
@@ -2318,170 +2708,170 @@
           "name": "input_rgb",
           "type": "IMAGE",
           "links": [
-            163
+            176
           ]
         },
         {
           "name": "native_alpha_viz",
           "type": "IMAGE",
           "links": [
-            164
+            177
           ]
         },
         {
           "name": "alpha_cleaned_viz",
           "type": "IMAGE",
           "links": [
-            165
+            178
           ]
         },
         {
           "name": "sure_foreground_viz",
           "type": "IMAGE",
           "links": [
-            166
+            179
           ]
         },
         {
           "name": "sure_background_viz",
           "type": "IMAGE",
           "links": [
-            167
+            180
           ]
         },
         {
           "name": "trimap_unknown_viz",
           "type": "IMAGE",
           "links": [
-            168
+            181
           ]
         },
         {
           "name": "trimap_viz",
           "type": "IMAGE",
           "links": [
-            169
+            182
           ]
         },
         {
           "name": "matting_rgb",
           "type": "IMAGE",
           "links": [
-            170
+            183
           ]
         },
         {
           "name": "visible_alpha_viz",
           "type": "IMAGE",
           "links": [
-            171
+            184
           ]
         },
         {
           "name": "unknown_region_viz",
           "type": "IMAGE",
           "links": [
-            172
+            185
           ]
         },
         {
           "name": "matte_confidence_viz",
           "type": "IMAGE",
           "links": [
-            173
+            186
           ]
         },
         {
           "name": "source_composed",
           "type": "IMAGE",
           "links": [
-            174
+            187
           ]
         },
         {
           "name": "original_region_viz",
           "type": "IMAGE",
           "links": [
-            175
+            188
           ]
         },
         {
           "name": "qwen_region_viz",
           "type": "IMAGE",
           "links": [
-            176
+            189
           ]
         },
         {
           "name": "transparent_region_viz",
           "type": "IMAGE",
           "links": [
-            177
+            190
           ]
         },
         {
           "name": "low_confidence_viz",
           "type": "IMAGE",
           "links": [
-            178
+            191
           ]
         },
         {
           "name": "hole_viz",
           "type": "IMAGE",
           "links": [
-            179
+            192
           ]
         },
         {
           "name": "detail_viz",
           "type": "IMAGE",
           "links": [
-            180
+            193
           ]
         },
         {
           "name": "line_viz",
           "type": "IMAGE",
           "links": [
-            181
+            194
           ]
         },
         {
           "name": "bilateral_smooth",
           "type": "IMAGE",
           "links": [
-            182
+            195
           ]
         },
         {
           "name": "palette_quantized",
           "type": "IMAGE",
           "links": [
-            183
+            196
           ]
         },
         {
           "name": "canny_edges_viz",
           "type": "IMAGE",
           "links": [
-            184
+            197
           ]
         },
         {
           "name": "roi_sharpened",
           "type": "IMAGE",
           "links": [
-            161,
-            185
+            174,
+            198
           ]
         },
         {
           "name": "alpha_stepified",
           "type": "MASK",
           "links": [
-            162,
-            186
+            175,
+            199
           ]
         }
       ],
@@ -2497,7 +2887,7 @@
       ]
     },
     {
-      "id": 231,
+      "id": 239,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -2515,7 +2905,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 163
+          "link": 176
         }
       ],
       "outputs": [],
@@ -2525,7 +2915,7 @@
       "widgets_values": []
     },
     {
-      "id": 232,
+      "id": 240,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -2543,7 +2933,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 164
+          "link": 177
         }
       ],
       "outputs": [],
@@ -2553,7 +2943,7 @@
       "widgets_values": []
     },
     {
-      "id": 233,
+      "id": 241,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -2571,7 +2961,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 165
+          "link": 178
         }
       ],
       "outputs": [],
@@ -2581,7 +2971,7 @@
       "widgets_values": []
     },
     {
-      "id": 234,
+      "id": 242,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -2599,7 +2989,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 166
+          "link": 179
         }
       ],
       "outputs": [],
@@ -2609,7 +2999,7 @@
       "widgets_values": []
     },
     {
-      "id": 235,
+      "id": 243,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -2627,7 +3017,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 167
+          "link": 180
         }
       ],
       "outputs": [],
@@ -2637,7 +3027,7 @@
       "widgets_values": []
     },
     {
-      "id": 236,
+      "id": 244,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -2655,7 +3045,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 168
+          "link": 181
         }
       ],
       "outputs": [],
@@ -2665,7 +3055,7 @@
       "widgets_values": []
     },
     {
-      "id": 237,
+      "id": 245,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -2683,7 +3073,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 169
+          "link": 182
         }
       ],
       "outputs": [],
@@ -2693,7 +3083,7 @@
       "widgets_values": []
     },
     {
-      "id": 238,
+      "id": 246,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -2711,7 +3101,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 170
+          "link": 183
         }
       ],
       "outputs": [],
@@ -2721,7 +3111,7 @@
       "widgets_values": []
     },
     {
-      "id": 239,
+      "id": 247,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -2739,7 +3129,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 171
+          "link": 184
         }
       ],
       "outputs": [],
@@ -2749,7 +3139,7 @@
       "widgets_values": []
     },
     {
-      "id": 240,
+      "id": 248,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -2767,7 +3157,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 172
+          "link": 185
         }
       ],
       "outputs": [],
@@ -2777,7 +3167,7 @@
       "widgets_values": []
     },
     {
-      "id": 241,
+      "id": 249,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -2795,7 +3185,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 173
+          "link": 186
         }
       ],
       "outputs": [],
@@ -2805,7 +3195,7 @@
       "widgets_values": []
     },
     {
-      "id": 242,
+      "id": 250,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -2823,7 +3213,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 174
+          "link": 187
         }
       ],
       "outputs": [],
@@ -2833,7 +3223,7 @@
       "widgets_values": []
     },
     {
-      "id": 243,
+      "id": 251,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -2851,7 +3241,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 175
+          "link": 188
         }
       ],
       "outputs": [],
@@ -2861,7 +3251,7 @@
       "widgets_values": []
     },
     {
-      "id": 244,
+      "id": 252,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -2879,7 +3269,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 176
+          "link": 189
         }
       ],
       "outputs": [],
@@ -2889,7 +3279,7 @@
       "widgets_values": []
     },
     {
-      "id": 245,
+      "id": 253,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -2907,7 +3297,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 177
+          "link": 190
         }
       ],
       "outputs": [],
@@ -2917,7 +3307,7 @@
       "widgets_values": []
     },
     {
-      "id": 246,
+      "id": 254,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -2935,7 +3325,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 178
+          "link": 191
         }
       ],
       "outputs": [],
@@ -2945,7 +3335,7 @@
       "widgets_values": []
     },
     {
-      "id": 247,
+      "id": 255,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -2963,7 +3353,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 179
+          "link": 192
         }
       ],
       "outputs": [],
@@ -2973,7 +3363,7 @@
       "widgets_values": []
     },
     {
-      "id": 248,
+      "id": 256,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -2991,7 +3381,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 180
+          "link": 193
         }
       ],
       "outputs": [],
@@ -3001,7 +3391,7 @@
       "widgets_values": []
     },
     {
-      "id": 249,
+      "id": 257,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -3019,7 +3409,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 181
+          "link": 194
         }
       ],
       "outputs": [],
@@ -3029,7 +3419,7 @@
       "widgets_values": []
     },
     {
-      "id": 250,
+      "id": 258,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -3047,7 +3437,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 182
+          "link": 195
         }
       ],
       "outputs": [],
@@ -3057,7 +3447,7 @@
       "widgets_values": []
     },
     {
-      "id": 251,
+      "id": 259,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -3075,7 +3465,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 183
+          "link": 196
         }
       ],
       "outputs": [],
@@ -3085,7 +3475,7 @@
       "widgets_values": []
     },
     {
-      "id": 252,
+      "id": 260,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -3103,7 +3493,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 184
+          "link": 197
         }
       ],
       "outputs": [],
@@ -3113,7 +3503,7 @@
       "widgets_values": []
     },
     {
-      "id": 253,
+      "id": 261,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -3131,7 +3521,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 185
+          "link": 198
         }
       ],
       "outputs": [],
@@ -3141,7 +3531,7 @@
       "widgets_values": []
     },
     {
-      "id": 254,
+      "id": 262,
       "type": "MaskPreview+",
       "pos": [
         4760,
@@ -3159,7 +3549,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 186
+          "link": 199
         }
       ],
       "outputs": [],
@@ -3169,7 +3559,7 @@
       "widgets_values": []
     },
     {
-      "id": 255,
+      "id": 263,
       "type": "VR_PipelineStrongDebug",
       "pos": [
         3500,
@@ -3187,12 +3577,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 187
+          "link": 200
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 188
+          "link": 201
         }
       ],
       "outputs": [
@@ -3200,65 +3590,65 @@
           "name": "input_rgb",
           "type": "IMAGE",
           "links": [
-            191
+            204
           ]
         },
         {
           "name": "native_alpha_viz",
           "type": "IMAGE",
           "links": [
-            192
+            205
           ]
         },
         {
           "name": "alpha_cleaned_viz",
           "type": "IMAGE",
           "links": [
-            193
+            206
           ]
         },
         {
           "name": "bilateral_smooth",
           "type": "IMAGE",
           "links": [
-            194
+            207
           ]
         },
         {
           "name": "canny_edges_viz",
           "type": "IMAGE",
           "links": [
-            195
+            208
           ]
         },
         {
           "name": "kmeans_quantized",
           "type": "IMAGE",
           "links": [
-            196
+            209
           ]
         },
         {
           "name": "region_merged",
           "type": "IMAGE",
           "links": [
-            197
+            210
           ]
         },
         {
           "name": "roi_sharpened",
           "type": "IMAGE",
           "links": [
-            189,
-            198
+            202,
+            211
           ]
         },
         {
           "name": "alpha_stepified",
           "type": "MASK",
           "links": [
-            190,
-            199
+            203,
+            212
           ]
         }
       ],
@@ -3274,7 +3664,7 @@
       ]
     },
     {
-      "id": 256,
+      "id": 264,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -3292,7 +3682,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 191
+          "link": 204
         }
       ],
       "outputs": [],
@@ -3302,7 +3692,7 @@
       "widgets_values": []
     },
     {
-      "id": 257,
+      "id": 265,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -3320,7 +3710,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 192
+          "link": 205
         }
       ],
       "outputs": [],
@@ -3330,7 +3720,7 @@
       "widgets_values": []
     },
     {
-      "id": 258,
+      "id": 266,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -3348,7 +3738,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 193
+          "link": 206
         }
       ],
       "outputs": [],
@@ -3358,7 +3748,7 @@
       "widgets_values": []
     },
     {
-      "id": 259,
+      "id": 267,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -3376,7 +3766,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 194
+          "link": 207
         }
       ],
       "outputs": [],
@@ -3386,7 +3776,7 @@
       "widgets_values": []
     },
     {
-      "id": 260,
+      "id": 268,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -3404,7 +3794,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 195
+          "link": 208
         }
       ],
       "outputs": [],
@@ -3414,7 +3804,7 @@
       "widgets_values": []
     },
     {
-      "id": 261,
+      "id": 269,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -3432,7 +3822,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 196
+          "link": 209
         }
       ],
       "outputs": [],
@@ -3442,7 +3832,7 @@
       "widgets_values": []
     },
     {
-      "id": 262,
+      "id": 270,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -3460,7 +3850,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 197
+          "link": 210
         }
       ],
       "outputs": [],
@@ -3470,7 +3860,7 @@
       "widgets_values": []
     },
     {
-      "id": 263,
+      "id": 271,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -3488,7 +3878,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 198
+          "link": 211
         }
       ],
       "outputs": [],
@@ -3498,7 +3888,7 @@
       "widgets_values": []
     },
     {
-      "id": 264,
+      "id": 272,
       "type": "MaskPreview+",
       "pos": [
         3800,
@@ -3516,7 +3906,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 199
+          "link": 212
         }
       ],
       "outputs": [],
@@ -3526,7 +3916,7 @@
       "widgets_values": []
     },
     {
-      "id": 265,
+      "id": 273,
       "type": "MarkdownNote",
       "pos": [
         3400,
@@ -3971,108 +4361,212 @@
       127,
       5,
       0,
-      219,
+      220,
       0,
       "IMAGE"
     ],
     [
       128,
       219,
-      4,
-      11,
-      2,
-      "BBOX"
+      0,
+      220,
+      1,
+      "STRING"
     ],
     [
       129,
       219,
-      1,
-      220,
       0,
-      "IMAGE"
+      11,
+      2,
+      "STRING"
     ],
     [
       130,
-      5,
-      0,
+      220,
+      4,
+      11,
+      3,
+      "BBOX"
+    ],
+    [
+      131,
+      220,
+      1,
       221,
       0,
       "IMAGE"
     ],
     [
-      131,
-      20,
-      0,
-      221,
-      1,
-      "MASK"
-    ],
-    [
       132,
-      219,
+      5,
       0,
-      221,
-      2,
-      "MASK"
-    ],
-    [
-      133,
-      221,
-      1,
       222,
       0,
       "IMAGE"
     ],
     [
+      133,
+      20,
+      0,
+      222,
+      1,
+      "MASK"
+    ],
+    [
       134,
-      221,
+      220,
+      0,
+      222,
+      2,
+      "MASK"
+    ],
+    [
+      135,
+      222,
+      1,
+      223,
+      0,
+      "IMAGE"
+    ],
+    [
+      136,
+      5,
+      0,
+      225,
+      0,
+      "IMAGE"
+    ],
+    [
+      137,
+      224,
+      0,
+      225,
+      1,
+      "STRING"
+    ],
+    [
+      138,
+      225,
+      1,
+      226,
+      0,
+      "IMAGE"
+    ],
+    [
+      139,
+      10,
+      0,
+      227,
+      0,
+      "EASY_SAM3_MODEL"
+    ],
+    [
+      140,
+      5,
+      0,
+      227,
+      1,
+      "IMAGE"
+    ],
+    [
+      141,
+      224,
+      0,
+      227,
+      2,
+      "STRING"
+    ],
+    [
+      142,
+      225,
+      4,
+      227,
+      3,
+      "BBOX"
+    ],
+    [
+      143,
+      227,
+      0,
+      228,
+      0,
+      "MASK"
+    ],
+    [
+      144,
+      227,
+      1,
+      229,
+      0,
+      "IMAGE"
+    ],
+    [
+      145,
+      222,
+      0,
+      230,
+      0,
+      "MASK"
+    ],
+    [
+      146,
+      228,
+      0,
+      230,
+      1,
+      "MASK"
+    ],
+    [
+      147,
+      230,
       0,
       203,
       2,
       "MASK"
     ],
     [
-      135,
-      221,
+      148,
+      230,
       0,
       204,
       0,
       "MASK"
     ],
     [
-      136,
+      149,
       5,
       0,
-      223,
+      231,
       0,
       "IMAGE"
     ],
     [
-      137,
-      221,
+      150,
+      230,
       0,
-      223,
+      231,
       1,
       "MASK"
     ],
     [
-      149,
-      226,
+      162,
+      234,
       0,
       63,
       0,
       "IMAGE"
     ],
     [
-      150,
-      227,
+      163,
+      235,
       0,
       214,
       0,
       "IMAGE"
     ],
     [
-      151,
+      164,
       5,
       0,
       201,
@@ -4080,7 +4574,7 @@
       "IMAGE"
     ],
     [
-      152,
+      165,
       5,
       0,
       202,
@@ -4088,7 +4582,7 @@
       "IMAGE"
     ],
     [
-      153,
+      166,
       5,
       0,
       207,
@@ -4096,370 +4590,370 @@
       "IMAGE"
     ],
     [
-      154,
-      221,
-      0,
-      53,
-      2,
-      "MASK"
-    ],
-    [
-      155,
-      53,
-      2,
-      229,
-      0,
-      "IMAGE"
-    ],
-    [
-      156,
-      62,
-      0,
-      230,
-      0,
-      "IMAGE"
-    ],
-    [
-      157,
-      221,
-      0,
-      230,
-      1,
-      "MASK"
-    ],
-    [
-      158,
-      5,
-      0,
-      230,
-      2,
-      "IMAGE"
-    ],
-    [
-      159,
-      223,
-      0,
-      230,
-      3,
-      "MASK"
-    ],
-    [
-      160,
-      223,
-      1,
-      230,
-      4,
-      "MASK"
-    ],
-    [
-      161,
-      230,
-      22,
-      226,
-      0,
-      "IMAGE"
-    ],
-    [
-      162,
-      230,
-      23,
-      226,
-      1,
-      "MASK"
-    ],
-    [
-      163,
-      230,
-      0,
-      231,
-      0,
-      "IMAGE"
-    ],
-    [
-      164,
-      230,
-      1,
-      232,
-      0,
-      "IMAGE"
-    ],
-    [
-      165,
-      230,
-      2,
-      233,
-      0,
-      "IMAGE"
-    ],
-    [
-      166,
-      230,
-      3,
-      234,
-      0,
-      "IMAGE"
-    ],
-    [
       167,
       230,
-      4,
-      235,
       0,
-      "IMAGE"
+      53,
+      2,
+      "MASK"
     ],
     [
       168,
-      230,
-      5,
-      236,
+      53,
+      2,
+      237,
       0,
       "IMAGE"
     ],
     [
       169,
-      230,
-      6,
-      237,
+      62,
+      0,
+      238,
       0,
       "IMAGE"
     ],
     [
       170,
       230,
-      7,
-      238,
       0,
-      "IMAGE"
+      238,
+      1,
+      "MASK"
     ],
     [
       171,
-      230,
-      8,
-      239,
+      5,
       0,
+      238,
+      2,
       "IMAGE"
     ],
     [
       172,
-      230,
-      9,
-      240,
+      231,
       0,
-      "IMAGE"
+      238,
+      3,
+      "MASK"
     ],
     [
       173,
-      230,
-      10,
-      241,
-      0,
-      "IMAGE"
+      231,
+      1,
+      238,
+      4,
+      "MASK"
     ],
     [
       174,
-      230,
-      11,
-      242,
+      238,
+      22,
+      234,
       0,
       "IMAGE"
     ],
     [
       175,
-      230,
-      12,
-      243,
-      0,
-      "IMAGE"
+      238,
+      23,
+      234,
+      1,
+      "MASK"
     ],
     [
       176,
-      230,
-      13,
-      244,
+      238,
+      0,
+      239,
       0,
       "IMAGE"
     ],
     [
       177,
-      230,
-      14,
-      245,
+      238,
+      1,
+      240,
       0,
       "IMAGE"
     ],
     [
       178,
-      230,
-      15,
-      246,
+      238,
+      2,
+      241,
       0,
       "IMAGE"
     ],
     [
       179,
-      230,
-      16,
-      247,
+      238,
+      3,
+      242,
       0,
       "IMAGE"
     ],
     [
       180,
-      230,
-      17,
-      248,
+      238,
+      4,
+      243,
       0,
       "IMAGE"
     ],
     [
       181,
-      230,
-      18,
-      249,
+      238,
+      5,
+      244,
       0,
       "IMAGE"
     ],
     [
       182,
-      230,
-      19,
-      250,
+      238,
+      6,
+      245,
       0,
       "IMAGE"
     ],
     [
       183,
-      230,
-      20,
-      251,
+      238,
+      7,
+      246,
       0,
       "IMAGE"
     ],
     [
       184,
-      230,
-      21,
-      252,
+      238,
+      8,
+      247,
       0,
       "IMAGE"
     ],
     [
       185,
-      230,
-      22,
-      253,
+      238,
+      9,
+      248,
       0,
       "IMAGE"
     ],
     [
       186,
-      230,
-      23,
-      254,
+      238,
+      10,
+      249,
       0,
-      "MASK"
+      "IMAGE"
     ],
     [
       187,
-      212,
-      0,
-      255,
+      238,
+      11,
+      250,
       0,
       "IMAGE"
     ],
     [
       188,
-      205,
+      238,
+      12,
+      251,
       0,
-      255,
-      1,
-      "MASK"
+      "IMAGE"
     ],
     [
       189,
-      255,
-      7,
-      227,
+      238,
+      13,
+      252,
       0,
       "IMAGE"
     ],
     [
       190,
-      255,
-      8,
-      227,
-      1,
-      "MASK"
+      238,
+      14,
+      253,
+      0,
+      "IMAGE"
     ],
     [
       191,
-      255,
-      0,
-      256,
+      238,
+      15,
+      254,
       0,
       "IMAGE"
     ],
     [
       192,
+      238,
+      16,
       255,
-      1,
-      257,
       0,
       "IMAGE"
     ],
     [
       193,
-      255,
-      2,
-      258,
+      238,
+      17,
+      256,
       0,
       "IMAGE"
     ],
     [
       194,
-      255,
-      3,
-      259,
+      238,
+      18,
+      257,
       0,
       "IMAGE"
     ],
     [
       195,
-      255,
-      4,
-      260,
+      238,
+      19,
+      258,
       0,
       "IMAGE"
     ],
     [
       196,
-      255,
-      5,
-      261,
+      238,
+      20,
+      259,
       0,
       "IMAGE"
     ],
     [
       197,
-      255,
-      6,
-      262,
+      238,
+      21,
+      260,
       0,
       "IMAGE"
     ],
     [
       198,
-      255,
-      7,
-      263,
+      238,
+      22,
+      261,
       0,
       "IMAGE"
     ],
     [
       199,
-      255,
+      238,
+      23,
+      262,
+      0,
+      "MASK"
+    ],
+    [
+      200,
+      212,
+      0,
+      263,
+      0,
+      "IMAGE"
+    ],
+    [
+      201,
+      205,
+      0,
+      263,
+      1,
+      "MASK"
+    ],
+    [
+      202,
+      263,
+      7,
+      235,
+      0,
+      "IMAGE"
+    ],
+    [
+      203,
+      263,
       8,
+      235,
+      1,
+      "MASK"
+    ],
+    [
+      204,
+      263,
+      0,
       264,
+      0,
+      "IMAGE"
+    ],
+    [
+      205,
+      263,
+      1,
+      265,
+      0,
+      "IMAGE"
+    ],
+    [
+      206,
+      263,
+      2,
+      266,
+      0,
+      "IMAGE"
+    ],
+    [
+      207,
+      263,
+      3,
+      267,
+      0,
+      "IMAGE"
+    ],
+    [
+      208,
+      263,
+      4,
+      268,
+      0,
+      "IMAGE"
+    ],
+    [
+      209,
+      263,
+      5,
+      269,
+      0,
+      "IMAGE"
+    ],
+    [
+      210,
+      263,
+      6,
+      270,
+      0,
+      "IMAGE"
+    ],
+    [
+      211,
+      263,
+      7,
+      271,
+      0,
+      "IMAGE"
+    ],
+    [
+      212,
+      263,
+      8,
+      272,
       0,
       "MASK"
     ]

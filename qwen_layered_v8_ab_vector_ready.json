@@ -1,6 +1,6 @@
 {
-  "last_node_id": 229,
-  "last_link_id": 155,
+  "last_node_id": 237,
+  "last_link_id": 168,
   "nodes": [
     {
       "id": 1,
@@ -73,12 +73,14 @@
             4,
             5,
             127,
-            130,
+            132,
             136,
             140,
-            151,
-            152,
-            153
+            149,
+            153,
+            164,
+            165,
+            166
           ],
           "slot_index": 0
         }
@@ -185,7 +187,8 @@
           "name": "sam3_model",
           "type": "EASY_SAM3_MODEL",
           "links": [
-            10
+            10,
+            139
           ],
           "slot_index": 0
         }
@@ -227,9 +230,17 @@
           "link": 5
         },
         {
+          "name": "text",
+          "type": "STRING",
+          "link": 129,
+          "widget": {
+            "name": "text"
+          }
+        },
+        {
           "name": "bboxes",
           "type": "BBOX",
-          "link": 128
+          "link": 130
         }
       ],
       "outputs": [
@@ -273,7 +284,7 @@
         "Node name for S&R": "easy sam3ImageSegmentation"
       },
       "widgets_values": [
-        "",
+        "main target object",
         0.4,
         false,
         "none",
@@ -308,7 +319,7 @@
           "type": "MASK",
           "links": [
             13,
-            131
+            133
           ],
           "slot_index": 0
         }
@@ -427,7 +438,7 @@
         {
           "name": "reference",
           "type": "IMAGE",
-          "link": 151
+          "link": 164
         }
       ],
       "outputs": [
@@ -468,7 +479,7 @@
         {
           "name": "reference",
           "type": "IMAGE",
-          "link": 152
+          "link": 165
         }
       ],
       "outputs": [
@@ -519,7 +530,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 134,
+          "link": 147,
           "optional": true
         }
       ],
@@ -951,7 +962,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 154
+          "link": 167
         }
       ],
       "outputs": [
@@ -972,7 +983,7 @@
           "name": "status_image",
           "type": "IMAGE",
           "links": [
-            155
+            168
           ]
         }
       ],
@@ -1211,7 +1222,7 @@
           "type": "IMAGE",
           "links": [
             102,
-            138
+            151
           ],
           "slot_index": 0
         }
@@ -1268,7 +1279,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 149
+          "link": 162
         }
       ],
       "outputs": [],
@@ -1322,7 +1333,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 135
+          "link": 148
         }
       ],
       "outputs": [
@@ -1372,7 +1383,7 @@
           "links": [
             106,
             109,
-            144
+            157
           ],
           "slot_index": 0
         }
@@ -1429,7 +1440,7 @@
         {
           "name": "reference",
           "type": "IMAGE",
-          "link": 153
+          "link": 166
         }
       ],
       "outputs": [
@@ -1665,7 +1676,7 @@
           "type": "IMAGE",
           "links": [
             119,
-            143
+            156
           ],
           "slot_index": 0
         }
@@ -1722,7 +1733,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 150
+          "link": 163
         }
       ],
       "outputs": [],
@@ -1888,6 +1899,42 @@
     },
     {
       "id": 219,
+      "type": "PrimitiveNode",
+      "pos": [
+        480,
+        380
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🎯 Target Query (shared: LA + SAM3)",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            128,
+            129
+          ],
+          "widget": {
+            "name": "value"
+          }
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveNode"
+      },
+      "widgets_values": [
+        "main target object"
+      ]
+    },
+    {
+      "id": 220,
       "type": "VR_LocateAnythingBox",
       "pos": [
         840,
@@ -1906,6 +1953,14 @@
           "name": "image",
           "type": "IMAGE",
           "link": 127
+        },
+        {
+          "name": "query",
+          "type": "STRING",
+          "link": 128,
+          "widget": {
+            "name": "query"
+          }
         }
       ],
       "outputs": [
@@ -1913,14 +1968,14 @@
           "name": "box_mask",
           "type": "MASK",
           "links": [
-            132
+            134
           ]
         },
         {
           "name": "preview_image",
           "type": "IMAGE",
           "links": [
-            129
+            131
           ]
         },
         {
@@ -1937,7 +1992,7 @@
           "name": "bboxes",
           "type": "BBOX",
           "links": [
-            128
+            130
           ]
         }
       ],
@@ -1956,7 +2011,7 @@
       ]
     },
     {
-      "id": 220,
+      "id": 221,
       "type": "PreviewImage",
       "pos": [
         1180,
@@ -1974,7 +2029,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 129
+          "link": 131
         }
       ],
       "outputs": [],
@@ -1984,7 +2039,7 @@
       "widgets_values": []
     },
     {
-      "id": 221,
+      "id": 222,
       "type": "VR_TargetMaskResolver",
       "pos": [
         1180,
@@ -2002,17 +2057,17 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 130
+          "link": 132
         },
         {
           "name": "sam_mask",
           "type": "MASK",
-          "link": 131
+          "link": 133
         },
         {
           "name": "fallback_mask",
           "type": "MASK",
-          "link": 132
+          "link": 134
         }
       ],
       "outputs": [
@@ -2020,18 +2075,14 @@
           "name": "resolved_mask",
           "type": "MASK",
           "links": [
-            134,
-            135,
-            137,
-            139,
-            154
+            145
           ]
         },
         {
           "name": "quality_preview",
           "type": "IMAGE",
           "links": [
-            133
+            135
           ]
         },
         {
@@ -2058,7 +2109,7 @@
       ]
     },
     {
-      "id": 222,
+      "id": 223,
       "type": "PreviewImage",
       "pos": [
         1540,
@@ -2076,7 +2127,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 133
+          "link": 135
         }
       ],
       "outputs": [],
@@ -2086,7 +2137,346 @@
       "widgets_values": []
     },
     {
-      "id": 223,
+      "id": 224,
+      "type": "PrimitiveNode",
+      "pos": [
+        480,
+        1080
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🕳 Cutout Query (shared: LA#2 + SAM3#2; empty = no subtraction)",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            137,
+            141
+          ],
+          "widget": {
+            "name": "value"
+          }
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveNode"
+      },
+      "widgets_values": [
+        ""
+      ]
+    },
+    {
+      "id": 225,
+      "type": "VR_LocateAnythingBox",
+      "pos": [
+        840,
+        1130
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "📍 LocateAnything · Cutout Box (negative)",
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 136
+        },
+        {
+          "name": "query",
+          "type": "STRING",
+          "link": 137,
+          "widget": {
+            "name": "query"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "box_mask",
+          "type": "MASK",
+          "links": []
+        },
+        {
+          "name": "preview_image",
+          "type": "IMAGE",
+          "links": [
+            138
+          ]
+        },
+        {
+          "name": "bbox_json",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "name": "box_usable",
+          "type": "BOOLEAN",
+          "links": []
+        },
+        {
+          "name": "bboxes",
+          "type": "BBOX",
+          "links": [
+            142
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_LocateAnythingBox"
+      },
+      "widgets_values": [
+        "",
+        "/root/ComfyUI/models/LocateAnything-3B",
+        "auto",
+        "hybrid",
+        "multi",
+        8,
+        2048,
+        0.7
+      ]
+    },
+    {
+      "id": 226,
+      "type": "PreviewImage",
+      "pos": [
+        1180,
+        1130
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [诊断12] Cutout LocateAnything 矩形框",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 138
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 227,
+      "type": "easy sam3ImageSegmentation",
+      "pos": [
+        1540,
+        1130
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "[SAM3] 分割 (Cutout / negative)",
+      "inputs": [
+        {
+          "name": "sam3_model",
+          "type": "EASY_SAM3_MODEL",
+          "link": 139
+        },
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 140
+        },
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 141,
+          "widget": {
+            "name": "text"
+          }
+        },
+        {
+          "name": "bboxes",
+          "type": "BBOX",
+          "link": 142
+        }
+      ],
+      "outputs": [
+        {
+          "name": "masks",
+          "type": "MASK",
+          "links": [
+            143
+          ]
+        },
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [
+            144
+          ]
+        },
+        {
+          "name": "obj_masks",
+          "type": "MASK",
+          "links": []
+        },
+        {
+          "name": "boxes",
+          "type": "BBOX",
+          "links": []
+        },
+        {
+          "name": "scores",
+          "type": "FLOAT",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "easy sam3ImageSegmentation"
+      },
+      "widgets_values": [
+        "",
+        0.4,
+        false,
+        "none",
+        -1
+      ]
+    },
+    {
+      "id": 228,
+      "type": "MaskFix+",
+      "pos": [
+        1900,
+        1130
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "[Mask] MaskFix+ 修复 (Cutout / negative)",
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 143
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            146
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MaskFix+"
+      },
+      "widgets_values": [
+        3,
+        1,
+        5,
+        4,
+        4
+      ]
+    },
+    {
+      "id": 229,
+      "type": "PreviewImage",
+      "pos": [
+        2240,
+        1130
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [诊断13] Cutout SAM3 + MaskFix mask",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 144
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 230,
+      "type": "VR_MaskSubtract",
+      "pos": [
+        2240,
+        700
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🎯− Mask Subtract (positive − cutout)",
+      "inputs": [
+        {
+          "name": "outer",
+          "type": "MASK",
+          "link": 145
+        },
+        {
+          "name": "inner",
+          "type": "MASK",
+          "link": 146
+        }
+      ],
+      "outputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "links": [
+            147,
+            148,
+            150,
+            152,
+            167
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_MaskSubtract"
+      },
+      "widgets_values": [
+        2,
+        0.0005
+      ]
+    },
+    {
+      "id": 231,
       "type": "VR_HFMattingAlpha",
       "pos": [
         3100,
@@ -2104,12 +2494,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 136
+          "link": 149
         },
         {
           "name": "candidate_mask",
           "type": "MASK",
-          "link": 137
+          "link": 150
         }
       ],
       "outputs": [
@@ -2117,14 +2507,14 @@
           "name": "matte_alpha",
           "type": "MASK",
           "links": [
-            141
+            154
           ]
         },
         {
           "name": "confidence",
           "type": "MASK",
           "links": [
-            142
+            155
           ]
         }
       ],
@@ -2138,7 +2528,7 @@
       ]
     },
     {
-      "id": 224,
+      "id": 232,
       "type": "VR_PipelineLight",
       "pos": [
         3400,
@@ -2156,27 +2546,27 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 138
+          "link": 151
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 139
+          "link": 152
         },
         {
           "name": "source_image",
           "type": "IMAGE",
-          "link": 140
+          "link": 153
         },
         {
           "name": "external_matte_alpha",
           "type": "MASK",
-          "link": 141
+          "link": 154
         },
         {
           "name": "external_confidence",
           "type": "MASK",
-          "link": 142
+          "link": 155
         }
       ],
       "outputs": [
@@ -2184,14 +2574,14 @@
           "name": "image",
           "type": "IMAGE",
           "links": [
-            145
+            158
           ]
         },
         {
           "name": "alpha",
           "type": "MASK",
           "links": [
-            146
+            159
           ]
         }
       ],
@@ -2207,7 +2597,7 @@
       ]
     },
     {
-      "id": 225,
+      "id": 233,
       "type": "VR_PipelineStrong",
       "pos": [
         3400,
@@ -2225,12 +2615,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 143
+          "link": 156
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 144
+          "link": 157
         }
       ],
       "outputs": [
@@ -2238,14 +2628,14 @@
           "name": "image",
           "type": "IMAGE",
           "links": [
-            147
+            160
           ]
         },
         {
           "name": "alpha",
           "type": "MASK",
           "links": [
-            148
+            161
           ]
         }
       ],
@@ -2261,7 +2651,7 @@
       ]
     },
     {
-      "id": 226,
+      "id": 234,
       "type": "VR_JoinRGBA",
       "pos": [
         3800,
@@ -2279,12 +2669,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 145
+          "link": 158
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 146
+          "link": 159
         }
       ],
       "outputs": [
@@ -2292,7 +2682,7 @@
           "name": "rgba",
           "type": "IMAGE",
           "links": [
-            149
+            162
           ]
         }
       ],
@@ -2302,7 +2692,7 @@
       "widgets_values": []
     },
     {
-      "id": 227,
+      "id": 235,
       "type": "VR_JoinRGBA",
       "pos": [
         3800,
@@ -2320,12 +2710,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 147
+          "link": 160
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 148
+          "link": 161
         }
       ],
       "outputs": [
@@ -2333,7 +2723,7 @@
           "name": "rgba",
           "type": "IMAGE",
           "links": [
-            150
+            163
           ]
         }
       ],
@@ -2343,7 +2733,7 @@
       "widgets_values": []
     },
     {
-      "id": 228,
+      "id": 236,
       "type": "MarkdownNote",
       "pos": [
         2200,
@@ -2363,11 +2753,11 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "## v8.0 · A/B 真正分流 + VectorReady\n\n**A/B 切换**: 节点 215 (foreground_mode) → 两个 VR_GatedPassthrough\n- Gate A: enable=215, invert=false → 只在 true 时放行\n- Gate B: enable=215, invert=true  → 只在 false 时放行\n未选中的分支会因为 ExecutionBlocker 被自动跳过整条管线\n(KSampler + VAEDecode + VectorReady + SaveImage 全部不执行)\n\n**VectorReady**:\n- A 路径: VR_PipelineLight (alpha 源 = TargetMaskResolver)\n- B 路径: VR_PipelineStrong (alpha 源 = InvertMask 节点 205)\nalpha 当前是 mask 复用占位,v8.1 接入 ViTMatte/RMBG 替换\n\n**定位兜底**:\n- LocateAnything 生成目标矩形 mask\n- SAM/MaskFix 可用时优先使用 SAM\n- SAM 不可用时回退到矩形 mask,保证 Qwen V2 仍收到 brush\n\n**输出**: RGBA PNG via VR_JoinRGBA\n- A: v8_A_foreground_RGBA_*.png\n- B: v8_B_background_RGBA_*.png"
+        "## v8.2 · A/B 分流 + VectorReady + 镂空通道\n\n**A/B 切换**: 节点 215 (foreground_mode) → 两个 VR_GatedPassthrough\n\n**正向 silhouette 通道** (Target Query → LA → SAM3 双提示 → MaskFix → Resolver):\n- 改 Target Query 一处，LA + SAM3.text 同步更新\n- SAM3 不可用时 Resolver 回退到 LA 矩形\n\n**镂空通道 (v8.2 新增)** (Cutout Query → LA#2 → SAM3#2 双提示 → MaskFix → MaskSubtract):\n- Cutout Query 留空 = 整链零计算 (LA 短路, MaskSubtract 透传)\n- 镂空主体 (卡套/相框/圈环) 填 'rectangular photo window inside the card holder' 等\n- 减法在 Resolver 输出后单点应用, 下游消费者无需感知\n- 不复用 Resolver 矩形兜底: cutout SAM3 找不到 = 不减, 决不过减\n\n**VectorReady**:\n- A 路径: VR_PipelineLight (alpha = MaskSubtract 输出)\n- B 路径: VR_PipelineStrong (alpha = InvertMask 节点 205)\n\n**输出**: RGBA PNG via VR_JoinRGBA\n- A: v8_A_foreground_RGBA_*.png\n- B: v8_B_background_RGBA_*.png"
       ]
     },
     {
-      "id": 229,
+      "id": 237,
       "type": "PreviewImage",
       "pos": [
         2550,
@@ -2385,7 +2775,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 155
+          "link": 168
         }
       ],
       "outputs": [],
@@ -2816,196 +3206,300 @@
       127,
       5,
       0,
-      219,
+      220,
       0,
       "IMAGE"
     ],
     [
       128,
       219,
-      4,
-      11,
-      2,
-      "BBOX"
+      0,
+      220,
+      1,
+      "STRING"
     ],
     [
       129,
       219,
-      1,
-      220,
       0,
-      "IMAGE"
+      11,
+      2,
+      "STRING"
     ],
     [
       130,
-      5,
-      0,
+      220,
+      4,
+      11,
+      3,
+      "BBOX"
+    ],
+    [
+      131,
+      220,
+      1,
       221,
       0,
       "IMAGE"
     ],
     [
-      131,
-      20,
-      0,
-      221,
-      1,
-      "MASK"
-    ],
-    [
       132,
-      219,
+      5,
       0,
-      221,
-      2,
-      "MASK"
-    ],
-    [
-      133,
-      221,
-      1,
       222,
       0,
       "IMAGE"
     ],
     [
+      133,
+      20,
+      0,
+      222,
+      1,
+      "MASK"
+    ],
+    [
       134,
-      221,
+      220,
+      0,
+      222,
+      2,
+      "MASK"
+    ],
+    [
+      135,
+      222,
+      1,
+      223,
+      0,
+      "IMAGE"
+    ],
+    [
+      136,
+      5,
+      0,
+      225,
+      0,
+      "IMAGE"
+    ],
+    [
+      137,
+      224,
+      0,
+      225,
+      1,
+      "STRING"
+    ],
+    [
+      138,
+      225,
+      1,
+      226,
+      0,
+      "IMAGE"
+    ],
+    [
+      139,
+      10,
+      0,
+      227,
+      0,
+      "EASY_SAM3_MODEL"
+    ],
+    [
+      140,
+      5,
+      0,
+      227,
+      1,
+      "IMAGE"
+    ],
+    [
+      141,
+      224,
+      0,
+      227,
+      2,
+      "STRING"
+    ],
+    [
+      142,
+      225,
+      4,
+      227,
+      3,
+      "BBOX"
+    ],
+    [
+      143,
+      227,
+      0,
+      228,
+      0,
+      "MASK"
+    ],
+    [
+      144,
+      227,
+      1,
+      229,
+      0,
+      "IMAGE"
+    ],
+    [
+      145,
+      222,
+      0,
+      230,
+      0,
+      "MASK"
+    ],
+    [
+      146,
+      228,
+      0,
+      230,
+      1,
+      "MASK"
+    ],
+    [
+      147,
+      230,
       0,
       203,
       2,
       "MASK"
     ],
     [
-      135,
-      221,
+      148,
+      230,
       0,
       204,
       0,
       "MASK"
     ],
     [
-      136,
+      149,
       5,
       0,
-      223,
+      231,
       0,
       "IMAGE"
     ],
     [
-      137,
-      221,
+      150,
+      230,
       0,
-      223,
+      231,
       1,
       "MASK"
     ],
     [
-      138,
+      151,
       62,
       0,
-      224,
+      232,
       0,
       "IMAGE"
     ],
     [
-      139,
-      221,
+      152,
+      230,
       0,
-      224,
+      232,
       1,
       "MASK"
     ],
     [
-      140,
+      153,
       5,
       0,
-      224,
+      232,
       2,
       "IMAGE"
     ],
     [
-      141,
-      223,
+      154,
+      231,
       0,
-      224,
+      232,
       3,
       "MASK"
     ],
     [
-      142,
-      223,
+      155,
+      231,
       1,
-      224,
+      232,
       4,
       "MASK"
     ],
     [
-      143,
+      156,
       212,
       0,
-      225,
+      233,
       0,
       "IMAGE"
     ],
     [
-      144,
+      157,
       205,
       0,
-      225,
+      233,
       1,
       "MASK"
     ],
     [
-      145,
-      224,
+      158,
+      232,
       0,
-      226,
+      234,
       0,
       "IMAGE"
     ],
     [
-      146,
-      224,
+      159,
+      232,
       1,
-      226,
+      234,
       1,
       "MASK"
     ],
     [
-      147,
-      225,
+      160,
+      233,
       0,
-      227,
+      235,
       0,
       "IMAGE"
     ],
     [
-      148,
-      225,
+      161,
+      233,
       1,
-      227,
+      235,
       1,
       "MASK"
     ],
     [
-      149,
-      226,
+      162,
+      234,
       0,
       63,
       0,
       "IMAGE"
     ],
     [
-      150,
-      227,
+      163,
+      235,
       0,
       214,
       0,
       "IMAGE"
     ],
     [
-      151,
+      164,
       5,
       0,
       201,
@@ -3013,7 +3507,7 @@
       "IMAGE"
     ],
     [
-      152,
+      165,
       5,
       0,
       202,
@@ -3021,7 +3515,7 @@
       "IMAGE"
     ],
     [
-      153,
+      166,
       5,
       0,
       207,
@@ -3029,18 +3523,18 @@
       "IMAGE"
     ],
     [
-      154,
-      221,
+      167,
+      230,
       0,
       53,
       2,
       "MASK"
     ],
     [
-      155,
+      168,
       53,
       2,
-      229,
+      237,
       0,
       "IMAGE"
     ]

@@ -4,10 +4,16 @@ Changes vs v7:
 - A/B真正分流: insert VR_GatedPassthrough on each KSampler's latent_image input,
   driven by the foreground_mode boolean (node 215). The unselected branch's
   KSampler receives ExecutionBlocker and the entire downstream chain is pruned.
+- Positive silhouette chain: PrimitiveNode "Target Query" → LA → SAM3
+  (dual-prompt: text + bbox) → MaskFix → VR_TargetMaskResolver (with LA
+  rectangle fallback).
+- Negative cutout chain (v8.2): PrimitiveNode "Cutout Query" → LA #2
+  → SAM3 #2 (dual-prompt, shares model loader) → MaskFix → VR_MaskSubtract.
+  Default cutout query = "" short-circuits the LA inference and turns the
+  subtract into a passthrough, so v8.0 workflows behave identically.
 - VectorReady tails: VR_PipelineLight on A path, VR_PipelineStrong on B path,
-  between VAEDecode and SaveImage. Alpha source is the existing SAM3 mask
-  (node 20) for A and the InvertMask (node 205) for B — placeholder until
-  v8.1 brings ViTMatte/RMBG.
+  between VAEDecode and SaveImage. Alpha source for A is the post-subtract
+  final mask; for B the InvertMask (node 205).
 - Final SaveImage receives RGBA via VR_JoinRGBA (opacity convention + final
   transparent-region RGB/alpha clamp).
 """
@@ -24,6 +30,14 @@ V8 = PROJECT / "qwen_layered_v8_ab_vector_ready.json"
 DEFAULT_RMBG_MODEL_PATH = "/root/ComfyUI/models/RMBG-2.0"
 DEFAULT_LOCATE_MODEL_ID = "/root/ComfyUI/models/LocateAnything-3B"
 DEFAULT_LOCATE_QUERY = "main target object"
+# Cutout query is empty by default: the negative chain short-circuits at the
+# LA #2 empty-query check (zero inference cost) and VR_MaskSubtract becomes a
+# passthrough. Agents fill this in (e.g. "rectangular photo window inside the
+# card holder") for subjects with internal cutouts. See VR_MaskSubtract +
+# docs/qwen_layered_v8_api_agent_guide.md for the calling contract.
+DEFAULT_CUTOUT_QUERY = ""
+CUTOUT_INNER_DILATE_PX = 2
+CUTOUT_MIN_INNER_AREA_RATIO = 0.0005
 
 # Width (in pixels) of the "unknown" black band between red positive and green
 # negative brush regions sent to V2. v7 inherited 48, which leaves giant holes
@@ -193,12 +207,26 @@ def main():
     add_link(g, 215, 0, gate_a_id, 1, "BOOLEAN")
     add_link(g, 215, 0, gate_b_id, 1, "BOOLEAN")
 
-    # ─────────────── Stage 2: LocateAnything spatial fallback ───────────────
-    # LocateAnything gives a robust coarse box for the target. SAM3 remains the
-    # preferred precise mask: LocateAnything feeds SAM3's BBOX input first.
-    # If SAM/MaskFix is still empty or badly misaligned, VR_TargetMaskResolver
-    # falls back to the LocateAnything rectangle so Qwen V2 still receives a
-    # spatial brush instead of blindly relying on text.
+    # ─────────────── Stage 2: LocateAnything + SAM3 dual-prompt ───────────────
+    # LocateAnything gives a robust coarse box; SAM3 gives a precise silhouette.
+    # We want SAM3 to consume BOTH text (semantic) AND bbox (spatial) — they are
+    # complementary, not interchangeable. Empirically (vr_debug.log run on the
+    # cat-card frame), SAM3 with empty text + bbox returned area=0; SAM3 with
+    # text alone produced unstable silhouettes that the LA bbox then could only
+    # AND-mask, never repair. Dual-prompt fixes both modes.
+    #
+    # To keep LA.query and SAM3.text from drifting apart, both are converted to
+    # input sockets driven by a single PrimitiveNode (STRING). Edit the query in
+    # one place in the UI and both nodes update.
+    target_query_id = add_node(
+        g,
+        ntype="PrimitiveNode",
+        title="🎯 Target Query (shared: LA + SAM3)",
+        pos=[480, 380],
+        outputs=[{"name": "STRING", "type": "STRING", "links": [], "widget": {"name": "value"}}],
+        widgets=[DEFAULT_LOCATE_QUERY],
+    )
+
     locate_id = add_node(
         g,
         ntype="VR_LocateAnythingBox",
@@ -206,6 +234,10 @@ def main():
         pos=[840, 430],
         inputs=[
             {"name": "image", "type": "IMAGE", "link": None},
+            # `query` widget converted to input so the shared PrimitiveNode
+            # drives it. The widgets_values entry below is a placeholder kept
+            # for positional alignment with the remaining widgets.
+            {"name": "query", "type": "STRING", "link": None, "widget": {"name": "query"}},
         ],
         outputs=[
             {"name": "box_mask", "type": "MASK", "links": []},
@@ -214,10 +246,11 @@ def main():
             {"name": "box_usable", "type": "BOOLEAN", "links": []},
             {"name": "bboxes", "type": "BBOX", "links": []},
         ],
-        # query, model_id, device, generation_mode, prompt_mode, padding_px,
+        # Positional widgets: query (converted to input, placeholder),
+        # model_id, device, generation_mode, prompt_mode, padding_px,
         # max_new_tokens, temperature.
         widgets=[
-            DEFAULT_LOCATE_QUERY,
+            DEFAULT_LOCATE_QUERY,  # placeholder for converted widget
             DEFAULT_LOCATE_MODEL_ID,
             "auto",
             "hybrid",
@@ -228,13 +261,24 @@ def main():
         ],
     )
     add_link(g, SCALED_INPUT_NODE, 0, locate_id, 0, "IMAGE")
+    add_link(g, target_query_id, 0, locate_id, 1, "STRING")
 
-    # Easy-SAM3 only applies geometric bbox prompts when its text prompt is
-    # empty. The semantic target is now expressed through LocateAnything.query;
-    # SAM3 receives LocateAnything's box as the precise segmentation prompt.
+    # SAM3 receives BOTH the shared text query AND the LA bbox. easy-sam3's
+    # `text` widget (widgets_values[0]) is converted to an input socket so it
+    # tracks the shared PrimitiveNode; the bbox input is added separately.
     sam3_node = find_node(g, 11)
+    # Convert widgets_values[0] (text) to an input. Keep the value as a
+    # placeholder so positional widgets after it (threshold, multimask, etc.)
+    # remain aligned.
+    sam3_node.setdefault("inputs", []).append(
+        {"name": "text", "type": "STRING", "link": None, "widget": {"name": "text"}}
+    )
+    sam3_text_slot = len(sam3_node["inputs"]) - 1
     if sam3_node.get("widgets_values"):
-        sam3_node["widgets_values"][0] = ""
+        # Seed placeholder with the shared default; UI value comes from the
+        # PrimitiveNode at runtime.
+        sam3_node["widgets_values"][0] = DEFAULT_LOCATE_QUERY
+    add_link(g, target_query_id, 0, 11, sam3_text_slot, "STRING")
     sam3_bbox_slot = ensure_input(g, 11, "bboxes", "BBOX")
     add_link(g, locate_id, 4, 11, sam3_bbox_slot, "BBOX")
 
@@ -287,10 +331,153 @@ def main():
     )
     add_link(g, resolver_id, 1, resolver_preview_id, 0, "IMAGE")
 
-    # Existing brush construction should consume the resolved mask. Keep the
-    # old MaskFix preview wired to node 20 for diagnostics.
-    rewire_input(g, 203, "mask", resolver_id, 0, "MASK")
-    rewire_input(g, 204, "mask", resolver_id, 0, "MASK")
+    # ─────────── Stage 2b: Negative chain (cutout / hole extraction) ───────────
+    # Subjects with topological holes — card-holder photo slots, picture
+    # frames, donut shapes — cannot be expressed by any single LA/SAM3 mask
+    # (both produce solid silhouettes). Instead of relying on Qwen-Layered V2
+    # to "infer" the hole as transparent (unstable), we mirror the proven
+    # positive LA+SAM3 chain as a negative chain whose output is subtracted
+    # from the positive silhouette.
+    #
+    # Differences vs the positive chain:
+    #  - No Resolver / no LA-rectangle fallback. If cutout SAM3 finds nothing,
+    #    the inner mask stays empty → subtract is a no-op. We never want to
+    #    over-subtract a full rectangle on a SAM3 miss.
+    #  - LA #2 short-circuits when its query is empty (see locate_anything_box
+    #    early-return), so the default workflow with cutout_query="" pays
+    #    zero compute and behaves identically to v8.0.
+    #  - SAM3 #2 reuses the existing easy sam3ModelLoader (node 10) and the
+    #    scaled-input image (node 5) — only one model load.
+    cutout_query_id = add_node(
+        g,
+        ntype="PrimitiveNode",
+        title="🕳 Cutout Query (shared: LA#2 + SAM3#2; empty = no subtraction)",
+        pos=[480, 1080],
+        outputs=[{"name": "STRING", "type": "STRING", "links": [], "widget": {"name": "value"}}],
+        widgets=[DEFAULT_CUTOUT_QUERY],
+    )
+
+    locate_neg_id = add_node(
+        g,
+        ntype="VR_LocateAnythingBox",
+        title="📍 LocateAnything · Cutout Box (negative)",
+        pos=[840, 1130],
+        inputs=[
+            {"name": "image", "type": "IMAGE", "link": None},
+            {"name": "query", "type": "STRING", "link": None, "widget": {"name": "query"}},
+        ],
+        outputs=[
+            {"name": "box_mask", "type": "MASK", "links": []},
+            {"name": "preview_image", "type": "IMAGE", "links": []},
+            {"name": "bbox_json", "type": "STRING", "links": []},
+            {"name": "box_usable", "type": "BOOLEAN", "links": []},
+            {"name": "bboxes", "type": "BBOX", "links": []},
+        ],
+        widgets=[
+            DEFAULT_CUTOUT_QUERY,  # placeholder for converted query widget
+            DEFAULT_LOCATE_MODEL_ID,
+            "auto",
+            "hybrid",
+            # multi: subjects can have several internal cutouts (e.g. a frame
+            # with multiple window slots). Single-instance prompt would force
+            # LA to pick one; multi lets SAM3 receive all bboxes.
+            "multi",
+            8,
+            2048,
+            0.7,
+        ],
+    )
+    add_link(g, SCALED_INPUT_NODE, 0, locate_neg_id, 0, "IMAGE")
+    add_link(g, cutout_query_id, 0, locate_neg_id, 1, "STRING")
+
+    locate_neg_preview_id = add_node(
+        g,
+        ntype="PreviewImage",
+        title="🔍 [诊断12] Cutout LocateAnything 矩形框",
+        pos=[1180, 1130],
+        inputs=[{"name": "images", "type": "IMAGE", "link": None}],
+    )
+    add_link(g, locate_neg_id, 1, locate_neg_preview_id, 0, "IMAGE")
+
+    # SAM3 #2 — symmetric dual-prompt (text + bbox) for the cutout.
+    sam3_neg_id = add_node(
+        g,
+        ntype="easy sam3ImageSegmentation",
+        title="[SAM3] 分割 (Cutout / negative)",
+        pos=[1540, 1130],
+        inputs=[
+            {"name": "sam3_model", "type": "EASY_SAM3_MODEL", "link": None},
+            {"name": "images", "type": "IMAGE", "link": None},
+            {"name": "text", "type": "STRING", "link": None, "widget": {"name": "text"}},
+            {"name": "bboxes", "type": "BBOX", "link": None},
+        ],
+        outputs=[
+            {"name": "masks", "type": "MASK", "links": []},
+            {"name": "images", "type": "IMAGE", "links": []},
+            {"name": "obj_masks", "type": "MASK", "links": []},
+            {"name": "boxes", "type": "BBOX", "links": []},
+            {"name": "scores", "type": "FLOAT", "links": []},
+        ],
+        # Same positional widgets as SAM3 #1: text (converted), threshold,
+        # multimask, mask_processing, max_objects.
+        widgets=[DEFAULT_CUTOUT_QUERY, 0.4, False, "none", -1],
+    )
+    # Share the existing sam3 model loader (node 10) — no extra load.
+    add_link(g, 10, 0, sam3_neg_id, 0, "EASY_SAM3_MODEL")
+    add_link(g, SCALED_INPUT_NODE, 0, sam3_neg_id, 1, "IMAGE")
+    add_link(g, cutout_query_id, 0, sam3_neg_id, 2, "STRING")
+    add_link(g, locate_neg_id, 4, sam3_neg_id, 3, "BBOX")
+
+    maskfix_neg_id = add_node(
+        g,
+        ntype="MaskFix+",
+        title="[Mask] MaskFix+ 修复 (Cutout / negative)",
+        pos=[1900, 1130],
+        inputs=[{"name": "mask", "type": "MASK", "link": None}],
+        outputs=[{"name": "MASK", "type": "MASK", "links": []}],
+        # Same defaults as positive-side MaskFix+ node 20.
+        widgets=[3, 1, 5, 4, 4],
+    )
+    add_link(g, sam3_neg_id, 0, maskfix_neg_id, 0, "MASK")
+
+    sam3_neg_preview_id = add_node(
+        g,
+        ntype="PreviewImage",
+        title="🔍 [诊断13] Cutout SAM3 + MaskFix mask",
+        pos=[2240, 1130],
+        inputs=[{"name": "images", "type": "IMAGE", "link": None}],
+    )
+    # Preview the MaskFix output directly — MASK is not an IMAGE so we go
+    # through SAM3's preview-image socket which already overlays the mask.
+    add_link(g, sam3_neg_id, 1, sam3_neg_preview_id, 0, "IMAGE")
+
+    # Subtract: final = clamp(resolver_positive - dilate(cutout_inner, px), 0, 1).
+    # When cutout_query is empty the inner mask is zeros and this node
+    # passes the outer mask straight through.
+    mask_subtract_id = add_node(
+        g,
+        ntype="VR_MaskSubtract",
+        title="🎯− Mask Subtract (positive − cutout)",
+        pos=[2240, 700],
+        inputs=[
+            {"name": "outer", "type": "MASK", "link": None},
+            {"name": "inner", "type": "MASK", "link": None},
+        ],
+        outputs=[{"name": "mask", "type": "MASK", "links": []}],
+        widgets=[CUTOUT_INNER_DILATE_PX, CUTOUT_MIN_INNER_AREA_RATIO],
+    )
+    add_link(g, resolver_id, 0, mask_subtract_id, 0, "MASK")
+    add_link(g, maskfix_neg_id, 0, mask_subtract_id, 1, "MASK")
+
+    # All downstream consumers (brush ref, trimap, HFMatting, PipelineLight)
+    # read from final_mask_id instead of resolver_id directly, so the cutout
+    # subtraction is applied uniformly without touching their wiring sites.
+    final_mask_id = mask_subtract_id
+
+    # Existing brush construction should consume the final (post-subtract) mask.
+    # Keep the old MaskFix preview wired to node 20 for diagnostics.
+    rewire_input(g, 203, "mask", final_mask_id, 0, "MASK")
+    rewire_input(g, 204, "mask", final_mask_id, 0, "MASK")
 
     # ─────────────── Stage 4: VectorReady tails ───────────────
     # A path: 62 VAEDecode.IMAGE + resolver target MASK + 5 scaled original IMAGE
@@ -324,7 +511,7 @@ def main():
         widgets=[DEFAULT_RMBG_MODEL_PATH, 1024, "auto"],
     )
     add_link(g, SCALED_INPUT_NODE, 0, hf_matte_id, 0, "IMAGE")
-    add_link(g, resolver_id, 0, hf_matte_id, 1, "MASK")
+    add_link(g, final_mask_id, 0, hf_matte_id, 1, "MASK")
 
     # A pipeline node
     vr_light_id = add_node(
@@ -354,7 +541,7 @@ def main():
         widgets=[0, 3, 1500, "mask_socket", "external_matte"],
     )
     add_link(g, 62, 0, vr_light_id, 0, "IMAGE")
-    add_link(g, resolver_id, 0, vr_light_id, 1, "MASK")
+    add_link(g, final_mask_id, 0, vr_light_id, 1, "MASK")
     add_link(g, SCALED_INPUT_NODE, 0, vr_light_id, 2, "IMAGE")
     add_link(g, hf_matte_id, 0, vr_light_id, 3, "MASK")
     add_link(g, hf_matte_id, 1, vr_light_id, 4, "MASK")
@@ -433,20 +620,19 @@ def main():
         title="📘 v8.0 说明",
         pos=[2200, 600],
         widgets=[
-            "## v8.0 · A/B 真正分流 + VectorReady\n\n"
-            "**A/B 切换**: 节点 215 (foreground_mode) → 两个 VR_GatedPassthrough\n"
-            "- Gate A: enable=215, invert=false → 只在 true 时放行\n"
-            "- Gate B: enable=215, invert=true  → 只在 false 时放行\n"
-            "未选中的分支会因为 ExecutionBlocker 被自动跳过整条管线\n"
-            "(KSampler + VAEDecode + VectorReady + SaveImage 全部不执行)\n\n"
+            "## v8.2 · A/B 分流 + VectorReady + 镂空通道\n\n"
+            "**A/B 切换**: 节点 215 (foreground_mode) → 两个 VR_GatedPassthrough\n\n"
+            "**正向 silhouette 通道** (Target Query → LA → SAM3 双提示 → MaskFix → Resolver):\n"
+            "- 改 Target Query 一处，LA + SAM3.text 同步更新\n"
+            "- SAM3 不可用时 Resolver 回退到 LA 矩形\n\n"
+            "**镂空通道 (v8.2 新增)** (Cutout Query → LA#2 → SAM3#2 双提示 → MaskFix → MaskSubtract):\n"
+            "- Cutout Query 留空 = 整链零计算 (LA 短路, MaskSubtract 透传)\n"
+            "- 镂空主体 (卡套/相框/圈环) 填 'rectangular photo window inside the card holder' 等\n"
+            "- 减法在 Resolver 输出后单点应用, 下游消费者无需感知\n"
+            "- 不复用 Resolver 矩形兜底: cutout SAM3 找不到 = 不减, 决不过减\n\n"
             "**VectorReady**:\n"
-            "- A 路径: VR_PipelineLight (alpha 源 = TargetMaskResolver)\n"
-            "- B 路径: VR_PipelineStrong (alpha 源 = InvertMask 节点 205)\n"
-            "alpha 当前是 mask 复用占位,v8.1 接入 ViTMatte/RMBG 替换\n\n"
-            "**定位兜底**:\n"
-            "- LocateAnything 生成目标矩形 mask\n"
-            "- SAM/MaskFix 可用时优先使用 SAM\n"
-            "- SAM 不可用时回退到矩形 mask,保证 Qwen V2 仍收到 brush\n\n"
+            "- A 路径: VR_PipelineLight (alpha = MaskSubtract 输出)\n"
+            "- B 路径: VR_PipelineStrong (alpha = InvertMask 节点 205)\n\n"
             "**输出**: RGBA PNG via VR_JoinRGBA\n"
             "- A: v8_A_foreground_RGBA_*.png\n"
             "- B: v8_B_background_RGBA_*.png"
@@ -503,7 +689,7 @@ def main():
         BRUSH_MAX_AREA_RATIO,
         BRUSH_MIN_AREA_PX,
     ]
-    add_link(g, resolver_id, 0, 53, 2, "MASK")
+    add_link(g, final_mask_id, 0, 53, 2, "MASK")
 
     brush_status_preview_id = add_node(
         g,
