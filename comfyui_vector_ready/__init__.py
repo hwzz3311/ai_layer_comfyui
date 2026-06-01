@@ -3,7 +3,7 @@
 Registers nodes under category 'VectorReady/*'. Loaded by ComfyUI via the
 NODE_CLASS_MAPPINGS / NODE_DISPLAY_NAME_MAPPINGS convention."""
 
-__version__ = "0.14.0"
+__version__ = "0.15.0"
 
 from .nodes.alpha_cleanup import VR_AlphaCleanup
 from .nodes.alpha_edge_refine import VR_AlphaEdgeRefine
@@ -28,6 +28,7 @@ from .nodes.reference_latent_if_mask_usable import VR_ReferenceLatentIfMaskUsabl
 from .nodes.roi_unsharp import VR_ROIUnsharpMask
 from .nodes.target_mask_resolver import VR_TargetMaskResolver
 from .nodes.target_trimap_builder import VR_TargetTrimapBuilder
+from .nodes.vector_ready_report import VR_VectorReadyReport
 
 vr_log("PLUGIN_VERSION", f"comfyui_vector_ready v{__version__}")
 from .presets.pipeline import VR_PipelineLight, VR_PipelineStrong
@@ -57,6 +58,7 @@ NODE_CLASS_MAPPINGS = {
     "VR_ReferenceLatentIfMaskUsable": VR_ReferenceLatentIfMaskUsable,
     "VR_TargetMaskResolver": VR_TargetMaskResolver,
     "VR_TargetTrimapBuilder": VR_TargetTrimapBuilder,
+    "VR_VectorReadyReport": VR_VectorReadyReport,
     "VR_PipelineLight": VR_PipelineLight,
     "VR_PipelineStrong": VR_PipelineStrong,
     "VR_PipelineLightDebug": VR_PipelineLightDebug,
@@ -90,6 +92,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "VR_ReferenceLatentIfMaskUsable": "VR · Reference Latent If Mask Usable",
     "VR_TargetMaskResolver": "VR · Target Mask Resolver",
     "VR_TargetTrimapBuilder": "VR · Target Trimap Builder",
+    "VR_VectorReadyReport": "VR · VectorReady Report (quality JSON sidecar)",
     "VR_PipelineLight": "VR · Pipeline (Light, A-path)",
     "VR_PipelineStrong": "VR · Pipeline (Strong, B-path)",
     "VR_PipelineLightDebug": "VR · Pipeline Light (DEBUG, 26 outputs)",

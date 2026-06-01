@@ -643,9 +643,41 @@ def main():
     add_link(g, vr_strong_id, 0, join_b_id, 0, "IMAGE")
     add_link(g, vr_strong_id, 1, join_b_id, 1, "MASK")
 
-    # Wire back to SaveImage
-    add_link(g, join_a_id, 0, 63, 0, "IMAGE")
-    add_link(g, join_b_id, 0, 214, 0, "IMAGE")
+    # VR_VectorReadyReport — inline diagnostic between JoinRGBA and SaveImage.
+    # Image passes through unchanged; the STRING report_json is logged + wired
+    # to a ShowText-style display so the agent can read quality stats per layer.
+    # Defaults tuned for the v0.14.0 pipeline: ≤32 colors, ≥0.001 content
+    # ratio, ≤5% small-island fraction. Flags fire when assumptions break.
+    report_a_id = add_node(
+        g,
+        ntype="VR_VectorReadyReport",
+        title="📋 VectorReady Report (A)",
+        pos=[4080, 100],
+        inputs=[{"name": "image", "type": "IMAGE", "link": None}],
+        outputs=[
+            {"name": "report_json", "type": "STRING", "links": []},
+            {"name": "image", "type": "IMAGE", "links": []},
+        ],
+        widgets=["A_foreground", 32, 0.001, 0.05],
+    )
+    report_b_id = add_node(
+        g,
+        ntype="VR_VectorReadyReport",
+        title="📋 VectorReady Report (B)",
+        pos=[4080, 360],
+        inputs=[{"name": "image", "type": "IMAGE", "link": None}],
+        outputs=[
+            {"name": "report_json", "type": "STRING", "links": []},
+            {"name": "image", "type": "IMAGE", "links": []},
+        ],
+        widgets=["B_background", 32, 0.001, 0.05],
+    )
+    add_link(g, join_a_id, 0, report_a_id, 0, "IMAGE")
+    add_link(g, join_b_id, 0, report_b_id, 0, "IMAGE")
+
+    # Wire back to SaveImage via the report's passthrough image output.
+    add_link(g, report_a_id, 1, 63, 0, "IMAGE")
+    add_link(g, report_b_id, 1, 214, 0, "IMAGE")
 
     # Update SaveImage filename prefix so A/B outputs are distinguishable
     s63 = find_node(g, 63)
@@ -677,10 +709,12 @@ def main():
             "- 不复用 Resolver 主体级矩形兜底: cutout SAM3+LA 都找不到 = 不减, 决不过减\n\n"
             "**VectorReady**:\n"
             "- A 路径: VR_PipelineLight (alpha = MaskSubtract 输出)\n"
-            "- B 路径: VR_PipelineStrong (alpha = InvertMask 节点 205)\n\n"
+            "- B 路径: VR_PipelineStrong (alpha = InvertMask 节点 205)\n"
+            "- 两路径出口: final_defringe → edge_color_inpaint (v0.13-0.14) 杀边缘色幻影\n"
+            "- 两路径终: VR_VectorReadyReport (v0.15.0) 输出 JSON 质量诊断到 vr_debug.log\n\n"
             "**输出**: RGBA PNG via VR_JoinRGBA\n"
-            "- A: v8_A_foreground_RGBA_*.png\n"
-            "- B: v8_B_background_RGBA_*.png"
+            "- A: v8_A_foreground_RGBA_*.png (附 report JSON)\n"
+            "- B: v8_B_background_RGBA_*.png (附 report JSON)"
         ],
     )
 

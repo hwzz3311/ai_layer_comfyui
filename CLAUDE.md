@@ -26,7 +26,7 @@ Both paths share the same upstream silhouette pipeline:
 ## Repository layout
 
 - `comfyui_vector_ready/` — the ComfyUI custom-nodes package. Installed by symlinking/copying into `ComfyUI/custom_nodes/`.
-  - `nodes/` — atomic RGBA post-processing ops (LAB convert, k-means, bilateral, edge-aware merge, ROI unsharp, canny, alpha stepify, gated passthrough, join RGBA, debug probes), grounding (`locate_anything_box`), mask math (`mask_subtract` — used by the v8.2 negative-cutout chain).
+  - `nodes/` — atomic RGBA post-processing ops (LAB convert, k-means, bilateral, edge-aware merge, ROI unsharp, canny, alpha stepify, gated passthrough, join RGBA, debug probes), grounding (`locate_anything_box`), mask math (`mask_subtract` — used by the v8.2 negative-cutout chain), quality diagnostics (`vector_ready_report` — emits a per-layer JSON describing colors / alpha levels / connected components / content bbox / quality flags; used by orchestrating agents to decide accept-or-retry).
   - `presets/pipeline.py` — `VR_PipelineLight` (A) and `VR_PipelineStrong` (B) composite nodes that wire the atomic ops in the canonical order.
   - `presets/pipeline_debug.py` — DEBUG variants that expose every intermediate stage as an extra output (used by the debug workflow JSON).
   - `nodes/_utils.py` — the **only** correct way to bridge ComfyUI tensors ↔ numpy/cv2. Use these helpers; don't roll your own conversions.

@@ -1,6 +1,6 @@
 {
-  "last_node_id": 240,
-  "last_link_id": 172,
+  "last_node_id": 242,
+  "last_link_id": 174,
   "nodes": [
     {
       "id": 1,
@@ -78,9 +78,9 @@
             140,
             153,
             157,
-            168,
-            169,
-            170
+            170,
+            171,
+            172
           ],
           "slot_index": 0
         }
@@ -438,7 +438,7 @@
         {
           "name": "reference",
           "type": "IMAGE",
-          "link": 168
+          "link": 170
         }
       ],
       "outputs": [
@@ -479,7 +479,7 @@
         {
           "name": "reference",
           "type": "IMAGE",
-          "link": 169
+          "link": 171
         }
       ],
       "outputs": [
@@ -962,7 +962,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 171
+          "link": 173
         }
       ],
       "outputs": [
@@ -983,7 +983,7 @@
           "name": "status_image",
           "type": "IMAGE",
           "links": [
-            172
+            174
           ]
         }
       ],
@@ -1279,7 +1279,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 166
+          "link": 168
         }
       ],
       "outputs": [],
@@ -1440,7 +1440,7 @@
         {
           "name": "reference",
           "type": "IMAGE",
-          "link": 170
+          "link": 172
         }
       ],
       "outputs": [
@@ -1733,7 +1733,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 167
+          "link": 169
         }
       ],
       "outputs": [],
@@ -2536,7 +2536,7 @@
             152,
             154,
             156,
-            171
+            173
           ]
         }
       ],
@@ -2835,6 +2835,98 @@
     },
     {
       "id": 239,
+      "type": "VR_VectorReadyReport",
+      "pos": [
+        4080,
+        100
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "📋 VectorReady Report (A)",
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 166
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report_json",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            168
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_VectorReadyReport"
+      },
+      "widgets_values": [
+        "A_foreground",
+        32,
+        0.001,
+        0.05
+      ]
+    },
+    {
+      "id": 240,
+      "type": "VR_VectorReadyReport",
+      "pos": [
+        4080,
+        360
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "📋 VectorReady Report (B)",
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 167
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report_json",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            169
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_VectorReadyReport"
+      },
+      "widgets_values": [
+        "B_background",
+        32,
+        0.001,
+        0.05
+      ]
+    },
+    {
+      "id": 241,
       "type": "MarkdownNote",
       "pos": [
         2200,
@@ -2854,11 +2946,11 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "## v8.2 · A/B 分流 + VectorReady + 镂空通道\n\n**A/B 切换**: 节点 215 (foreground_mode) → 两个 VR_GatedPassthrough\n\n**正向 silhouette 通道** (Target Query → LA → SAM3 双提示 → MaskFix → Resolver):\n- 改 Target Query 一处，LA + SAM3.text 同步更新\n- SAM3 不可用时 Resolver 回退到 LA 矩形\n\n**镂空通道 (v8.2 / v0.12.0 多孔加强)** (Cutout Query → LA#2 multi → SAM3#2 双提示 → MaskFix → MaskUnion → MaskSubtract):\n- Cutout Query 留空 = 整链零计算 (LA 短路, MaskUnion 双空, MaskSubtract 透传)\n- LA#2 prompt_mode='multi' → 输出 N 个 box 的 union mask + 全部 bbox\n- SAM3#2 双提示只精修主 bbox; MaskUnion = (SAM3 精修 ∪ LA 全部矩形) 补齐其余 N-1 个洞\n- 多孔主体推荐复数 query: 'rectangular photo windows', 'all photo slots'\n- 减法在 Resolver 输出后单点应用, 下游消费者无需感知\n- 不复用 Resolver 主体级矩形兜底: cutout SAM3+LA 都找不到 = 不减, 决不过减\n\n**VectorReady**:\n- A 路径: VR_PipelineLight (alpha = MaskSubtract 输出)\n- B 路径: VR_PipelineStrong (alpha = InvertMask 节点 205)\n\n**输出**: RGBA PNG via VR_JoinRGBA\n- A: v8_A_foreground_RGBA_*.png\n- B: v8_B_background_RGBA_*.png"
+        "## v8.2 · A/B 分流 + VectorReady + 镂空通道\n\n**A/B 切换**: 节点 215 (foreground_mode) → 两个 VR_GatedPassthrough\n\n**正向 silhouette 通道** (Target Query → LA → SAM3 双提示 → MaskFix → Resolver):\n- 改 Target Query 一处，LA + SAM3.text 同步更新\n- SAM3 不可用时 Resolver 回退到 LA 矩形\n\n**镂空通道 (v8.2 / v0.12.0 多孔加强)** (Cutout Query → LA#2 multi → SAM3#2 双提示 → MaskFix → MaskUnion → MaskSubtract):\n- Cutout Query 留空 = 整链零计算 (LA 短路, MaskUnion 双空, MaskSubtract 透传)\n- LA#2 prompt_mode='multi' → 输出 N 个 box 的 union mask + 全部 bbox\n- SAM3#2 双提示只精修主 bbox; MaskUnion = (SAM3 精修 ∪ LA 全部矩形) 补齐其余 N-1 个洞\n- 多孔主体推荐复数 query: 'rectangular photo windows', 'all photo slots'\n- 减法在 Resolver 输出后单点应用, 下游消费者无需感知\n- 不复用 Resolver 主体级矩形兜底: cutout SAM3+LA 都找不到 = 不减, 决不过减\n\n**VectorReady**:\n- A 路径: VR_PipelineLight (alpha = MaskSubtract 输出)\n- B 路径: VR_PipelineStrong (alpha = InvertMask 节点 205)\n- 两路径出口: final_defringe → edge_color_inpaint (v0.13-0.14) 杀边缘色幻影\n- 两路径终: VR_VectorReadyReport (v0.15.0) 输出 JSON 质量诊断到 vr_debug.log\n\n**输出**: RGBA PNG via VR_JoinRGBA\n- A: v8_A_foreground_RGBA_*.png (附 report JSON)\n- B: v8_B_background_RGBA_*.png (附 report JSON)"
       ]
     },
     {
-      "id": 240,
+      "id": 242,
       "type": "PreviewImage",
       "pos": [
         2550,
@@ -2876,7 +2968,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 172
+          "link": 174
         }
       ],
       "outputs": [],
@@ -3619,7 +3711,7 @@
       166,
       237,
       0,
-      63,
+      239,
       0,
       "IMAGE"
     ],
@@ -3627,23 +3719,23 @@
       167,
       238,
       0,
-      214,
+      240,
       0,
       "IMAGE"
     ],
     [
       168,
-      5,
-      0,
-      201,
+      239,
+      1,
+      63,
       0,
       "IMAGE"
     ],
     [
       169,
-      5,
-      0,
-      202,
+      240,
+      1,
+      214,
       0,
       "IMAGE"
     ],
@@ -3651,12 +3743,28 @@
       170,
       5,
       0,
-      207,
+      201,
       0,
       "IMAGE"
     ],
     [
       171,
+      5,
+      0,
+      202,
+      0,
+      "IMAGE"
+    ],
+    [
+      172,
+      5,
+      0,
+      207,
+      0,
+      "IMAGE"
+    ],
+    [
+      173,
       232,
       0,
       53,
@@ -3664,10 +3772,10 @@
       "MASK"
     ],
     [
-      172,
+      174,
       53,
       2,
-      240,
+      242,
       0,
       "IMAGE"
     ]
