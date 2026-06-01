@@ -1,6 +1,6 @@
 {
-  "last_node_id": 276,
-  "last_link_id": 216,
+  "last_node_id": 278,
+  "last_link_id": 218,
   "nodes": [
     {
       "id": 1,
@@ -1383,7 +1383,7 @@
           "links": [
             106,
             109,
-            205
+            206
           ],
           "slot_index": 0
         }
@@ -1676,7 +1676,7 @@
           "type": "IMAGE",
           "links": [
             119,
-            204
+            205
           ],
           "slot_index": 0
         }
@@ -2688,12 +2688,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 206
+          "link": 207
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 207
+          "link": 208
         }
       ],
       "outputs": [
@@ -2776,7 +2776,7 @@
       "flags": {},
       "order": 0,
       "mode": 0,
-      "title": "🔬 VectorReady Light DEBUG (A path, 24 outs)",
+      "title": "🔬 VectorReady Light DEBUG (A path, 25 outs)",
       "inputs": [
         {
           "name": "image",
@@ -2963,8 +2963,15 @@
           "name": "roi_sharpened",
           "type": "IMAGE",
           "links": [
-            178,
             202
+          ]
+        },
+        {
+          "name": "final_defringed",
+          "type": "IMAGE",
+          "links": [
+            178,
+            203
           ]
         },
         {
@@ -2972,7 +2979,7 @@
           "type": "MASK",
           "links": [
             179,
-            203
+            204
           ]
         }
       ],
@@ -3633,7 +3640,7 @@
     },
     {
       "id": 265,
-      "type": "MaskPreview+",
+      "type": "PreviewImage",
       "pos": [
         4760,
         500
@@ -3645,12 +3652,40 @@
       "flags": {},
       "order": 0,
       "mode": 0,
-      "title": "🔍 [23] alpha_stepified",
+      "title": "🔍 [23] final_defringed",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 203
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 266,
+      "type": "MaskPreview+",
+      "pos": [
+        3800,
+        760
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [24] alpha_stepified",
       "inputs": [
         {
           "name": "mask",
           "type": "MASK",
-          "link": 203
+          "link": 204
         }
       ],
       "outputs": [],
@@ -3660,7 +3695,7 @@
       "widgets_values": []
     },
     {
-      "id": 266,
+      "id": 267,
       "type": "VR_PipelineStrongDebug",
       "pos": [
         3500,
@@ -3673,17 +3708,17 @@
       "flags": {},
       "order": 0,
       "mode": 0,
-      "title": "🔬 VectorReady Strong DEBUG (B path, 9 outs)",
+      "title": "🔬 VectorReady Strong DEBUG (B path, 10 outs)",
       "inputs": [
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 204
+          "link": 205
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 205
+          "link": 206
         }
       ],
       "outputs": [
@@ -3691,65 +3726,72 @@
           "name": "input_rgb",
           "type": "IMAGE",
           "links": [
-            208
+            209
           ]
         },
         {
           "name": "native_alpha_viz",
           "type": "IMAGE",
           "links": [
-            209
+            210
           ]
         },
         {
           "name": "alpha_cleaned_viz",
           "type": "IMAGE",
           "links": [
-            210
+            211
           ]
         },
         {
           "name": "bilateral_smooth",
           "type": "IMAGE",
           "links": [
-            211
+            212
           ]
         },
         {
           "name": "canny_edges_viz",
           "type": "IMAGE",
           "links": [
-            212
+            213
           ]
         },
         {
           "name": "kmeans_quantized",
           "type": "IMAGE",
           "links": [
-            213
+            214
           ]
         },
         {
           "name": "region_merged",
           "type": "IMAGE",
           "links": [
-            214
+            215
           ]
         },
         {
           "name": "roi_sharpened",
           "type": "IMAGE",
           "links": [
-            206,
-            215
+            216
+          ]
+        },
+        {
+          "name": "final_defringed",
+          "type": "IMAGE",
+          "links": [
+            207,
+            217
           ]
         },
         {
           "name": "alpha_stepified",
           "type": "MASK",
           "links": [
-            207,
-            216
+            208,
+            218
           ]
         }
       ],
@@ -3765,7 +3807,7 @@
       ]
     },
     {
-      "id": 267,
+      "id": 268,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -3783,7 +3825,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 208
+          "link": 209
         }
       ],
       "outputs": [],
@@ -3793,7 +3835,7 @@
       "widgets_values": []
     },
     {
-      "id": 268,
+      "id": 269,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -3811,7 +3853,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 209
+          "link": 210
         }
       ],
       "outputs": [],
@@ -3821,7 +3863,7 @@
       "widgets_values": []
     },
     {
-      "id": 269,
+      "id": 270,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -3839,7 +3881,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 210
+          "link": 211
         }
       ],
       "outputs": [],
@@ -3849,7 +3891,7 @@
       "widgets_values": []
     },
     {
-      "id": 270,
+      "id": 271,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -3867,7 +3909,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 211
+          "link": 212
         }
       ],
       "outputs": [],
@@ -3877,7 +3919,7 @@
       "widgets_values": []
     },
     {
-      "id": 271,
+      "id": 272,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -3895,7 +3937,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 212
+          "link": 213
         }
       ],
       "outputs": [],
@@ -3905,7 +3947,7 @@
       "widgets_values": []
     },
     {
-      "id": 272,
+      "id": 273,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -3923,7 +3965,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 213
+          "link": 214
         }
       ],
       "outputs": [],
@@ -3933,7 +3975,7 @@
       "widgets_values": []
     },
     {
-      "id": 273,
+      "id": 274,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -3951,7 +3993,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 214
+          "link": 215
         }
       ],
       "outputs": [],
@@ -3961,7 +4003,7 @@
       "widgets_values": []
     },
     {
-      "id": 274,
+      "id": 275,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -3979,7 +4021,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 215
+          "link": 216
         }
       ],
       "outputs": [],
@@ -3989,8 +4031,8 @@
       "widgets_values": []
     },
     {
-      "id": 275,
-      "type": "MaskPreview+",
+      "id": 276,
+      "type": "PreviewImage",
       "pos": [
         3800,
         1320
@@ -4002,12 +4044,40 @@
       "flags": {},
       "order": 0,
       "mode": 0,
-      "title": "🔍 [8] alpha_stepified",
+      "title": "🔍 [8] final_defringed",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 217
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 277,
+      "type": "MaskPreview+",
+      "pos": [
+        4120,
+        1320
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [9] alpha_stepified",
       "inputs": [
         {
           "name": "mask",
           "type": "MASK",
-          "link": 216
+          "link": 218
         }
       ],
       "outputs": [],
@@ -4017,7 +4087,7 @@
       "widgets_values": []
     },
     {
-      "id": 276,
+      "id": 278,
       "type": "MarkdownNote",
       "pos": [
         3400,
@@ -4037,7 +4107,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "## v8 DEBUG (A + B 双路径)\n\nA 路径: VR_PipelineLightDebug (11 stage outputs, includes edge restore diagnostics)\nB 路径: VR_PipelineStrongDebug (9 stage outputs)\n\n**日志**: `/root/ComfyUI/custom_nodes/comfyui_vector_ready/vr_debug.log`\n**生产输出**: 两条路径的 SaveImage 仍然正常工作\n**执行**: ExecutionBlocker 仍生效,foreground_mode 切换只跑一条链路"
+        "## v8 DEBUG (A + B 双路径)\n\nA 路径: VR_PipelineLightDebug (25 outs, incl. final_defringed)\nB 路径: VR_PipelineStrongDebug (10 outs, incl. final_defringed)\n\n**日志**: `/root/ComfyUI/custom_nodes/comfyui_vector_ready/vr_debug.log`\n**生产输出**: 两条路径的 SaveImage 仍然正常工作\n**执行**: ExecutionBlocker 仍生效,foreground_mode 切换只跑一条链路"
       ]
     }
   ],
@@ -4781,7 +4851,7 @@
     [
       178,
       241,
-      22,
+      23,
       237,
       0,
       "IMAGE"
@@ -4789,7 +4859,7 @@
     [
       179,
       241,
-      23,
+      24,
       237,
       1,
       "MASK"
@@ -4984,109 +5054,125 @@
       23,
       265,
       0,
-      "MASK"
+      "IMAGE"
     ],
     [
       204,
+      241,
+      24,
+      266,
+      0,
+      "MASK"
+    ],
+    [
+      205,
       212,
-      0,
-      266,
-      0,
-      "IMAGE"
-    ],
-    [
-      205,
-      205,
-      0,
-      266,
-      1,
-      "MASK"
-    ],
-    [
-      206,
-      266,
-      7,
-      238,
-      0,
-      "IMAGE"
-    ],
-    [
-      207,
-      266,
-      8,
-      238,
-      1,
-      "MASK"
-    ],
-    [
-      208,
-      266,
       0,
       267,
       0,
       "IMAGE"
     ],
     [
-      209,
-      266,
+      206,
+      205,
+      0,
+      267,
       1,
+      "MASK"
+    ],
+    [
+      207,
+      267,
+      8,
+      238,
+      0,
+      "IMAGE"
+    ],
+    [
+      208,
+      267,
+      9,
+      238,
+      1,
+      "MASK"
+    ],
+    [
+      209,
+      267,
+      0,
       268,
       0,
       "IMAGE"
     ],
     [
       210,
-      266,
-      2,
+      267,
+      1,
       269,
       0,
       "IMAGE"
     ],
     [
       211,
-      266,
-      3,
+      267,
+      2,
       270,
       0,
       "IMAGE"
     ],
     [
       212,
-      266,
-      4,
+      267,
+      3,
       271,
       0,
       "IMAGE"
     ],
     [
       213,
-      266,
-      5,
+      267,
+      4,
       272,
       0,
       "IMAGE"
     ],
     [
       214,
-      266,
-      6,
+      267,
+      5,
       273,
       0,
       "IMAGE"
     ],
     [
       215,
-      266,
-      7,
+      267,
+      6,
       274,
       0,
       "IMAGE"
     ],
     [
       216,
-      266,
-      8,
+      267,
+      7,
       275,
+      0,
+      "IMAGE"
+    ],
+    [
+      217,
+      267,
+      8,
+      276,
+      0,
+      "IMAGE"
+    ],
+    [
+      218,
+      267,
+      9,
+      277,
       0,
       "MASK"
     ]

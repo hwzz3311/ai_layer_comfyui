@@ -206,17 +206,21 @@ def main():
         ("palette_quantized", "IMAGE"),
         ("canny_edges_viz", "IMAGE"),
         ("roi_sharpened", "IMAGE"),
+        ("final_defringed", "IMAGE"),
         ("alpha_stepified", "MASK"),
     ]
     a_id = swap_preset(
         g,
         old_type="VR_PipelineLight",
         new_type="VR_PipelineLightDebug",
-        new_title="🔬 VectorReady Light DEBUG (A path, 24 outs)",
+        new_title="🔬 VectorReady Light DEBUG (A path, 25 outs)",
         output_specs=a_outputs,
         widgets=[0, 3, 1500, "mask_socket", "external_matte"],
-        final_rgb_slot=22,
-        final_alpha_slot=23,
+        # final_rgb now points at the defringed output, not roi_sharpened —
+        # the saved PNG should match the production VR_PipelineLight return,
+        # which is the post-defringe RGB.
+        final_rgb_slot=23,
+        final_alpha_slot=24,
         preview_origin_pos=[3800, -800],
     )
     print(f"A path: debug node id = {a_id}")
@@ -231,17 +235,19 @@ def main():
         ("kmeans_quantized", "IMAGE"),
         ("region_merged", "IMAGE"),
         ("roi_sharpened", "IMAGE"),
+        ("final_defringed", "IMAGE"),
         ("alpha_stepified", "MASK"),
     ]
     b_id = swap_preset(
         g,
         old_type="VR_PipelineStrong",
         new_type="VR_PipelineStrongDebug",
-        new_title="🔬 VectorReady Strong DEBUG (B path, 9 outs)",
+        new_title="🔬 VectorReady Strong DEBUG (B path, 10 outs)",
         output_specs=b_outputs,
         widgets=[12, 6.0, 3, 1500, "auto"],
-        final_rgb_slot=7,
-        final_alpha_slot=8,
+        # final_rgb now points at the defringed output instead of roi_sharpened.
+        final_rgb_slot=8,
+        final_alpha_slot=9,
         preview_origin_pos=[3800, 800],
     )
     print(f"B path: debug node id = {b_id}")
@@ -254,8 +260,8 @@ def main():
         pos=[3400, 1500],
         widgets=[
             "## v8 DEBUG (A + B 双路径)\n\n"
-            "A 路径: VR_PipelineLightDebug (11 stage outputs, includes edge restore diagnostics)\n"
-            "B 路径: VR_PipelineStrongDebug (9 stage outputs)\n\n"
+            "A 路径: VR_PipelineLightDebug (25 outs, incl. final_defringed)\n"
+            "B 路径: VR_PipelineStrongDebug (10 outs, incl. final_defringed)\n\n"
             "**日志**: `/root/ComfyUI/custom_nodes/comfyui_vector_ready/vr_debug.log`\n"
             "**生产输出**: 两条路径的 SaveImage 仍然正常工作\n"
             "**执行**: ExecutionBlocker 仍生效,foreground_mode 切换只跑一条链路"

@@ -196,6 +196,14 @@ class VR_PipelineLight:
 
         (alpha_clean,) = VR_AlphaStepify().stepify(alpha, alpha_steps, 0.4, 0.6)
         vr_log("Light [4] alpha_stepified", _stats(alpha_clean))
+
+        # Final defringe: zero RGB wherever the stepified alpha collapsed to
+        # transparent. Without this the A path emits Qwen decoder noise in
+        # alpha=0 regions AND a 1-2px halo of mixed colors along the new hard
+        # silhouette boundary — both vectorize as spurious paths.
+        sharpened = _clean_transparent_rgb(sharpened, alpha_clean)
+        vr_log("Light [4.5] final_defringe", _stats(sharpened))
+
         vr_log("Light OUTPUT image", _stats(sharpened))
         vr_log("Light OUTPUT alpha", _stats(alpha_clean))
         return (sharpened, alpha_clean)
@@ -259,6 +267,14 @@ class VR_PipelineStrong:
 
         (alpha_clean,) = VR_AlphaStepify().stepify(alpha, alpha_steps, 0.4, 0.6)
         vr_log("Strong [7] alpha_stepified", _stats(alpha_clean))
+
+        # Final defringe with the stepified alpha. The earlier [0.5] cleanup
+        # used the pre-stepify alpha, so pixels whose soft alpha (∈ [τ, 0.4))
+        # got collapsed to 0 by stepify still carried processed RGB through to
+        # output. Re-zero those here so the halo doesn't survive to the PNG.
+        sharp = _clean_transparent_rgb(sharp, alpha_clean)
+        vr_log("Strong [7.5] final_defringe", _stats(sharp))
+
         vr_log("Strong OUTPUT image", _stats(sharp))
         vr_log("Strong OUTPUT alpha", _stats(alpha_clean))
 

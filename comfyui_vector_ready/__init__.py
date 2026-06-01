@@ -3,7 +3,7 @@
 Registers nodes under category 'VectorReady/*'. Loaded by ComfyUI via the
 NODE_CLASS_MAPPINGS / NODE_DISPLAY_NAME_MAPPINGS convention."""
 
-__version__ = "0.12.0"
+__version__ = "0.13.0"
 
 from .nodes.alpha_cleanup import VR_AlphaCleanup
 from .nodes.alpha_edge_refine import VR_AlphaEdgeRefine
@@ -92,8 +92,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "VR_TargetTrimapBuilder": "VR · Target Trimap Builder",
     "VR_PipelineLight": "VR · Pipeline (Light, A-path)",
     "VR_PipelineStrong": "VR · Pipeline (Strong, B-path)",
-    "VR_PipelineLightDebug": "VR · Pipeline Light (DEBUG, 24 outputs)",
-    "VR_PipelineStrongDebug": "VR · Pipeline Strong (DEBUG, 8 outputs)",
+    "VR_PipelineLightDebug": "VR · Pipeline Light (DEBUG, 25 outputs)",
+    "VR_PipelineStrongDebug": "VR · Pipeline Strong (DEBUG, 10 outputs)",
     "VR_DebugProbeImage": "VR · Debug Probe (IMAGE)",
     "VR_DebugProbeMask": "VR · Debug Probe (MASK)",
     "VR_SplitRGBA": "VR · Split RGBA → RGB + Alpha",

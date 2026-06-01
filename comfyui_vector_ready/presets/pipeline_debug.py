@@ -33,7 +33,7 @@ class VR_PipelineStrongDebug:
     """Mirrors VR_PipelineStrong; emits every stage for PreviewImage inspection."""
 
     CATEGORY = "VectorReady/debug"
-    RETURN_TYPES = ("IMAGE",) * 8 + ("MASK",)
+    RETURN_TYPES = ("IMAGE",) * 9 + ("MASK",)
     RETURN_NAMES = (
         "input_rgb",
         "native_alpha_viz",
@@ -43,6 +43,7 @@ class VR_PipelineStrongDebug:
         "kmeans_quantized",
         "region_merged",
         "roi_sharpened",
+        "final_defringed",
         "alpha_stepified",
     )
     FUNCTION = "run"
@@ -98,15 +99,21 @@ class VR_PipelineStrongDebug:
         (alpha_clean,) = VR_AlphaStepify().stepify(alpha, alpha_steps, 0.4, 0.6)
         vr_log("[6] alpha_stepified", _stats(alpha_clean))
 
+        # Final defringe with the post-stepify alpha — pixels whose soft alpha
+        # got collapsed to 0 still carried processed RGB here. Zero them so
+        # the saved PNG matches a "clean for vector tracing" contract.
+        final_defringed = _clean_transparent_rgb(sharp, alpha_clean)
+        vr_log("[7] final_defringed", _stats(final_defringed))
+
         return (rgb, native_alpha_viz, alpha_cleaned_viz, smoothed,
-                canny_viz, quant_rgb, merged_rgb, sharp, alpha_clean)
+                canny_viz, quant_rgb, merged_rgb, sharp, final_defringed, alpha_clean)
 
 
 class VR_PipelineLightDebug:
     """Mirrors VR_PipelineLight; emits every stage for PreviewImage inspection."""
 
     CATEGORY = "VectorReady/debug"
-    RETURN_TYPES = ("IMAGE",) * 23 + ("MASK",)
+    RETURN_TYPES = ("IMAGE",) * 24 + ("MASK",)
     RETURN_NAMES = (
         "input_rgb",
         "native_alpha_viz",
@@ -131,6 +138,7 @@ class VR_PipelineLightDebug:
         "palette_quantized",
         "canny_edges_viz",
         "roi_sharpened",
+        "final_defringed",
         "alpha_stepified",
     )
     FUNCTION = "run"
@@ -247,6 +255,12 @@ class VR_PipelineLightDebug:
         (alpha_clean,) = VR_AlphaStepify().stepify(alpha, alpha_steps, 0.4, 0.6)
         vr_log("[4] alpha_stepified", _stats(alpha_clean))
 
+        # Final defringe — see VR_PipelineLight for rationale. The earlier
+        # composer / matting steps preserve edge color, but stepify hard-cuts
+        # alpha; the RGB at "just-collapsed" pixels needs to be zeroed too.
+        final_defringed = _clean_transparent_rgb(sharpened, alpha_clean)
+        vr_log("[5] final_defringed", _stats(final_defringed))
+
         return (
             matting_rgb,
             native_alpha_viz,
@@ -271,5 +285,6 @@ class VR_PipelineLightDebug:
             quantized,
             canny_viz,
             sharpened,
+            final_defringed,
             alpha_clean,
         )
