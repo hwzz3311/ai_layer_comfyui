@@ -451,13 +451,43 @@ def main():
     # through SAM3's preview-image socket which already overlays the mask.
     add_link(g, sam3_neg_id, 1, sam3_neg_preview_id, 0, "IMAGE")
 
-    # Subtract: final = clamp(resolver_positive - dilate(cutout_inner, px), 0, 1).
-    # When cutout_query is empty the inner mask is zeros and this node
+    # Union: LA #2 emits a union mask of all detected cutout boxes (multi
+    # mode, since v0.12.0), while SAM3 #2's dual-prompt path only refines
+    # around the primary bbox. ORing the two means N-hole subjects (picture
+    # frames, photo grids) still get every hole subtracted: SAM3-refined
+    # where it landed, LA-rectangle elsewhere. Both inputs being empty
+    # (cutout_query="") leaves the result empty → MaskSubtract passthrough.
+    cutout_union_id = add_node(
+        g,
+        ntype="VR_MaskUnion",
+        title="∪ Cutout Union (LA boxes ∪ SAM3 refined)",
+        pos=[2240, 970],
+        inputs=[
+            {"name": "mask_a", "type": "MASK", "link": None},
+            {"name": "mask_b", "type": "MASK", "link": None},
+        ],
+        outputs=[{"name": "mask", "type": "MASK", "links": []}],
+    )
+    # mask_a = SAM3-refined (tight); mask_b = LA box-union (coarse, all N).
+    add_link(g, maskfix_neg_id, 0, cutout_union_id, 0, "MASK")
+    add_link(g, locate_neg_id, 0, cutout_union_id, 1, "MASK")
+
+    cutout_union_preview_id = add_node(
+        g,
+        ntype="MaskPreview+",
+        title="🔍 [诊断13.5] Cutout 合并 mask (LA boxes ∪ SAM3)",
+        pos=[2560, 970],
+        inputs=[{"name": "mask", "type": "MASK", "link": None}],
+    )
+    add_link(g, cutout_union_id, 0, cutout_union_preview_id, 0, "MASK")
+
+    # Subtract: final = clamp(resolver_positive - dilate(cutout_union, px), 0, 1).
+    # When cutout_query is empty the union mask is zeros and this node
     # passes the outer mask straight through.
     mask_subtract_id = add_node(
         g,
         ntype="VR_MaskSubtract",
-        title="🎯− Mask Subtract (positive − cutout)",
+        title="🎯− Mask Subtract (positive − cutout union)",
         pos=[2240, 700],
         inputs=[
             {"name": "outer", "type": "MASK", "link": None},
@@ -467,7 +497,19 @@ def main():
         widgets=[CUTOUT_INNER_DILATE_PX, CUTOUT_MIN_INNER_AREA_RATIO],
     )
     add_link(g, resolver_id, 0, mask_subtract_id, 0, "MASK")
-    add_link(g, maskfix_neg_id, 0, mask_subtract_id, 1, "MASK")
+    add_link(g, cutout_union_id, 0, mask_subtract_id, 1, "MASK")
+
+    # Final post-subtract alpha preview. Lets the operator confirm at a glance
+    # that the cutout window was actually removed from the positive silhouette
+    # (or that the chain passed through unchanged when cutout_query is empty).
+    final_mask_preview_id = add_node(
+        g,
+        ntype="MaskPreview+",
+        title="🔍 [诊断14] MaskSubtract 最终 alpha (positive − cutout)",
+        pos=[2560, 700],
+        inputs=[{"name": "mask", "type": "MASK", "link": None}],
+    )
+    add_link(g, mask_subtract_id, 0, final_mask_preview_id, 0, "MASK")
 
     # All downstream consumers (brush ref, trimap, HFMatting, PipelineLight)
     # read from final_mask_id instead of resolver_id directly, so the cutout
@@ -625,11 +667,14 @@ def main():
             "**正向 silhouette 通道** (Target Query → LA → SAM3 双提示 → MaskFix → Resolver):\n"
             "- 改 Target Query 一处，LA + SAM3.text 同步更新\n"
             "- SAM3 不可用时 Resolver 回退到 LA 矩形\n\n"
-            "**镂空通道 (v8.2 新增)** (Cutout Query → LA#2 → SAM3#2 双提示 → MaskFix → MaskSubtract):\n"
-            "- Cutout Query 留空 = 整链零计算 (LA 短路, MaskSubtract 透传)\n"
-            "- 镂空主体 (卡套/相框/圈环) 填 'rectangular photo window inside the card holder' 等\n"
+            "**镂空通道 (v8.2 / v0.12.0 多孔加强)** "
+            "(Cutout Query → LA#2 multi → SAM3#2 双提示 → MaskFix → MaskUnion → MaskSubtract):\n"
+            "- Cutout Query 留空 = 整链零计算 (LA 短路, MaskUnion 双空, MaskSubtract 透传)\n"
+            "- LA#2 prompt_mode='multi' → 输出 N 个 box 的 union mask + 全部 bbox\n"
+            "- SAM3#2 双提示只精修主 bbox; MaskUnion = (SAM3 精修 ∪ LA 全部矩形) 补齐其余 N-1 个洞\n"
+            "- 多孔主体推荐复数 query: 'rectangular photo windows', 'all photo slots'\n"
             "- 减法在 Resolver 输出后单点应用, 下游消费者无需感知\n"
-            "- 不复用 Resolver 矩形兜底: cutout SAM3 找不到 = 不减, 决不过减\n\n"
+            "- 不复用 Resolver 主体级矩形兜底: cutout SAM3+LA 都找不到 = 不减, 决不过减\n\n"
             "**VectorReady**:\n"
             "- A 路径: VR_PipelineLight (alpha = MaskSubtract 输出)\n"
             "- B 路径: VR_PipelineStrong (alpha = InvertMask 节点 205)\n\n"

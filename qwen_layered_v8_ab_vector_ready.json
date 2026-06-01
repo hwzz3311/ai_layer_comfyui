@@ -1,6 +1,6 @@
 {
-  "last_node_id": 237,
-  "last_link_id": 168,
+  "last_node_id": 240,
+  "last_link_id": 172,
   "nodes": [
     {
       "id": 1,
@@ -76,11 +76,11 @@
             132,
             136,
             140,
-            149,
             153,
-            164,
-            165,
-            166
+            157,
+            168,
+            169,
+            170
           ],
           "slot_index": 0
         }
@@ -438,7 +438,7 @@
         {
           "name": "reference",
           "type": "IMAGE",
-          "link": 164
+          "link": 168
         }
       ],
       "outputs": [
@@ -479,7 +479,7 @@
         {
           "name": "reference",
           "type": "IMAGE",
-          "link": 165
+          "link": 169
         }
       ],
       "outputs": [
@@ -530,7 +530,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 147,
+          "link": 151,
           "optional": true
         }
       ],
@@ -962,7 +962,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 167
+          "link": 171
         }
       ],
       "outputs": [
@@ -983,7 +983,7 @@
           "name": "status_image",
           "type": "IMAGE",
           "links": [
-            168
+            172
           ]
         }
       ],
@@ -1222,7 +1222,7 @@
           "type": "IMAGE",
           "links": [
             102,
-            151
+            155
           ],
           "slot_index": 0
         }
@@ -1279,7 +1279,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 162
+          "link": 166
         }
       ],
       "outputs": [],
@@ -1333,7 +1333,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 148
+          "link": 152
         }
       ],
       "outputs": [
@@ -1383,7 +1383,7 @@
           "links": [
             106,
             109,
-            157
+            161
           ],
           "slot_index": 0
         }
@@ -1440,7 +1440,7 @@
         {
           "name": "reference",
           "type": "IMAGE",
-          "link": 166
+          "link": 170
         }
       ],
       "outputs": [
@@ -1676,7 +1676,7 @@
           "type": "IMAGE",
           "links": [
             119,
-            156
+            160
           ],
           "slot_index": 0
         }
@@ -1733,7 +1733,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 163
+          "link": 167
         }
       ],
       "outputs": [],
@@ -2075,7 +2075,7 @@
           "name": "resolved_mask",
           "type": "MASK",
           "links": [
-            145
+            148
           ]
         },
         {
@@ -2206,7 +2206,9 @@
         {
           "name": "box_mask",
           "type": "MASK",
-          "links": []
+          "links": [
+            146
+          ]
         },
         {
           "name": "preview_image",
@@ -2384,7 +2386,7 @@
           "name": "MASK",
           "type": "MASK",
           "links": [
-            146
+            145
           ]
         }
       ],
@@ -2429,6 +2431,76 @@
     },
     {
       "id": 230,
+      "type": "VR_MaskUnion",
+      "pos": [
+        2240,
+        970
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "∪ Cutout Union (LA boxes ∪ SAM3 refined)",
+      "inputs": [
+        {
+          "name": "mask_a",
+          "type": "MASK",
+          "link": 145
+        },
+        {
+          "name": "mask_b",
+          "type": "MASK",
+          "link": 146
+        }
+      ],
+      "outputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "links": [
+            147,
+            149
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_MaskUnion"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 231,
+      "type": "MaskPreview+",
+      "pos": [
+        2560,
+        970
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [诊断13.5] Cutout 合并 mask (LA boxes ∪ SAM3)",
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 147
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MaskPreview+"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 232,
       "type": "VR_MaskSubtract",
       "pos": [
         2240,
@@ -2441,17 +2513,17 @@
       "flags": {},
       "order": 0,
       "mode": 0,
-      "title": "🎯− Mask Subtract (positive − cutout)",
+      "title": "🎯− Mask Subtract (positive − cutout union)",
       "inputs": [
         {
           "name": "outer",
           "type": "MASK",
-          "link": 145
+          "link": 148
         },
         {
           "name": "inner",
           "type": "MASK",
-          "link": 146
+          "link": 149
         }
       ],
       "outputs": [
@@ -2459,11 +2531,12 @@
           "name": "mask",
           "type": "MASK",
           "links": [
-            147,
-            148,
             150,
+            151,
             152,
-            167
+            154,
+            156,
+            171
           ]
         }
       ],
@@ -2476,7 +2549,35 @@
       ]
     },
     {
-      "id": 231,
+      "id": 233,
+      "type": "MaskPreview+",
+      "pos": [
+        2560,
+        700
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [诊断14] MaskSubtract 最终 alpha (positive − cutout)",
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 150
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MaskPreview+"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 234,
       "type": "VR_HFMattingAlpha",
       "pos": [
         3100,
@@ -2494,12 +2595,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 149
+          "link": 153
         },
         {
           "name": "candidate_mask",
           "type": "MASK",
-          "link": 150
+          "link": 154
         }
       ],
       "outputs": [
@@ -2507,14 +2608,14 @@
           "name": "matte_alpha",
           "type": "MASK",
           "links": [
-            154
+            158
           ]
         },
         {
           "name": "confidence",
           "type": "MASK",
           "links": [
-            155
+            159
           ]
         }
       ],
@@ -2528,7 +2629,7 @@
       ]
     },
     {
-      "id": 232,
+      "id": 235,
       "type": "VR_PipelineLight",
       "pos": [
         3400,
@@ -2546,27 +2647,27 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 151
+          "link": 155
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 152
+          "link": 156
         },
         {
           "name": "source_image",
           "type": "IMAGE",
-          "link": 153
+          "link": 157
         },
         {
           "name": "external_matte_alpha",
           "type": "MASK",
-          "link": 154
+          "link": 158
         },
         {
           "name": "external_confidence",
           "type": "MASK",
-          "link": 155
+          "link": 159
         }
       ],
       "outputs": [
@@ -2574,14 +2675,14 @@
           "name": "image",
           "type": "IMAGE",
           "links": [
-            158
+            162
           ]
         },
         {
           "name": "alpha",
           "type": "MASK",
           "links": [
-            159
+            163
           ]
         }
       ],
@@ -2597,7 +2698,7 @@
       ]
     },
     {
-      "id": 233,
+      "id": 236,
       "type": "VR_PipelineStrong",
       "pos": [
         3400,
@@ -2615,12 +2716,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 156
+          "link": 160
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 157
+          "link": 161
         }
       ],
       "outputs": [
@@ -2628,14 +2729,14 @@
           "name": "image",
           "type": "IMAGE",
           "links": [
-            160
+            164
           ]
         },
         {
           "name": "alpha",
           "type": "MASK",
           "links": [
-            161
+            165
           ]
         }
       ],
@@ -2651,7 +2752,7 @@
       ]
     },
     {
-      "id": 234,
+      "id": 237,
       "type": "VR_JoinRGBA",
       "pos": [
         3800,
@@ -2669,12 +2770,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 158
+          "link": 162
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 159
+          "link": 163
         }
       ],
       "outputs": [
@@ -2682,7 +2783,7 @@
           "name": "rgba",
           "type": "IMAGE",
           "links": [
-            162
+            166
           ]
         }
       ],
@@ -2692,7 +2793,7 @@
       "widgets_values": []
     },
     {
-      "id": 235,
+      "id": 238,
       "type": "VR_JoinRGBA",
       "pos": [
         3800,
@@ -2710,12 +2811,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 160
+          "link": 164
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 161
+          "link": 165
         }
       ],
       "outputs": [
@@ -2723,7 +2824,7 @@
           "name": "rgba",
           "type": "IMAGE",
           "links": [
-            163
+            167
           ]
         }
       ],
@@ -2733,7 +2834,7 @@
       "widgets_values": []
     },
     {
-      "id": 236,
+      "id": 239,
       "type": "MarkdownNote",
       "pos": [
         2200,
@@ -2753,11 +2854,11 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "## v8.2 · A/B 分流 + VectorReady + 镂空通道\n\n**A/B 切换**: 节点 215 (foreground_mode) → 两个 VR_GatedPassthrough\n\n**正向 silhouette 通道** (Target Query → LA → SAM3 双提示 → MaskFix → Resolver):\n- 改 Target Query 一处，LA + SAM3.text 同步更新\n- SAM3 不可用时 Resolver 回退到 LA 矩形\n\n**镂空通道 (v8.2 新增)** (Cutout Query → LA#2 → SAM3#2 双提示 → MaskFix → MaskSubtract):\n- Cutout Query 留空 = 整链零计算 (LA 短路, MaskSubtract 透传)\n- 镂空主体 (卡套/相框/圈环) 填 'rectangular photo window inside the card holder' 等\n- 减法在 Resolver 输出后单点应用, 下游消费者无需感知\n- 不复用 Resolver 矩形兜底: cutout SAM3 找不到 = 不减, 决不过减\n\n**VectorReady**:\n- A 路径: VR_PipelineLight (alpha = MaskSubtract 输出)\n- B 路径: VR_PipelineStrong (alpha = InvertMask 节点 205)\n\n**输出**: RGBA PNG via VR_JoinRGBA\n- A: v8_A_foreground_RGBA_*.png\n- B: v8_B_background_RGBA_*.png"
+        "## v8.2 · A/B 分流 + VectorReady + 镂空通道\n\n**A/B 切换**: 节点 215 (foreground_mode) → 两个 VR_GatedPassthrough\n\n**正向 silhouette 通道** (Target Query → LA → SAM3 双提示 → MaskFix → Resolver):\n- 改 Target Query 一处，LA + SAM3.text 同步更新\n- SAM3 不可用时 Resolver 回退到 LA 矩形\n\n**镂空通道 (v8.2 / v0.12.0 多孔加强)** (Cutout Query → LA#2 multi → SAM3#2 双提示 → MaskFix → MaskUnion → MaskSubtract):\n- Cutout Query 留空 = 整链零计算 (LA 短路, MaskUnion 双空, MaskSubtract 透传)\n- LA#2 prompt_mode='multi' → 输出 N 个 box 的 union mask + 全部 bbox\n- SAM3#2 双提示只精修主 bbox; MaskUnion = (SAM3 精修 ∪ LA 全部矩形) 补齐其余 N-1 个洞\n- 多孔主体推荐复数 query: 'rectangular photo windows', 'all photo slots'\n- 减法在 Resolver 输出后单点应用, 下游消费者无需感知\n- 不复用 Resolver 主体级矩形兜底: cutout SAM3+LA 都找不到 = 不减, 决不过减\n\n**VectorReady**:\n- A 路径: VR_PipelineLight (alpha = MaskSubtract 输出)\n- B 路径: VR_PipelineStrong (alpha = InvertMask 节点 205)\n\n**输出**: RGBA PNG via VR_JoinRGBA\n- A: v8_A_foreground_RGBA_*.png\n- B: v8_B_background_RGBA_*.png"
       ]
     },
     {
-      "id": 237,
+      "id": 240,
       "type": "PreviewImage",
       "pos": [
         2550,
@@ -2775,7 +2876,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 168
+          "link": 172
         }
       ],
       "outputs": [],
@@ -3348,7 +3449,7 @@
     ],
     [
       145,
-      222,
+      228,
       0,
       230,
       0,
@@ -3356,7 +3457,7 @@
     ],
     [
       146,
-      228,
+      225,
       0,
       230,
       1,
@@ -3366,140 +3467,172 @@
       147,
       230,
       0,
+      231,
+      0,
+      "MASK"
+    ],
+    [
+      148,
+      222,
+      0,
+      232,
+      0,
+      "MASK"
+    ],
+    [
+      149,
+      230,
+      0,
+      232,
+      1,
+      "MASK"
+    ],
+    [
+      150,
+      232,
+      0,
+      233,
+      0,
+      "MASK"
+    ],
+    [
+      151,
+      232,
+      0,
       203,
       2,
       "MASK"
     ],
     [
-      148,
-      230,
+      152,
+      232,
       0,
       204,
       0,
       "MASK"
     ],
     [
-      149,
-      5,
-      0,
-      231,
-      0,
-      "IMAGE"
-    ],
-    [
-      150,
-      230,
-      0,
-      231,
-      1,
-      "MASK"
-    ],
-    [
-      151,
-      62,
-      0,
-      232,
-      0,
-      "IMAGE"
-    ],
-    [
-      152,
-      230,
-      0,
-      232,
-      1,
-      "MASK"
-    ],
-    [
       153,
       5,
       0,
-      232,
-      2,
+      234,
+      0,
       "IMAGE"
     ],
     [
       154,
-      231,
-      0,
       232,
-      3,
+      0,
+      234,
+      1,
       "MASK"
     ],
     [
       155,
-      231,
-      1,
+      62,
+      0,
+      235,
+      0,
+      "IMAGE"
+    ],
+    [
+      156,
       232,
+      0,
+      235,
+      1,
+      "MASK"
+    ],
+    [
+      157,
+      5,
+      0,
+      235,
+      2,
+      "IMAGE"
+    ],
+    [
+      158,
+      234,
+      0,
+      235,
+      3,
+      "MASK"
+    ],
+    [
+      159,
+      234,
+      1,
+      235,
       4,
       "MASK"
     ],
     [
-      156,
+      160,
       212,
       0,
-      233,
-      0,
-      "IMAGE"
-    ],
-    [
-      157,
-      205,
-      0,
-      233,
-      1,
-      "MASK"
-    ],
-    [
-      158,
-      232,
-      0,
-      234,
-      0,
-      "IMAGE"
-    ],
-    [
-      159,
-      232,
-      1,
-      234,
-      1,
-      "MASK"
-    ],
-    [
-      160,
-      233,
-      0,
-      235,
+      236,
       0,
       "IMAGE"
     ],
     [
       161,
-      233,
-      1,
-      235,
+      205,
+      0,
+      236,
       1,
       "MASK"
     ],
     [
       162,
-      234,
+      235,
       0,
-      63,
+      237,
       0,
       "IMAGE"
     ],
     [
       163,
       235,
+      1,
+      237,
+      1,
+      "MASK"
+    ],
+    [
+      164,
+      236,
+      0,
+      238,
+      0,
+      "IMAGE"
+    ],
+    [
+      165,
+      236,
+      1,
+      238,
+      1,
+      "MASK"
+    ],
+    [
+      166,
+      237,
+      0,
+      63,
+      0,
+      "IMAGE"
+    ],
+    [
+      167,
+      238,
       0,
       214,
       0,
       "IMAGE"
     ],
     [
-      164,
+      168,
       5,
       0,
       201,
@@ -3507,7 +3640,7 @@
       "IMAGE"
     ],
     [
-      165,
+      169,
       5,
       0,
       202,
@@ -3515,7 +3648,7 @@
       "IMAGE"
     ],
     [
-      166,
+      170,
       5,
       0,
       207,
@@ -3523,18 +3656,18 @@
       "IMAGE"
     ],
     [
-      167,
-      230,
+      171,
+      232,
       0,
       53,
       2,
       "MASK"
     ],
     [
-      168,
+      172,
       53,
       2,
-      237,
+      240,
       0,
       "IMAGE"
     ]

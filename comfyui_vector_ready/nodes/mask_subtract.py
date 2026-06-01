@@ -101,3 +101,65 @@ class VR_MaskSubtract:
             f"inner_area_ratio={inner_area_ratio:.6f} {_stats(result_t)}",
         )
         return (result_t,)
+
+
+class VR_MaskUnion:
+    """Pixel-wise max of two masks — used by the v8.2 negative chain to
+    combine LA #2's coarse N-box union mask with SAM3 #2's refined single-
+    instance mask. This lets multi-hole subjects (picture frames, grids of
+    photo slots) be fully subtracted even when SAM3's dual-prompt only
+    refines the primary bbox: any extra holes LA found are still subtracted
+    via their (looser) rectangle masks.
+
+    Empty inputs are no-ops — if `mask_b` is all zeros (e.g. SAM3 returned
+    nothing) the output is `mask_a`, and vice versa, so passthrough
+    semantics for empty negative chains are preserved.
+    """
+
+    CATEGORY = "VectorReady/mask"
+    RETURN_TYPES = ("MASK",)
+    RETURN_NAMES = ("mask",)
+    FUNCTION = "union"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "mask_a": ("MASK",),
+                "mask_b": ("MASK",),
+            }
+        }
+
+    def union(self, mask_a, mask_b):
+        a_np = torch_mask_to_np(mask_a)
+        b_np = torch_mask_to_np(mask_b)
+        batch = max(a_np.shape[0], b_np.shape[0])
+        a_np = _expand_batch(a_np, batch)
+        b_np = _expand_batch(b_np, batch)
+
+        # If shapes disagree (e.g. SAM3 returned an empty placeholder of a
+        # different resolution), fall back to whichever side carries content.
+        if a_np.shape[1:] != b_np.shape[1:]:
+            a_has = float(a_np.max()) > 0.0
+            b_has = float(b_np.max()) > 0.0
+            if a_has and not b_has:
+                vr_log("VR_MaskUnion", f"shape mismatch, returning A {a_np.shape}")
+                return (np_to_torch_mask(a_np),)
+            if b_has and not a_has:
+                vr_log("VR_MaskUnion", f"shape mismatch, returning B {b_np.shape}")
+                return (np_to_torch_mask(b_np),)
+            # Both have content but disagree on shape — log and prefer A.
+            vr_log(
+                "VR_MaskUnion",
+                f"shape mismatch with content on both sides "
+                f"A={a_np.shape} B={b_np.shape}; preferring A",
+            )
+            return (np_to_torch_mask(a_np),)
+
+        result = np.maximum(a_np, b_np)
+        result_t = np_to_torch_mask(result)
+        vr_log(
+            "VR_MaskUnion",
+            f"a_mean={a_np.mean():.4f} b_mean={b_np.mean():.4f} {_stats(result_t)}",
+        )
+        return (result_t,)

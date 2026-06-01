@@ -3,7 +3,7 @@
 Registers nodes under category 'VectorReady/*'. Loaded by ComfyUI via the
 NODE_CLASS_MAPPINGS / NODE_DISPLAY_NAME_MAPPINGS convention."""
 
-__version__ = "0.11.0"
+__version__ = "0.12.0"
 
 from .nodes.alpha_cleanup import VR_AlphaCleanup
 from .nodes.alpha_edge_refine import VR_AlphaEdgeRefine
@@ -23,7 +23,7 @@ from .nodes.layer_matting_model_bridge import VR_LayerMattingModelBridge
 from .nodes.layer_matting_refine import VR_LayerMattingRefine
 from .nodes.layer_source_composer import VR_LayerSourceComposer
 from .nodes.locate_anything_box import VR_LocateAnythingBox
-from .nodes.mask_subtract import VR_MaskSubtract
+from .nodes.mask_subtract import VR_MaskSubtract, VR_MaskUnion
 from .nodes.reference_latent_if_mask_usable import VR_ReferenceLatentIfMaskUsable
 from .nodes.roi_unsharp import VR_ROIUnsharpMask
 from .nodes.target_mask_resolver import VR_TargetMaskResolver
@@ -53,6 +53,7 @@ NODE_CLASS_MAPPINGS = {
     "VR_LayerSourceComposer": VR_LayerSourceComposer,
     "VR_LocateAnythingBox": VR_LocateAnythingBox,
     "VR_MaskSubtract": VR_MaskSubtract,
+    "VR_MaskUnion": VR_MaskUnion,
     "VR_ReferenceLatentIfMaskUsable": VR_ReferenceLatentIfMaskUsable,
     "VR_TargetMaskResolver": VR_TargetMaskResolver,
     "VR_TargetTrimapBuilder": VR_TargetTrimapBuilder,
@@ -85,6 +86,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "VR_LayerSourceComposer": "VR · Layer Source Composer",
     "VR_LocateAnythingBox": "VR · LocateAnything Box",
     "VR_MaskSubtract": "VR · Mask Subtract (outer − inner cutout)",
+    "VR_MaskUnion": "VR · Mask Union (max of two masks)",
     "VR_ReferenceLatentIfMaskUsable": "VR · Reference Latent If Mask Usable",
     "VR_TargetMaskResolver": "VR · Target Mask Resolver",
     "VR_TargetTrimapBuilder": "VR · Target Trimap Builder",

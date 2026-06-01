@@ -391,23 +391,34 @@ class VR_LocateAnythingBox:
             if not isinstance(answer, str):
                 answer = str(answer)
             boxes = _parse_boxes(answer, w, h)
-            box = boxes[0] if boxes else None
-            if box is None:
+            if not boxes:
                 previews[i] = frame
                 all_results.append({"answer": answer, "boxes": []})
                 continue
 
-            mask = _box_to_mask(box, h, w, int(padding_px))
-            bbox_xyxy = [
-                float(max(0.0, min(w, box["x1"]))),
-                float(max(0.0, min(h, box["y1"]))),
-                float(max(0.0, min(w, box["x2"]))),
-                float(max(0.0, min(h, box["y2"]))),
-            ]
-            masks[i] = mask
-            previews[i] = _draw_preview(frame, mask, boxes[:1])
-            any_usable = any_usable or bool(mask.max() > 0.5)
-            all_bboxes.append(bbox_xyxy)
+            # multi mode: union every detected box into the frame's mask and
+            # emit all bboxes downstream. Used by the v8.2 negative chain so
+            # subjects with N internal holes (frames, donuts, gridded windows)
+            # get every cutout segmented, not just the first one LA emits.
+            # single / raw modes preserve the legacy "take first box" behavior.
+            selected = boxes if str(prompt_mode) == "multi" else boxes[:1]
+
+            frame_mask = np.zeros((h, w), dtype=np.float32)
+            for box in selected:
+                frame_mask = np.maximum(
+                    frame_mask, _box_to_mask(box, h, w, int(padding_px))
+                )
+                bbox_xyxy = [
+                    float(max(0.0, min(w, box["x1"]))),
+                    float(max(0.0, min(h, box["y1"]))),
+                    float(max(0.0, min(w, box["x2"]))),
+                    float(max(0.0, min(h, box["y2"]))),
+                ]
+                all_bboxes.append(bbox_xyxy)
+
+            masks[i] = frame_mask
+            previews[i] = _draw_preview(frame, frame_mask, selected)
+            any_usable = any_usable or bool(frame_mask.max() > 0.5)
             all_results.append({"answer": answer, "boxes": boxes})
 
         mask_t = np_to_torch_mask(masks)

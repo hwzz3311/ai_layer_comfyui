@@ -1,6 +1,6 @@
 {
-  "last_node_id": 273,
-  "last_link_id": 212,
+  "last_node_id": 276,
+  "last_link_id": 216,
   "nodes": [
     {
       "id": 1,
@@ -76,11 +76,11 @@
             132,
             136,
             140,
-            149,
-            164,
-            165,
-            166,
-            171
+            153,
+            168,
+            169,
+            170,
+            175
           ],
           "slot_index": 0
         }
@@ -438,7 +438,7 @@
         {
           "name": "reference",
           "type": "IMAGE",
-          "link": 164
+          "link": 168
         }
       ],
       "outputs": [
@@ -479,7 +479,7 @@
         {
           "name": "reference",
           "type": "IMAGE",
-          "link": 165
+          "link": 169
         }
       ],
       "outputs": [
@@ -530,7 +530,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 147,
+          "link": 151,
           "optional": true
         }
       ],
@@ -962,7 +962,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 167
+          "link": 171
         }
       ],
       "outputs": [
@@ -983,7 +983,7 @@
           "name": "status_image",
           "type": "IMAGE",
           "links": [
-            168
+            172
           ]
         }
       ],
@@ -1222,7 +1222,7 @@
           "type": "IMAGE",
           "links": [
             102,
-            169
+            173
           ],
           "slot_index": 0
         }
@@ -1279,7 +1279,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 162
+          "link": 166
         }
       ],
       "outputs": [],
@@ -1333,7 +1333,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 148
+          "link": 152
         }
       ],
       "outputs": [
@@ -1383,7 +1383,7 @@
           "links": [
             106,
             109,
-            201
+            205
           ],
           "slot_index": 0
         }
@@ -1440,7 +1440,7 @@
         {
           "name": "reference",
           "type": "IMAGE",
-          "link": 166
+          "link": 170
         }
       ],
       "outputs": [
@@ -1676,7 +1676,7 @@
           "type": "IMAGE",
           "links": [
             119,
-            200
+            204
           ],
           "slot_index": 0
         }
@@ -1733,7 +1733,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 163
+          "link": 167
         }
       ],
       "outputs": [],
@@ -2075,7 +2075,7 @@
           "name": "resolved_mask",
           "type": "MASK",
           "links": [
-            145
+            148
           ]
         },
         {
@@ -2206,7 +2206,9 @@
         {
           "name": "box_mask",
           "type": "MASK",
-          "links": []
+          "links": [
+            146
+          ]
         },
         {
           "name": "preview_image",
@@ -2384,7 +2386,7 @@
           "name": "MASK",
           "type": "MASK",
           "links": [
-            146
+            145
           ]
         }
       ],
@@ -2429,6 +2431,76 @@
     },
     {
       "id": 230,
+      "type": "VR_MaskUnion",
+      "pos": [
+        2240,
+        970
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "∪ Cutout Union (LA boxes ∪ SAM3 refined)",
+      "inputs": [
+        {
+          "name": "mask_a",
+          "type": "MASK",
+          "link": 145
+        },
+        {
+          "name": "mask_b",
+          "type": "MASK",
+          "link": 146
+        }
+      ],
+      "outputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "links": [
+            147,
+            149
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_MaskUnion"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 231,
+      "type": "MaskPreview+",
+      "pos": [
+        2560,
+        970
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [诊断13.5] Cutout 合并 mask (LA boxes ∪ SAM3)",
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 147
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MaskPreview+"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 232,
       "type": "VR_MaskSubtract",
       "pos": [
         2240,
@@ -2441,17 +2513,17 @@
       "flags": {},
       "order": 0,
       "mode": 0,
-      "title": "🎯− Mask Subtract (positive − cutout)",
+      "title": "🎯− Mask Subtract (positive − cutout union)",
       "inputs": [
         {
           "name": "outer",
           "type": "MASK",
-          "link": 145
+          "link": 148
         },
         {
           "name": "inner",
           "type": "MASK",
-          "link": 146
+          "link": 149
         }
       ],
       "outputs": [
@@ -2459,11 +2531,12 @@
           "name": "mask",
           "type": "MASK",
           "links": [
-            147,
-            148,
             150,
-            167,
-            170
+            151,
+            152,
+            154,
+            171,
+            174
           ]
         }
       ],
@@ -2476,7 +2549,35 @@
       ]
     },
     {
-      "id": 231,
+      "id": 233,
+      "type": "MaskPreview+",
+      "pos": [
+        2560,
+        700
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [诊断14] MaskSubtract 最终 alpha (positive − cutout)",
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 150
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MaskPreview+"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 234,
       "type": "VR_HFMattingAlpha",
       "pos": [
         3100,
@@ -2494,12 +2595,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 149
+          "link": 153
         },
         {
           "name": "candidate_mask",
           "type": "MASK",
-          "link": 150
+          "link": 154
         }
       ],
       "outputs": [
@@ -2507,14 +2608,14 @@
           "name": "matte_alpha",
           "type": "MASK",
           "links": [
-            172
+            176
           ]
         },
         {
           "name": "confidence",
           "type": "MASK",
           "links": [
-            173
+            177
           ]
         }
       ],
@@ -2528,7 +2629,7 @@
       ]
     },
     {
-      "id": 234,
+      "id": 237,
       "type": "VR_JoinRGBA",
       "pos": [
         3800,
@@ -2546,12 +2647,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 174
+          "link": 178
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 175
+          "link": 179
         }
       ],
       "outputs": [
@@ -2559,7 +2660,7 @@
           "name": "rgba",
           "type": "IMAGE",
           "links": [
-            162
+            166
           ]
         }
       ],
@@ -2569,7 +2670,7 @@
       "widgets_values": []
     },
     {
-      "id": 235,
+      "id": 238,
       "type": "VR_JoinRGBA",
       "pos": [
         3800,
@@ -2587,12 +2688,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 202
+          "link": 206
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 203
+          "link": 207
         }
       ],
       "outputs": [
@@ -2600,7 +2701,7 @@
           "name": "rgba",
           "type": "IMAGE",
           "links": [
-            163
+            167
           ]
         }
       ],
@@ -2610,7 +2711,7 @@
       "widgets_values": []
     },
     {
-      "id": 236,
+      "id": 239,
       "type": "MarkdownNote",
       "pos": [
         2200,
@@ -2630,11 +2731,11 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "## v8.2 · A/B 分流 + VectorReady + 镂空通道\n\n**A/B 切换**: 节点 215 (foreground_mode) → 两个 VR_GatedPassthrough\n\n**正向 silhouette 通道** (Target Query → LA → SAM3 双提示 → MaskFix → Resolver):\n- 改 Target Query 一处，LA + SAM3.text 同步更新\n- SAM3 不可用时 Resolver 回退到 LA 矩形\n\n**镂空通道 (v8.2 新增)** (Cutout Query → LA#2 → SAM3#2 双提示 → MaskFix → MaskSubtract):\n- Cutout Query 留空 = 整链零计算 (LA 短路, MaskSubtract 透传)\n- 镂空主体 (卡套/相框/圈环) 填 'rectangular photo window inside the card holder' 等\n- 减法在 Resolver 输出后单点应用, 下游消费者无需感知\n- 不复用 Resolver 矩形兜底: cutout SAM3 找不到 = 不减, 决不过减\n\n**VectorReady**:\n- A 路径: VR_PipelineLight (alpha = MaskSubtract 输出)\n- B 路径: VR_PipelineStrong (alpha = InvertMask 节点 205)\n\n**输出**: RGBA PNG via VR_JoinRGBA\n- A: v8_A_foreground_RGBA_*.png\n- B: v8_B_background_RGBA_*.png"
+        "## v8.2 · A/B 分流 + VectorReady + 镂空通道\n\n**A/B 切换**: 节点 215 (foreground_mode) → 两个 VR_GatedPassthrough\n\n**正向 silhouette 通道** (Target Query → LA → SAM3 双提示 → MaskFix → Resolver):\n- 改 Target Query 一处，LA + SAM3.text 同步更新\n- SAM3 不可用时 Resolver 回退到 LA 矩形\n\n**镂空通道 (v8.2 / v0.12.0 多孔加强)** (Cutout Query → LA#2 multi → SAM3#2 双提示 → MaskFix → MaskUnion → MaskSubtract):\n- Cutout Query 留空 = 整链零计算 (LA 短路, MaskUnion 双空, MaskSubtract 透传)\n- LA#2 prompt_mode='multi' → 输出 N 个 box 的 union mask + 全部 bbox\n- SAM3#2 双提示只精修主 bbox; MaskUnion = (SAM3 精修 ∪ LA 全部矩形) 补齐其余 N-1 个洞\n- 多孔主体推荐复数 query: 'rectangular photo windows', 'all photo slots'\n- 减法在 Resolver 输出后单点应用, 下游消费者无需感知\n- 不复用 Resolver 主体级矩形兜底: cutout SAM3+LA 都找不到 = 不减, 决不过减\n\n**VectorReady**:\n- A 路径: VR_PipelineLight (alpha = MaskSubtract 输出)\n- B 路径: VR_PipelineStrong (alpha = InvertMask 节点 205)\n\n**输出**: RGBA PNG via VR_JoinRGBA\n- A: v8_A_foreground_RGBA_*.png\n- B: v8_B_background_RGBA_*.png"
       ]
     },
     {
-      "id": 237,
+      "id": 240,
       "type": "PreviewImage",
       "pos": [
         2550,
@@ -2652,7 +2753,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 168
+          "link": 172
         }
       ],
       "outputs": [],
@@ -2662,7 +2763,7 @@
       "widgets_values": []
     },
     {
-      "id": 238,
+      "id": 241,
       "type": "VR_PipelineLightDebug",
       "pos": [
         3500,
@@ -2680,27 +2781,27 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 169
+          "link": 173
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 170
+          "link": 174
         },
         {
           "name": "source_image",
           "type": "IMAGE",
-          "link": 171
+          "link": 175
         },
         {
           "name": "external_matte_alpha",
           "type": "MASK",
-          "link": 172
+          "link": 176
         },
         {
           "name": "external_confidence",
           "type": "MASK",
-          "link": 173
+          "link": 177
         }
       ],
       "outputs": [
@@ -2708,170 +2809,170 @@
           "name": "input_rgb",
           "type": "IMAGE",
           "links": [
-            176
+            180
           ]
         },
         {
           "name": "native_alpha_viz",
           "type": "IMAGE",
           "links": [
-            177
+            181
           ]
         },
         {
           "name": "alpha_cleaned_viz",
           "type": "IMAGE",
           "links": [
-            178
+            182
           ]
         },
         {
           "name": "sure_foreground_viz",
           "type": "IMAGE",
           "links": [
-            179
+            183
           ]
         },
         {
           "name": "sure_background_viz",
           "type": "IMAGE",
           "links": [
-            180
+            184
           ]
         },
         {
           "name": "trimap_unknown_viz",
           "type": "IMAGE",
           "links": [
-            181
+            185
           ]
         },
         {
           "name": "trimap_viz",
           "type": "IMAGE",
           "links": [
-            182
+            186
           ]
         },
         {
           "name": "matting_rgb",
           "type": "IMAGE",
           "links": [
-            183
+            187
           ]
         },
         {
           "name": "visible_alpha_viz",
           "type": "IMAGE",
           "links": [
-            184
+            188
           ]
         },
         {
           "name": "unknown_region_viz",
           "type": "IMAGE",
           "links": [
-            185
+            189
           ]
         },
         {
           "name": "matte_confidence_viz",
           "type": "IMAGE",
           "links": [
-            186
+            190
           ]
         },
         {
           "name": "source_composed",
           "type": "IMAGE",
           "links": [
-            187
+            191
           ]
         },
         {
           "name": "original_region_viz",
           "type": "IMAGE",
           "links": [
-            188
+            192
           ]
         },
         {
           "name": "qwen_region_viz",
           "type": "IMAGE",
           "links": [
-            189
+            193
           ]
         },
         {
           "name": "transparent_region_viz",
           "type": "IMAGE",
           "links": [
-            190
+            194
           ]
         },
         {
           "name": "low_confidence_viz",
           "type": "IMAGE",
           "links": [
-            191
+            195
           ]
         },
         {
           "name": "hole_viz",
           "type": "IMAGE",
           "links": [
-            192
+            196
           ]
         },
         {
           "name": "detail_viz",
           "type": "IMAGE",
           "links": [
-            193
+            197
           ]
         },
         {
           "name": "line_viz",
           "type": "IMAGE",
           "links": [
-            194
+            198
           ]
         },
         {
           "name": "bilateral_smooth",
           "type": "IMAGE",
           "links": [
-            195
+            199
           ]
         },
         {
           "name": "palette_quantized",
           "type": "IMAGE",
           "links": [
-            196
+            200
           ]
         },
         {
           "name": "canny_edges_viz",
           "type": "IMAGE",
           "links": [
-            197
+            201
           ]
         },
         {
           "name": "roi_sharpened",
           "type": "IMAGE",
           "links": [
-            174,
-            198
+            178,
+            202
           ]
         },
         {
           "name": "alpha_stepified",
           "type": "MASK",
           "links": [
-            175,
-            199
+            179,
+            203
           ]
         }
       ],
@@ -2887,7 +2988,7 @@
       ]
     },
     {
-      "id": 239,
+      "id": 242,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -2905,7 +3006,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 176
+          "link": 180
         }
       ],
       "outputs": [],
@@ -2915,7 +3016,7 @@
       "widgets_values": []
     },
     {
-      "id": 240,
+      "id": 243,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -2933,7 +3034,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 177
+          "link": 181
         }
       ],
       "outputs": [],
@@ -2943,7 +3044,7 @@
       "widgets_values": []
     },
     {
-      "id": 241,
+      "id": 244,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -2961,7 +3062,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 178
+          "link": 182
         }
       ],
       "outputs": [],
@@ -2971,7 +3072,7 @@
       "widgets_values": []
     },
     {
-      "id": 242,
+      "id": 245,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -2989,7 +3090,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 179
+          "link": 183
         }
       ],
       "outputs": [],
@@ -2999,7 +3100,7 @@
       "widgets_values": []
     },
     {
-      "id": 243,
+      "id": 246,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -3017,7 +3118,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 180
+          "link": 184
         }
       ],
       "outputs": [],
@@ -3027,7 +3128,7 @@
       "widgets_values": []
     },
     {
-      "id": 244,
+      "id": 247,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -3045,7 +3146,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 181
+          "link": 185
         }
       ],
       "outputs": [],
@@ -3055,7 +3156,7 @@
       "widgets_values": []
     },
     {
-      "id": 245,
+      "id": 248,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -3073,7 +3174,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 182
+          "link": 186
         }
       ],
       "outputs": [],
@@ -3083,7 +3184,7 @@
       "widgets_values": []
     },
     {
-      "id": 246,
+      "id": 249,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -3101,7 +3202,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 183
+          "link": 187
         }
       ],
       "outputs": [],
@@ -3111,7 +3212,7 @@
       "widgets_values": []
     },
     {
-      "id": 247,
+      "id": 250,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -3129,7 +3230,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 184
+          "link": 188
         }
       ],
       "outputs": [],
@@ -3139,7 +3240,7 @@
       "widgets_values": []
     },
     {
-      "id": 248,
+      "id": 251,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -3157,7 +3258,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 185
+          "link": 189
         }
       ],
       "outputs": [],
@@ -3167,7 +3268,7 @@
       "widgets_values": []
     },
     {
-      "id": 249,
+      "id": 252,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -3185,7 +3286,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 186
+          "link": 190
         }
       ],
       "outputs": [],
@@ -3195,7 +3296,7 @@
       "widgets_values": []
     },
     {
-      "id": 250,
+      "id": 253,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -3213,7 +3314,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 187
+          "link": 191
         }
       ],
       "outputs": [],
@@ -3223,7 +3324,7 @@
       "widgets_values": []
     },
     {
-      "id": 251,
+      "id": 254,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -3241,7 +3342,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 188
+          "link": 192
         }
       ],
       "outputs": [],
@@ -3251,7 +3352,7 @@
       "widgets_values": []
     },
     {
-      "id": 252,
+      "id": 255,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -3269,7 +3370,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 189
+          "link": 193
         }
       ],
       "outputs": [],
@@ -3279,7 +3380,7 @@
       "widgets_values": []
     },
     {
-      "id": 253,
+      "id": 256,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -3297,7 +3398,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 190
+          "link": 194
         }
       ],
       "outputs": [],
@@ -3307,7 +3408,7 @@
       "widgets_values": []
     },
     {
-      "id": 254,
+      "id": 257,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -3325,7 +3426,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 191
+          "link": 195
         }
       ],
       "outputs": [],
@@ -3335,7 +3436,7 @@
       "widgets_values": []
     },
     {
-      "id": 255,
+      "id": 258,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -3353,7 +3454,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 192
+          "link": 196
         }
       ],
       "outputs": [],
@@ -3363,7 +3464,7 @@
       "widgets_values": []
     },
     {
-      "id": 256,
+      "id": 259,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -3381,7 +3482,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 193
+          "link": 197
         }
       ],
       "outputs": [],
@@ -3391,7 +3492,7 @@
       "widgets_values": []
     },
     {
-      "id": 257,
+      "id": 260,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -3409,7 +3510,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 194
+          "link": 198
         }
       ],
       "outputs": [],
@@ -3419,7 +3520,7 @@
       "widgets_values": []
     },
     {
-      "id": 258,
+      "id": 261,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -3437,7 +3538,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 195
+          "link": 199
         }
       ],
       "outputs": [],
@@ -3447,7 +3548,7 @@
       "widgets_values": []
     },
     {
-      "id": 259,
+      "id": 262,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -3465,7 +3566,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 196
+          "link": 200
         }
       ],
       "outputs": [],
@@ -3475,7 +3576,7 @@
       "widgets_values": []
     },
     {
-      "id": 260,
+      "id": 263,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -3493,7 +3594,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 197
+          "link": 201
         }
       ],
       "outputs": [],
@@ -3503,7 +3604,7 @@
       "widgets_values": []
     },
     {
-      "id": 261,
+      "id": 264,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -3521,7 +3622,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 198
+          "link": 202
         }
       ],
       "outputs": [],
@@ -3531,7 +3632,7 @@
       "widgets_values": []
     },
     {
-      "id": 262,
+      "id": 265,
       "type": "MaskPreview+",
       "pos": [
         4760,
@@ -3549,7 +3650,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 199
+          "link": 203
         }
       ],
       "outputs": [],
@@ -3559,7 +3660,7 @@
       "widgets_values": []
     },
     {
-      "id": 263,
+      "id": 266,
       "type": "VR_PipelineStrongDebug",
       "pos": [
         3500,
@@ -3577,12 +3678,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 200
+          "link": 204
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 201
+          "link": 205
         }
       ],
       "outputs": [
@@ -3590,65 +3691,65 @@
           "name": "input_rgb",
           "type": "IMAGE",
           "links": [
-            204
+            208
           ]
         },
         {
           "name": "native_alpha_viz",
           "type": "IMAGE",
           "links": [
-            205
+            209
           ]
         },
         {
           "name": "alpha_cleaned_viz",
           "type": "IMAGE",
           "links": [
-            206
+            210
           ]
         },
         {
           "name": "bilateral_smooth",
           "type": "IMAGE",
           "links": [
-            207
+            211
           ]
         },
         {
           "name": "canny_edges_viz",
           "type": "IMAGE",
           "links": [
-            208
+            212
           ]
         },
         {
           "name": "kmeans_quantized",
           "type": "IMAGE",
           "links": [
-            209
+            213
           ]
         },
         {
           "name": "region_merged",
           "type": "IMAGE",
           "links": [
-            210
+            214
           ]
         },
         {
           "name": "roi_sharpened",
           "type": "IMAGE",
           "links": [
-            202,
-            211
+            206,
+            215
           ]
         },
         {
           "name": "alpha_stepified",
           "type": "MASK",
           "links": [
-            203,
-            212
+            207,
+            216
           ]
         }
       ],
@@ -3664,7 +3765,7 @@
       ]
     },
     {
-      "id": 264,
+      "id": 267,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -3682,7 +3783,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 204
+          "link": 208
         }
       ],
       "outputs": [],
@@ -3692,7 +3793,7 @@
       "widgets_values": []
     },
     {
-      "id": 265,
+      "id": 268,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -3710,7 +3811,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 205
+          "link": 209
         }
       ],
       "outputs": [],
@@ -3720,7 +3821,7 @@
       "widgets_values": []
     },
     {
-      "id": 266,
+      "id": 269,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -3738,7 +3839,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 206
+          "link": 210
         }
       ],
       "outputs": [],
@@ -3748,7 +3849,7 @@
       "widgets_values": []
     },
     {
-      "id": 267,
+      "id": 270,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -3766,7 +3867,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 207
+          "link": 211
         }
       ],
       "outputs": [],
@@ -3776,7 +3877,7 @@
       "widgets_values": []
     },
     {
-      "id": 268,
+      "id": 271,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -3794,7 +3895,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 208
+          "link": 212
         }
       ],
       "outputs": [],
@@ -3804,7 +3905,7 @@
       "widgets_values": []
     },
     {
-      "id": 269,
+      "id": 272,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -3822,7 +3923,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 209
+          "link": 213
         }
       ],
       "outputs": [],
@@ -3832,7 +3933,7 @@
       "widgets_values": []
     },
     {
-      "id": 270,
+      "id": 273,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -3850,7 +3951,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 210
+          "link": 214
         }
       ],
       "outputs": [],
@@ -3860,7 +3961,7 @@
       "widgets_values": []
     },
     {
-      "id": 271,
+      "id": 274,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -3878,7 +3979,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 211
+          "link": 215
         }
       ],
       "outputs": [],
@@ -3888,7 +3989,7 @@
       "widgets_values": []
     },
     {
-      "id": 272,
+      "id": 275,
       "type": "MaskPreview+",
       "pos": [
         3800,
@@ -3906,7 +4007,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 212
+          "link": 216
         }
       ],
       "outputs": [],
@@ -3916,7 +4017,7 @@
       "widgets_values": []
     },
     {
-      "id": 273,
+      "id": 276,
       "type": "MarkdownNote",
       "pos": [
         3400,
@@ -4503,7 +4604,7 @@
     ],
     [
       145,
-      222,
+      228,
       0,
       230,
       0,
@@ -4511,7 +4612,7 @@
     ],
     [
       146,
-      228,
+      225,
       0,
       230,
       1,
@@ -4521,439 +4622,471 @@
       147,
       230,
       0,
+      231,
+      0,
+      "MASK"
+    ],
+    [
+      148,
+      222,
+      0,
+      232,
+      0,
+      "MASK"
+    ],
+    [
+      149,
+      230,
+      0,
+      232,
+      1,
+      "MASK"
+    ],
+    [
+      150,
+      232,
+      0,
+      233,
+      0,
+      "MASK"
+    ],
+    [
+      151,
+      232,
+      0,
       203,
       2,
       "MASK"
     ],
     [
-      148,
-      230,
+      152,
+      232,
       0,
       204,
       0,
       "MASK"
     ],
     [
-      149,
+      153,
       5,
       0,
-      231,
+      234,
       0,
       "IMAGE"
     ],
     [
-      150,
-      230,
+      154,
+      232,
       0,
-      231,
+      234,
       1,
       "MASK"
     ],
     [
-      162,
-      234,
+      166,
+      237,
       0,
       63,
       0,
       "IMAGE"
     ],
     [
-      163,
-      235,
+      167,
+      238,
       0,
       214,
       0,
       "IMAGE"
     ],
     [
-      164,
+      168,
       5,
       0,
       201,
-      0,
-      "IMAGE"
-    ],
-    [
-      165,
-      5,
-      0,
-      202,
-      0,
-      "IMAGE"
-    ],
-    [
-      166,
-      5,
-      0,
-      207,
-      0,
-      "IMAGE"
-    ],
-    [
-      167,
-      230,
-      0,
-      53,
-      2,
-      "MASK"
-    ],
-    [
-      168,
-      53,
-      2,
-      237,
       0,
       "IMAGE"
     ],
     [
       169,
-      62,
+      5,
       0,
-      238,
+      202,
       0,
       "IMAGE"
     ],
     [
       170,
-      230,
+      5,
       0,
-      238,
-      1,
-      "MASK"
+      207,
+      0,
+      "IMAGE"
     ],
     [
       171,
-      5,
+      232,
       0,
-      238,
+      53,
       2,
-      "IMAGE"
+      "MASK"
     ],
     [
       172,
-      231,
-      0,
-      238,
-      3,
-      "MASK"
-    ],
-    [
-      173,
-      231,
-      1,
-      238,
-      4,
-      "MASK"
-    ],
-    [
-      174,
-      238,
-      22,
-      234,
-      0,
-      "IMAGE"
-    ],
-    [
-      175,
-      238,
-      23,
-      234,
-      1,
-      "MASK"
-    ],
-    [
-      176,
-      238,
-      0,
-      239,
-      0,
-      "IMAGE"
-    ],
-    [
-      177,
-      238,
-      1,
+      53,
+      2,
       240,
       0,
       "IMAGE"
     ],
     [
-      178,
-      238,
-      2,
+      173,
+      62,
+      0,
       241,
       0,
       "IMAGE"
     ],
     [
-      179,
-      238,
+      174,
+      232,
+      0,
+      241,
+      1,
+      "MASK"
+    ],
+    [
+      175,
+      5,
+      0,
+      241,
+      2,
+      "IMAGE"
+    ],
+    [
+      176,
+      234,
+      0,
+      241,
       3,
+      "MASK"
+    ],
+    [
+      177,
+      234,
+      1,
+      241,
+      4,
+      "MASK"
+    ],
+    [
+      178,
+      241,
+      22,
+      237,
+      0,
+      "IMAGE"
+    ],
+    [
+      179,
+      241,
+      23,
+      237,
+      1,
+      "MASK"
+    ],
+    [
+      180,
+      241,
+      0,
       242,
       0,
       "IMAGE"
     ],
     [
-      180,
-      238,
-      4,
+      181,
+      241,
+      1,
       243,
       0,
       "IMAGE"
     ],
     [
-      181,
-      238,
-      5,
+      182,
+      241,
+      2,
       244,
       0,
       "IMAGE"
     ],
     [
-      182,
-      238,
-      6,
+      183,
+      241,
+      3,
       245,
       0,
       "IMAGE"
     ],
     [
-      183,
-      238,
-      7,
+      184,
+      241,
+      4,
       246,
       0,
       "IMAGE"
     ],
     [
-      184,
-      238,
-      8,
+      185,
+      241,
+      5,
       247,
       0,
       "IMAGE"
     ],
     [
-      185,
-      238,
-      9,
+      186,
+      241,
+      6,
       248,
       0,
       "IMAGE"
     ],
     [
-      186,
-      238,
-      10,
+      187,
+      241,
+      7,
       249,
       0,
       "IMAGE"
     ],
     [
-      187,
-      238,
-      11,
+      188,
+      241,
+      8,
       250,
       0,
       "IMAGE"
     ],
     [
-      188,
-      238,
-      12,
+      189,
+      241,
+      9,
       251,
       0,
       "IMAGE"
     ],
     [
-      189,
-      238,
-      13,
+      190,
+      241,
+      10,
       252,
       0,
       "IMAGE"
     ],
     [
-      190,
-      238,
-      14,
+      191,
+      241,
+      11,
       253,
       0,
       "IMAGE"
     ],
     [
-      191,
-      238,
-      15,
+      192,
+      241,
+      12,
       254,
       0,
       "IMAGE"
     ],
     [
-      192,
-      238,
-      16,
+      193,
+      241,
+      13,
       255,
       0,
       "IMAGE"
     ],
     [
-      193,
-      238,
-      17,
+      194,
+      241,
+      14,
       256,
       0,
       "IMAGE"
     ],
     [
-      194,
-      238,
-      18,
+      195,
+      241,
+      15,
       257,
       0,
       "IMAGE"
     ],
     [
-      195,
-      238,
-      19,
+      196,
+      241,
+      16,
       258,
       0,
       "IMAGE"
     ],
     [
-      196,
-      238,
-      20,
+      197,
+      241,
+      17,
       259,
       0,
       "IMAGE"
     ],
     [
-      197,
-      238,
-      21,
+      198,
+      241,
+      18,
       260,
       0,
       "IMAGE"
     ],
     [
-      198,
-      238,
-      22,
+      199,
+      241,
+      19,
       261,
       0,
       "IMAGE"
     ],
     [
-      199,
-      238,
-      23,
-      262,
-      0,
-      "MASK"
-    ],
-    [
       200,
-      212,
-      0,
-      263,
+      241,
+      20,
+      262,
       0,
       "IMAGE"
     ],
     [
       201,
-      205,
-      0,
+      241,
+      21,
       263,
-      1,
-      "MASK"
-    ],
-    [
-      202,
-      263,
-      7,
-      235,
       0,
       "IMAGE"
     ],
     [
-      203,
-      263,
-      8,
-      235,
-      1,
-      "MASK"
-    ],
-    [
-      204,
-      263,
-      0,
+      202,
+      241,
+      22,
       264,
       0,
       "IMAGE"
     ],
     [
-      205,
-      263,
-      1,
+      203,
+      241,
+      23,
       265,
       0,
-      "IMAGE"
+      "MASK"
     ],
     [
-      206,
-      263,
-      2,
+      204,
+      212,
+      0,
       266,
       0,
       "IMAGE"
     ],
     [
+      205,
+      205,
+      0,
+      266,
+      1,
+      "MASK"
+    ],
+    [
+      206,
+      266,
+      7,
+      238,
+      0,
+      "IMAGE"
+    ],
+    [
       207,
-      263,
-      3,
+      266,
+      8,
+      238,
+      1,
+      "MASK"
+    ],
+    [
+      208,
+      266,
+      0,
       267,
       0,
       "IMAGE"
     ],
     [
-      208,
-      263,
-      4,
+      209,
+      266,
+      1,
       268,
       0,
       "IMAGE"
     ],
     [
-      209,
-      263,
-      5,
+      210,
+      266,
+      2,
       269,
       0,
       "IMAGE"
     ],
     [
-      210,
-      263,
-      6,
+      211,
+      266,
+      3,
       270,
       0,
       "IMAGE"
     ],
     [
-      211,
-      263,
-      7,
+      212,
+      266,
+      4,
       271,
       0,
       "IMAGE"
     ],
     [
-      212,
-      263,
-      8,
+      213,
+      266,
+      5,
       272,
+      0,
+      "IMAGE"
+    ],
+    [
+      214,
+      266,
+      6,
+      273,
+      0,
+      "IMAGE"
+    ],
+    [
+      215,
+      266,
+      7,
+      274,
+      0,
+      "IMAGE"
+    ],
+    [
+      216,
+      266,
+      8,
+      275,
       0,
       "MASK"
     ]
