@@ -1,6 +1,6 @@
 {
-  "last_node_id": 278,
-  "last_link_id": 218,
+  "last_node_id": 280,
+  "last_link_id": 220,
   "nodes": [
     {
       "id": 1,
@@ -1383,7 +1383,7 @@
           "links": [
             106,
             109,
-            206
+            207
           ],
           "slot_index": 0
         }
@@ -1676,7 +1676,7 @@
           "type": "IMAGE",
           "links": [
             119,
-            205
+            206
           ],
           "slot_index": 0
         }
@@ -2688,12 +2688,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 207
+          "link": 208
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 208
+          "link": 209
         }
       ],
       "outputs": [
@@ -2776,7 +2776,7 @@
       "flags": {},
       "order": 0,
       "mode": 0,
-      "title": "🔬 VectorReady Light DEBUG (A path, 25 outs)",
+      "title": "🔬 VectorReady Light DEBUG (A path, 26 outs)",
       "inputs": [
         {
           "name": "image",
@@ -2970,8 +2970,15 @@
           "name": "final_defringed",
           "type": "IMAGE",
           "links": [
-            178,
             203
+          ]
+        },
+        {
+          "name": "edge_inpainted",
+          "type": "IMAGE",
+          "links": [
+            178,
+            204
           ]
         },
         {
@@ -2979,7 +2986,7 @@
           "type": "MASK",
           "links": [
             179,
-            204
+            205
           ]
         }
       ],
@@ -3668,7 +3675,7 @@
     },
     {
       "id": 266,
-      "type": "MaskPreview+",
+      "type": "PreviewImage",
       "pos": [
         3800,
         760
@@ -3680,12 +3687,40 @@
       "flags": {},
       "order": 0,
       "mode": 0,
-      "title": "🔍 [24] alpha_stepified",
+      "title": "🔍 [24] edge_inpainted",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 204
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 267,
+      "type": "MaskPreview+",
+      "pos": [
+        4120,
+        760
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [25] alpha_stepified",
       "inputs": [
         {
           "name": "mask",
           "type": "MASK",
-          "link": 204
+          "link": 205
         }
       ],
       "outputs": [],
@@ -3695,7 +3730,7 @@
       "widgets_values": []
     },
     {
-      "id": 267,
+      "id": 268,
       "type": "VR_PipelineStrongDebug",
       "pos": [
         3500,
@@ -3708,17 +3743,17 @@
       "flags": {},
       "order": 0,
       "mode": 0,
-      "title": "🔬 VectorReady Strong DEBUG (B path, 10 outs)",
+      "title": "🔬 VectorReady Strong DEBUG (B path, 11 outs)",
       "inputs": [
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 205
+          "link": 206
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 206
+          "link": 207
         }
       ],
       "outputs": [
@@ -3726,72 +3761,79 @@
           "name": "input_rgb",
           "type": "IMAGE",
           "links": [
-            209
+            210
           ]
         },
         {
           "name": "native_alpha_viz",
           "type": "IMAGE",
           "links": [
-            210
+            211
           ]
         },
         {
           "name": "alpha_cleaned_viz",
           "type": "IMAGE",
           "links": [
-            211
+            212
           ]
         },
         {
           "name": "bilateral_smooth",
           "type": "IMAGE",
           "links": [
-            212
+            213
           ]
         },
         {
           "name": "canny_edges_viz",
           "type": "IMAGE",
           "links": [
-            213
+            214
           ]
         },
         {
           "name": "kmeans_quantized",
           "type": "IMAGE",
           "links": [
-            214
+            215
           ]
         },
         {
           "name": "region_merged",
           "type": "IMAGE",
           "links": [
-            215
+            216
           ]
         },
         {
           "name": "roi_sharpened",
           "type": "IMAGE",
           "links": [
-            216
+            217
           ]
         },
         {
           "name": "final_defringed",
           "type": "IMAGE",
           "links": [
-            207,
-            217
+            218
+          ]
+        },
+        {
+          "name": "edge_inpainted",
+          "type": "IMAGE",
+          "links": [
+            208,
+            219
           ]
         },
         {
           "name": "alpha_stepified",
           "type": "MASK",
           "links": [
-            208,
-            218
+            209,
+            220
           ]
         }
       ],
@@ -3807,7 +3849,7 @@
       ]
     },
     {
-      "id": 268,
+      "id": 269,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -3825,7 +3867,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 209
+          "link": 210
         }
       ],
       "outputs": [],
@@ -3835,7 +3877,7 @@
       "widgets_values": []
     },
     {
-      "id": 269,
+      "id": 270,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -3853,7 +3895,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 210
+          "link": 211
         }
       ],
       "outputs": [],
@@ -3863,7 +3905,7 @@
       "widgets_values": []
     },
     {
-      "id": 270,
+      "id": 271,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -3881,7 +3923,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 211
+          "link": 212
         }
       ],
       "outputs": [],
@@ -3891,7 +3933,7 @@
       "widgets_values": []
     },
     {
-      "id": 271,
+      "id": 272,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -3909,7 +3951,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 212
+          "link": 213
         }
       ],
       "outputs": [],
@@ -3919,7 +3961,7 @@
       "widgets_values": []
     },
     {
-      "id": 272,
+      "id": 273,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -3937,7 +3979,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 213
+          "link": 214
         }
       ],
       "outputs": [],
@@ -3947,7 +3989,7 @@
       "widgets_values": []
     },
     {
-      "id": 273,
+      "id": 274,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -3965,7 +4007,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 214
+          "link": 215
         }
       ],
       "outputs": [],
@@ -3975,7 +4017,7 @@
       "widgets_values": []
     },
     {
-      "id": 274,
+      "id": 275,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -3993,7 +4035,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 215
+          "link": 216
         }
       ],
       "outputs": [],
@@ -4003,7 +4045,7 @@
       "widgets_values": []
     },
     {
-      "id": 275,
+      "id": 276,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -4021,7 +4063,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 216
+          "link": 217
         }
       ],
       "outputs": [],
@@ -4031,7 +4073,7 @@
       "widgets_values": []
     },
     {
-      "id": 276,
+      "id": 277,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -4049,7 +4091,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 217
+          "link": 218
         }
       ],
       "outputs": [],
@@ -4059,8 +4101,8 @@
       "widgets_values": []
     },
     {
-      "id": 277,
-      "type": "MaskPreview+",
+      "id": 278,
+      "type": "PreviewImage",
       "pos": [
         4120,
         1320
@@ -4072,12 +4114,40 @@
       "flags": {},
       "order": 0,
       "mode": 0,
-      "title": "🔍 [9] alpha_stepified",
+      "title": "🔍 [9] edge_inpainted",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 219
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 279,
+      "type": "MaskPreview+",
+      "pos": [
+        4440,
+        1320
+      ],
+      "size": [
+        240,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🔍 [10] alpha_stepified",
       "inputs": [
         {
           "name": "mask",
           "type": "MASK",
-          "link": 218
+          "link": 220
         }
       ],
       "outputs": [],
@@ -4087,7 +4157,7 @@
       "widgets_values": []
     },
     {
-      "id": 278,
+      "id": 280,
       "type": "MarkdownNote",
       "pos": [
         3400,
@@ -4107,7 +4177,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "## v8 DEBUG (A + B 双路径)\n\nA 路径: VR_PipelineLightDebug (25 outs, incl. final_defringed)\nB 路径: VR_PipelineStrongDebug (10 outs, incl. final_defringed)\n\n**日志**: `/root/ComfyUI/custom_nodes/comfyui_vector_ready/vr_debug.log`\n**生产输出**: 两条路径的 SaveImage 仍然正常工作\n**执行**: ExecutionBlocker 仍生效,foreground_mode 切换只跑一条链路"
+        "## v8 DEBUG (A + B 双路径)\n\nA 路径: VR_PipelineLightDebug (26 outs, incl. final_defringed + edge_inpainted)\nB 路径: VR_PipelineStrongDebug (11 outs, incl. final_defringed + edge_inpainted)\n\n**日志**: `/root/ComfyUI/custom_nodes/comfyui_vector_ready/vr_debug.log`\n**生产输出**: 两条路径的 SaveImage 仍然正常工作\n**执行**: ExecutionBlocker 仍生效,foreground_mode 切换只跑一条链路"
       ]
     }
   ],
@@ -4851,7 +4921,7 @@
     [
       178,
       241,
-      23,
+      24,
       237,
       0,
       "IMAGE"
@@ -4859,7 +4929,7 @@
     [
       179,
       241,
-      24,
+      25,
       237,
       1,
       "MASK"
@@ -5062,117 +5132,133 @@
       24,
       266,
       0,
-      "MASK"
+      "IMAGE"
     ],
     [
       205,
-      212,
-      0,
+      241,
+      25,
       267,
       0,
-      "IMAGE"
+      "MASK"
     ],
     [
       206,
-      205,
-      0,
-      267,
-      1,
-      "MASK"
-    ],
-    [
-      207,
-      267,
-      8,
-      238,
-      0,
-      "IMAGE"
-    ],
-    [
-      208,
-      267,
-      9,
-      238,
-      1,
-      "MASK"
-    ],
-    [
-      209,
-      267,
+      212,
       0,
       268,
       0,
       "IMAGE"
     ],
     [
-      210,
-      267,
+      207,
+      205,
+      0,
+      268,
       1,
+      "MASK"
+    ],
+    [
+      208,
+      268,
+      9,
+      238,
+      0,
+      "IMAGE"
+    ],
+    [
+      209,
+      268,
+      10,
+      238,
+      1,
+      "MASK"
+    ],
+    [
+      210,
+      268,
+      0,
       269,
       0,
       "IMAGE"
     ],
     [
       211,
-      267,
-      2,
+      268,
+      1,
       270,
       0,
       "IMAGE"
     ],
     [
       212,
-      267,
-      3,
+      268,
+      2,
       271,
       0,
       "IMAGE"
     ],
     [
       213,
-      267,
-      4,
+      268,
+      3,
       272,
       0,
       "IMAGE"
     ],
     [
       214,
-      267,
-      5,
+      268,
+      4,
       273,
       0,
       "IMAGE"
     ],
     [
       215,
-      267,
-      6,
+      268,
+      5,
       274,
       0,
       "IMAGE"
     ],
     [
       216,
-      267,
-      7,
+      268,
+      6,
       275,
       0,
       "IMAGE"
     ],
     [
       217,
-      267,
-      8,
+      268,
+      7,
       276,
       0,
       "IMAGE"
     ],
     [
       218,
-      267,
-      9,
+      268,
+      8,
       277,
+      0,
+      "IMAGE"
+    ],
+    [
+      219,
+      268,
+      9,
+      278,
+      0,
+      "IMAGE"
+    ],
+    [
+      220,
+      268,
+      10,
+      279,
       0,
       "MASK"
     ]

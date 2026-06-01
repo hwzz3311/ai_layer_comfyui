@@ -9,6 +9,8 @@
 
 from __future__ import annotations
 
+import cv2
+import numpy as np
 import torch
 
 from ..nodes._utils import split_rgba
@@ -59,6 +61,47 @@ def _resolve_alpha(image: torch.Tensor, alpha_input: torch.Tensor,
     if source == "native":
         raise ValueError("alpha_source='native' but image has no alpha channel")
     return alpha_input
+
+
+def _edge_color_inpaint(
+    image: torch.Tensor, alpha: torch.Tensor, ring_px: int = 2, radius: int = 3
+) -> torch.Tensor:
+    """Replace the 1-2 px alpha-boundary ring's RGB with the nearest interior
+    color via cv2.inpaint(TELEA).
+
+    Why: after VR_AlphaStepify hard-thresholds the soft alpha ramp, pixels
+    whose pre-stepify alpha was ~0.5-0.7 get promoted to alpha=1.0, but their
+    RGB is still anti-aliased mix (FG * a + BG * (1-a)). Vectorizers ignore
+    the alpha-was-soft history; they trace those pixels as a thin halo of
+    background-tinted color around the subject. This pass rewrites that ring
+    with interior color, leaving only true subject color along the saved
+    silhouette.
+
+    Operates per-frame because cv2.inpaint is single-image. Cheap: the mask
+    is only `ring_px` pixels wide so the inpaint region is small.
+    """
+    rgb_np, _ = split_rgba(image)
+    rgb_t = torch.from_numpy(rgb_np)  # [B,H,W,3] float
+    a = alpha
+    if a.dim() == 3 and rgb_t.shape[0] != a.shape[0]:
+        a = a.expand(rgb_t.shape[0], -1, -1)
+
+    k = max(1, int(ring_px)) * 2 + 1
+    kernel = np.ones((k, k), np.uint8)
+    out_frames = []
+    for i in range(rgb_t.shape[0]):
+        binary = (a[i].cpu().numpy() > 0.5).astype(np.uint8)
+        eroded = cv2.erode(binary, kernel)
+        ring = (binary - eroded).astype(np.uint8) * 255  # mask of pixels to inpaint
+        if ring.max() == 0:
+            out_frames.append(rgb_t[i].cpu().numpy())
+            continue
+        rgb_u8 = np.clip(rgb_t[i].cpu().numpy() * 255.0, 0.0, 255.0).astype(np.uint8)
+        bgr = cv2.cvtColor(rgb_u8, cv2.COLOR_RGB2BGR)
+        inpainted = cv2.inpaint(bgr, ring, int(radius), cv2.INPAINT_TELEA)
+        out_rgb = cv2.cvtColor(inpainted, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
+        out_frames.append(out_rgb)
+    return torch.from_numpy(np.stack(out_frames, axis=0))
 
 
 def _clean_transparent_rgb(image: torch.Tensor, alpha: torch.Tensor) -> torch.Tensor:
@@ -204,6 +247,13 @@ class VR_PipelineLight:
         sharpened = _clean_transparent_rgb(sharpened, alpha_clean)
         vr_log("Light [4.5] final_defringe", _stats(sharpened))
 
+        # Edge color inpaint: stepify promoted soft-alpha (~0.5-0.7) pixels to
+        # alpha=1, but their RGB is still anti-aliased mix with the background.
+        # Replace that thin ring with the nearest interior color so the saved
+        # PNG carries pure subject color out to the silhouette edge.
+        sharpened = _edge_color_inpaint(sharpened, alpha_clean, ring_px=2, radius=3)
+        vr_log("Light [4.7] edge_color_inpaint", _stats(sharpened))
+
         vr_log("Light OUTPUT image", _stats(sharpened))
         vr_log("Light OUTPUT alpha", _stats(alpha_clean))
         return (sharpened, alpha_clean)
@@ -274,6 +324,14 @@ class VR_PipelineStrong:
         # output. Re-zero those here so the halo doesn't survive to the PNG.
         sharp = _clean_transparent_rgb(sharp, alpha_clean)
         vr_log("Strong [7.5] final_defringe", _stats(sharp))
+
+        # Edge color inpaint: same rationale as VR_PipelineLight — replace the
+        # 1-2 px halo of background-mixed color at the alpha boundary with
+        # nearest interior color via cv2.inpaint(TELEA). For B path this also
+        # masks the rare "kmeans cluster centroid that happened to be off"
+        # color leaking at the silhouette edge.
+        sharp = _edge_color_inpaint(sharp, alpha_clean, ring_px=2, radius=3)
+        vr_log("Strong [7.7] edge_color_inpaint", _stats(sharp))
 
         vr_log("Strong OUTPUT image", _stats(sharp))
         vr_log("Strong OUTPUT alpha", _stats(alpha_clean))

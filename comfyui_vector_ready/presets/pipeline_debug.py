@@ -21,6 +21,7 @@ from .pipeline import (
     ALPHA_SOURCE_CHOICES,
     MATTING_BACKEND_CHOICES,
     _clean_transparent_rgb,
+    _edge_color_inpaint,
     _resolve_alpha,
 )
 
@@ -33,7 +34,7 @@ class VR_PipelineStrongDebug:
     """Mirrors VR_PipelineStrong; emits every stage for PreviewImage inspection."""
 
     CATEGORY = "VectorReady/debug"
-    RETURN_TYPES = ("IMAGE",) * 9 + ("MASK",)
+    RETURN_TYPES = ("IMAGE",) * 10 + ("MASK",)
     RETURN_NAMES = (
         "input_rgb",
         "native_alpha_viz",
@@ -44,6 +45,7 @@ class VR_PipelineStrongDebug:
         "region_merged",
         "roi_sharpened",
         "final_defringed",
+        "edge_inpainted",
         "alpha_stepified",
     )
     FUNCTION = "run"
@@ -105,15 +107,21 @@ class VR_PipelineStrongDebug:
         final_defringed = _clean_transparent_rgb(sharp, alpha_clean)
         vr_log("[7] final_defringed", _stats(final_defringed))
 
+        # Edge color inpaint: rewrite the alpha-boundary halo with nearest
+        # interior color. See VR_PipelineStrong for full rationale.
+        edge_inpainted = _edge_color_inpaint(final_defringed, alpha_clean, ring_px=2, radius=3)
+        vr_log("[8] edge_inpainted", _stats(edge_inpainted))
+
         return (rgb, native_alpha_viz, alpha_cleaned_viz, smoothed,
-                canny_viz, quant_rgb, merged_rgb, sharp, final_defringed, alpha_clean)
+                canny_viz, quant_rgb, merged_rgb, sharp, final_defringed,
+                edge_inpainted, alpha_clean)
 
 
 class VR_PipelineLightDebug:
     """Mirrors VR_PipelineLight; emits every stage for PreviewImage inspection."""
 
     CATEGORY = "VectorReady/debug"
-    RETURN_TYPES = ("IMAGE",) * 24 + ("MASK",)
+    RETURN_TYPES = ("IMAGE",) * 25 + ("MASK",)
     RETURN_NAMES = (
         "input_rgb",
         "native_alpha_viz",
@@ -139,6 +147,7 @@ class VR_PipelineLightDebug:
         "canny_edges_viz",
         "roi_sharpened",
         "final_defringed",
+        "edge_inpainted",
         "alpha_stepified",
     )
     FUNCTION = "run"
@@ -261,6 +270,11 @@ class VR_PipelineLightDebug:
         final_defringed = _clean_transparent_rgb(sharpened, alpha_clean)
         vr_log("[5] final_defringed", _stats(final_defringed))
 
+        # Edge color inpaint — rewrite the post-stepify alpha-boundary halo
+        # with nearest interior color via cv2.inpaint(TELEA).
+        edge_inpainted = _edge_color_inpaint(final_defringed, alpha_clean, ring_px=2, radius=3)
+        vr_log("[6] edge_inpainted", _stats(edge_inpainted))
+
         return (
             matting_rgb,
             native_alpha_viz,
@@ -286,5 +300,6 @@ class VR_PipelineLightDebug:
             canny_viz,
             sharpened,
             final_defringed,
+            edge_inpainted,
             alpha_clean,
         )
