@@ -1,237 +1,173 @@
-# Qwen Layered v8 API Workflow Agent Guide
+# Qwen Layered v8 — API Agent Guide
 
-面向多模态 agent 的 ComfyUI API workflow 使用指南。对应文件:
+面向 multimodal / orchestrating agent 的 ComfyUI workflow 使用指南。
+
+**契约文件**：`qwen_layered_v8_api.json`（位于仓库根目录）
+
+本指南所有节点 ID、字段名都和该文件**逐一对齐**。改 workflow 之前先确认这两者同步——agent 是按节点 ID 寻址的，ID 漂移 = 接口断裂。
+
+---
+
+## 0. TL;DR
 
 ```text
-qwen_layered_v8_ab_vector_ready.json
+1. 上传源图 → 改 1.image
+2. 写主体描述 → 改 219.value（自动喂给 LA #1）+ 11.text（SAM3 #1）
+3. 写镂空描述 → 改 224.value（喂给 LA #2）；无镂空填 ""
+4. 选路径   → 改 215.value，true=A 前景，false=B 重建
+5. 写 caption → 改 40.text
+6. 改输出名 → 63.filename_prefix（A）/ 214.filename_prefix（B）
+7. POST /prompt，读 63 或 214 的 SaveImage 输出
 ```
 
-该 API workflow 用于把一张设计稿反推为 RGBA 图层。Agent 的职责是提供目标描述、A/B 路径选择和少量采样参数；workflow 负责 SAM3 分割、Qwen Layered 生成、RMBG alpha refinement 和 VectorReady 后处理。
+---
 
-## 最小输入字段
+## 1. 工作流脉络
 
-每次调用通常只需要改这些节点:
+源图先缩到 ≤1024（节点 5），然后分三条链：
 
-| 节点 | 字段 | 必填 | 说明 |
-|---|---|---:|---|
-| `1 LoadImage` | `inputs.image` | 是 | ComfyUI input 目录里的源图文件名 |
-| `219 PrimitiveNode (Target Query)` | `inputs.value` | 是 | 主体定位描述，**自动同步**到 `220 LA` 和 `11 SAM3.text`（编辑一处即可） |
-| `224 PrimitiveNode (Cutout Query)` | `inputs.value` | 否 | 主体内部镂空描述（卡套卡槽 / 相框窗口 / 圈环洞）；留空 `""` = 不做减法，整条 negative 链零开销 |
-| `40 CLIPTextEncode` | `inputs.text` | 是 | Qwen Layered 整图/任务描述，建议英文自然句 |
-| `217 VR_GatedPassthrough` | `inputs.enable` | 是 | A 路径 gate |
-| `218 VR_GatedPassthrough` | `inputs.enable` | 是 | B 路径 gate |
-| `60 KSampler` | `inputs.seed` | 可选 | A 路径 seed |
-| `210 KSampler` | `inputs.seed` | 可选 | B 路径 seed |
-| `63 SaveImage` | `inputs.filename_prefix` | 可选 | A 输出文件名前缀 |
-| `214 SaveImage` | `inputs.filename_prefix` | 可选 | B 输出文件名前缀 |
-| `239 VR_VectorReadyReport (A)` | `inputs.layer_label` | 可选 | A 层诊断标签，默认 `A_foreground` |
-| `240 VR_VectorReadyReport (B)` | `inputs.layer_label` | 可选 | B 层诊断标签，默认 `B_background` |
+```
+              ┌─→ 正向链：LA#1(220) ─→ SAM3#1(11) ─→ MaskFix+(20) ─┐
+缩放图(5) ───┼─→ 镂空链：LA#2(225) ─→ SAM3#2(227) ─→ MaskFix+(228) ─┤
+              └─→ 原图 latent(50) → ReferenceLatent(52)             │
+                                                                    ▼
+              Resolver(222, SAM 优先/LA 矩形兜底) ── MaskSubtract(230, 正 − 镂空)
+                                                                    │
+              红/绿 brush(201–208) ←──────────────────────────────────┤
+                                                                    ▼
+              RefLatentIfMaskUsable(53) ──→ KSampler A(60) / B(210)
+                                              │              │
+                                              ▼              ▼
+                                         VAEDecode(62)   VAEDecode(212)
+                                              │              │
+                                         HFMatting(232)  PipelineStrong(234)
+                                              │              │
+                                         PipelineLight(233)   │
+                                              │              │
+                                         JoinRGBA(235)    JoinRGBA(236)
+                                              │              │
+                                         SaveImage(63)   SaveImage(214)
+```
 
-不要把中文写进模型 prompt。中文可以用于 agent 内部备注，但实际写入 query / `40.text` 时建议使用英文。
+A/B 互斥靠两个 `VR_GatedPassthrough` 在 KSampler 的 `latent_image` 上选通——非选中的支路收到 `ExecutionBlocker`，下游链不执行。
 
-### Target Query 与 Cutout Query 的语义边界
+---
 
-- **Target Query** = "what to extract"。例如 `"card holder frame"`、`"the cat decorations on top"`。
-- **Cutout Query** = "what hole(s) the subject contains"。例如卡套传 `"rectangular photo window inside the card holder"`；实心主体（卡通插画、Logo 等）传 `""`。
-- v8.2 起，主体 silhouette 减去 cutout silhouette 后再喂给下游 brush / RMBG / VectorReady。这把"镂空"从 Qwen V2 不稳定的生成责任，转为 LA+SAM3 的显式分割责任。
-- Cutout Query 是**对称镜像**的 LA+SAM3 通道，参数和正向链一致（dual-prompt: text+bbox 共享 PrimitiveNode）。但 cutout 链**不带 Resolver 矩形兜底**：SAM3 找不到就不减，不会过减成整个 bbox。
+## 2. API POST 格式约定
 
-## A/B 路径选择
-
-API JSON 里没有 UI workflow 的 `foreground_mode` 节点。路径由两个 gate 字段控制:
+ComfyUI 提交执行的 payload 是**扁平 dict**：
 
 ```json
 {
-  "217": {"inputs": {"enable": true}},
-  "218": {"inputs": {"enable": true}}
-}
-```
-
-当前含义:
-
-| 目标路径 | `217.enable` | `218.enable` | 结果 |
-|---|---:|---:|---|
-| A 前景抽取 | `true` | `true` | A pass，B 被 `invert=true` 阻断 |
-| B 背景/主体重建 | `false` | `false` | A 阻断，B pass |
-
-不要设置成 `217=true, 218=false` 或 `217=false, 218=true`，否则 A/B 可能同时执行或同时阻断。
-
-## 输出节点
-
-| 路径 | 保存节点 | 输出前缀默认值 | 输出内容 |
-|---|---|---|---|
-| A | `63 SaveImage` | `v8_A_foreground_RGBA` | 可见目标前景 RGBA |
-| B | `214 SaveImage` | `v8_B_background_RGBA` | 重建后的底层/主体 RGBA |
-
-调试输出:
-
-| 节点 | 内容 |
-|---|---|
-| `101 PreviewImage` | 缩放后的输入图 |
-| `102 MaskPreview+` | SAM3 原始 mask；当前由 LocateAnything bbox 引导 |
-| `103 MaskPreview+` | MaskFix 后 mask |
-| `104 PreviewImage` | SAM3 分割可视化 |
-| `220 PreviewImage` | LocateAnything 矩形框预览 |
-| `222 PreviewImage` | TargetMaskResolver 最终目标 mask；SAM 可用时优先 SAM，不可用时回退矩形 |
-| `105 PreviewImage` | 红色正向 brush |
-| `209 PreviewImage` | 红绿 brush 预览；仅当 MaskFix 后 mask 可用时送入 Qwen Layered |
-| `225 PreviewImage` | Brush 是否实际送入 Qwen；绿色=使用，红色=跳过 |
-| `106 PreviewImage` | A 路径 Qwen 原始输出 |
-| `213 PreviewImage` | B 路径 Qwen 原始输出 |
-
-## VR_VectorReadyReport — 层质量诊断 (v0.15.0+)
-
-`239`（A）和 `240`（B）是新增的 `VR_VectorReadyReport` 直通节点，挂在 `VR_JoinRGBA → SaveImage` 之间。它会对最终 RGBA 做一次轻量统计并通过 `vr_log` 输出一行 JSON 摘要（同时通过 `report_json` 输出口暴露完整 JSON），用于**让 orchestrating agent 自动判断这一层是否需要重跑**。
-
-每次调用都会产出一个 JSON：
-
-```json
-{
-  "layer_label": "A_foreground",
-  "canvas": {"w": 1024, "h": 1024},
-  "content_bbox": {"x": 120, "y": 80, "w": 760, "h": 880},
-  "content_ratio": 0.6354,
-  "transparent_ratio": 0.3142,
-  "unique_colors": 24,
-  "alpha_levels": 3,
-  "connected_components": {
-    "count": 3,
-    "top_areas": [482190, 1284, 312],
-    "largest_ratio": 0.4600,
-    "small_island_ratio": 0.0033
+  "prompt": {
+    "<node_id>": {
+      "class_type": "<NodeClass>",
+      "inputs": {
+        "<field_name>": <value_or_["<src_node_id>", <out_slot>]>
+      }
+    },
+    ...
   },
-  "flags": [],
-  "verdict": "clean"
+  "client_id": "<uuid>"
 }
 ```
 
-字段含义和 agent 决策规则：
+每个 widget 在 API 格式里都按 **input 名字**展开。比如 `KSampler` 的 widget `[seed, control_after_generate, steps, cfg, sampler_name, scheduler, denoise]` 对应 `inputs.{seed, steps, cfg, sampler_name, scheduler, denoise}`（`control_after_generate` 是前端字段，POST 时不需要）。
 
-| 字段 | 含义 | Agent 如何用 |
-|---|---|---|
-| `verdict` | `clean` / `needs_review` | 直接读取，`needs_review` 触发兜底分支 |
-| `flags[]` | 失败标签列表 | 见下表，每个 flag 都建议特定补救动作 |
-| `content_ratio` | 内容 bbox 占整幅画面比例 | `< 0.001` 通常说明 SAM3 没找到目标 |
-| `unique_colors` | alpha>0 区域内不同 RGB 数 | `> max_colors_clean (32)` 说明 k-means 量化失败 |
-| `alpha_levels` | 不同 alpha 值数量 | `> 4` 说明 stepify 没跑或被跳过 |
-| `connected_components.small_island_ratio` | 非最大 CC 总面积 / 最大 CC 面积 | `> 0.05` 说明残留斑点未清理 |
-| `content_bbox` | 内容真实 bbox | 用来给下游 SVG 服务做 canvas 裁剪 |
+> ⚠️ 仓库里的 `qwen_layered_v8_api.json` 是**UI 工作流格式**（含 `nodes/links/groups`）。要拿到真正的 API 提交 payload，需要在 ComfyUI 前端 → 设置开启 Dev mode → Save (API Format)，或调用 ComfyUI 的 `/prompt` validator。本指南把 UI 格式作为「节点 ID 与字段定义来源」，把代码示例写成 API 格式。
 
-常见 flag 与对应建议：
+---
 
-| flag 前缀 | 触发条件 | 建议补救 |
-|---|---|---|
-| `empty_layer` | 没有 alpha>0 像素 | Target Query 没命中 — 换更具体的英文名词短语，必要时降低 SAM3 threshold |
-| `low_content:...` | content_ratio 低于阈值 | 同上；或检查 LA bbox 预览（节点 220）是否落在错误位置 |
-| `too_many_colors:N>32` | 颜色数超阈值 | 降低 `VR_PipelineLight/Strong` 内 k-means 的 `n_colors`，或检查 bilateral 是否被跳过 |
-| `alpha_not_stepified:N` | alpha 级数 > 4 | 检查 `VR_AlphaStepify` 是否在 pipeline 链路中，多半是上游 RGB-only 没拼 alpha |
-| `small_islands:r` | 残留小连通块比例高 | 提高 alpha cleanup 强度，或对原图先做一次去噪 |
+## 3. Agent 可改字段全集
 
-调参字段（widget 输入）：
+下表是 agent 每次调用通常**只需改这些字段**。其余字段属于结构契约，不要碰。
 
-| 字段 | 默认值 | 调整建议 |
-|---|---:|---|
-| `layer_label` | `layer` | 多层流水线建议传 `A_<name>` / `B_<name>` 以便日志聚合 |
-| `max_colors_clean` | `32` | 矢量化服务能处理 ~32 色；若下游能吃更多色，可放宽 |
-| `min_content_ratio` | `0.001` | 微小贴纸建议下调到 `0.0002`；大物体保持默认 |
-| `small_island_warn_ratio` | `0.05` | 多 instance（多猫、多星星）目标层建议放宽到 `0.2` |
+| 节点 | class_type | 字段 | 类型 | 必填 | 说明 |
+|---:|---|---|---|---:|---|
+| `1` | `LoadImage` | `image` | str | ✅ | ComfyUI input 目录里的源图文件名 |
+| `215` | `PrimitiveNode` | `value` | bool | ✅ | A/B 模式开关，`true`=A 前景，`false`=B 重建 |
+| `219` | `PrimitiveNode` | `value` | str | ✅ | **Target Query**，自动喂给 LA #1 (220) |
+| `11` | `easy sam3ImageSegmentation` | `text` | str | ✅ | SAM3 #1 文本提示，**应与 219 同义**（不自动同步） |
+| `224` | `PrimitiveNode` | `value` | str | ⭕ | **Cutout Query**，自动喂给 LA #2 (225)；无镂空填 `""` |
+| `227` | `easy sam3ImageSegmentation` | `text` | str | ⭕ | SAM3 #2 文本提示，**建议留空 `""`**，纯靠 LA bbox |
+| `40` | `CLIPTextEncode` | `text` | str | ✅ | Qwen 整图 caption + 当前任务描述（英文自然句） |
+| `60` | `KSampler` | `seed` / `steps` / `cfg` | int/int/float | ⭕ | A 路径采样参数，默认 `seed=随机, steps=7, cfg=0.8` |
+| `210` | `KSampler` | `seed` / `steps` / `cfg` | int/int/float | ⭕ | B 路径采样参数，默认 `seed=随机, steps=16, cfg=1.0` |
+| `63` | `SaveImage` | `filename_prefix` | str | ⭕ | A 输出文件前缀，默认 `v8_A_foreground_RGBA` |
+| `214` | `SaveImage` | `filename_prefix` | str | ⭕ | B 输出文件前缀，默认 `v8_B_background_RGBA` |
 
-> 节点是直通的（`image` 进 → `image` 出），插入不会改变 `SaveImage` 写出的 PNG。`report_json` 输出口当前在 UI workflow 里**没有连线**——如果要把 JSON 取回 agent，建议在 API 调用时加一个 `SaveText`/`PreviewAny` 节点接到 `239.outputs[0]` 和 `240.outputs[0]`，或直接读取 ComfyUI server 端的 `vr_debug.log`（每次执行一行 `VR_VectorReadyReport label=... verdict=... flags=[...]`）。
+**3.1 关于 219 / 224 不能完全替代 SAM3 text**
 
-## Local LocateAnything Model
+在这份 API 快照里，`219` 与 `224` 两个 `PrimitiveNode` **只连接了对应的 `VR_LocateAnythingBox.query`**（即 220、225），**没有连到** `easy sam3ImageSegmentation.text`（11、227）。所以：
 
-`VR_LocateAnythingBox.model_id` 默认指向本地目录:
+- 改 Target Query 时建议**同步改 `11.text`**，保持 LA bbox + SAM3 text 双 prompt 一致。
+- Cutout 链 SAM3 (`227.text`) 当前默认 `""`，含义是**只信任 LA bbox**，文本不影响分割——多数情况下保持 `""` 即可，agent 一般不需要动它。
 
-```text
-/root/ComfyUI/models/LocateAnything-3B
-```
+### 3.2 A/B 模式开关的真实拓扑
 
-推荐从 ModelScope 下载到该目录:
+`215 PrimitiveNode` 的 boolean 输出**同时**连到两个 gate 的 `enable` 输入：
 
-```bash
-modelscope download --model nv-community/LocateAnything-3B --local_dir /root/ComfyUI/models/LocateAnything-3B
-```
+- `217 VR_GatedPassthrough` widget `[enable=true, invert=false]` → 接 KSampler **A** 的 `latent_image`
+- `218 VR_GatedPassthrough` widget `[enable=true, invert=true]` → 接 KSampler **B** 的 `latent_image`
 
-也可以用 Python SDK:
+因为 218 是 `invert=true`，A 和 B 永远互斥。**Agent 只改 `215.value` 一个布尔**，不要去碰 217 / 218 的 widget。
 
-```python
-from modelscope.hub.snapshot_download import snapshot_download
+---
 
-snapshot_download(
-    "nv-community/LocateAnything-3B",
-    local_dir="/root/ComfyUI/models/LocateAnything-3B",
-)
-```
+## 4. Prompt 写法
 
-如果放到其他目录,把 `219 VR_LocateAnythingBox` 的 `model_id` 改成该本地目录即可。该节点会把环境变量和 `~` 展开后交给 Transformers `from_pretrained(..., trust_remote_code=True)` 加载。
+### 4.1 `219.value` / `11.text` — Target Query（主体定位）
 
-## Prompt 写法
+写法：**英文、名词短语、短且具体**，像目标检测的类别。
 
-### `219.inputs.value`: Target Query (主体定位)
+| 推荐 | 不推荐 |
+|---|---|
+| `card holder frame body` | `把这个可爱的猫咪相框抠出来` |
+| `three cats` / `left cat` / `right cat` | `the thing in the middle` |
+| `pink heart sticker` | `foreground` |
+| `black outline of the frame` | `extract everything except background` |
 
-v8.2 起，主体语义集中写在 `219 PrimitiveNode (Target Query)` 一个地方，会**自动**分发到 `220 VR_LocateAnythingBox.query` 和 `11 SAM3.text` 两个节点（widget-as-input 转换）。Agent 只改这一个字段即可同步更新 LA + SAM3 双提示。
+规则：
 
-> ⚠️ 旧版本（v8.1 及之前）让 agent 直接改 `220 LA.query` 或 `11 SAM3.prompt` 已废弃；改 PrimitiveNode 一处更稳。
+- 单次只针对一个语义目标；目标多就拆多次跑。
+- 多 instance 用集合短语（`three cats`、`all star stickers`）让 LA 一次性框出 N 个，SAM3 文本同步覆盖。
+- 线稿、小细节 SAM3 不稳，优先用颜色/暗线 mask 类节点替代。
 
-### `224.inputs.value`: Cutout Query (镂空定位)
+### 4.2 `224.value` — Cutout Query（主体内部镂空）
 
-对应 negative 链的 PrimitiveNode，同样自动分发到 `225 LA #2.query` 和 `227 SAM3 #2.text`。
+什么时候要填：
 
-- 主体内有镂空（卡套卡槽 / 相框窗口 / 圆环 / 戒指 / 镂空贴纸）：填一句简短英文描述，如 `"rectangular photo window inside the card holder"`、`"circular hole in the center of the ring"`。
-- 实心主体：留空 `""`。LA #2 的 query 早返回机制会跳过整条 negative 推理，`230 VR_MaskSubtract` 转为透传，行为与无 negative 链的 v8.1 完全一致。
+- **要填**：卡套照片窗口、相框中心镂空、圆环洞、镂空贴纸、戒指。
+- **不要填**（留 `""`）：实心猫咪 / Logo / 文字。
 
-### 历史回退（仅诊断）
+写法：和 Target Query 同风格，**句子里强调"inside / hole / window"** 帮助 LA 定位。
 
-如果临时关闭 LocateAnything 或手工回退到纯文本 SAM3,再使用下面的写法。写法要短、具体、像检测类别。
+| 场景 | Cutout Query |
+|---|---|
+| 卡套中央照片窗 | `rectangular photo window inside the card holder` |
+| 多窗相册 | `all rectangular photo slots` |
+| 戒指 | `circular hole in the center of the ring` |
+| 镂空贴纸 | `hollow inner shape of the sticker` |
 
-推荐:
+**零开销机制**：当 `224.value=""` 时，`VR_LocateAnythingBox.locate` 在 `locate_anything_box.py:337` 早返回，不加载 3B 模型；下游 SAM3 #2、MaskFix #2、MaskSubtract 全部短路成透传。所以"实心主体"不需要为 cutout 链付任何成本。
 
-```text
-cat
-three cats
-left cat
-right cat
-star sticker
-heart sticker
-photo frame
-pink blue photo frame body
-black outline
-```
+### 4.3 `40.text` — Qwen Layered caption
 
-不推荐:
+用途：给 Qwen Layered 整图语义 + 当前任务意图。写成 caption 风格、不要命令式。
+
+A 路径模板：
 
 ```text
-把这个可爱的猫咪相框主体抠出来
-extract the beautiful cute decorative object with all details
-the thing in the middle
-foreground
+A {scene description}. Extract the visible {TARGET} as a clean separate layer with transparent background.
 ```
 
-规则:
-
-- 用英文。
-- 用名词短语，不写长句。
-- 单次尽量只指一个语义目标。
-- 若目标很多，拆多次跑，例如 `left cat`、`middle cat`、`right cat`。
-- 线稿、小圆点这类目标 SAM3 可能不稳，优先用颜色/暗线 mask 或后续专用节点。
-
-### `40.inputs.text`: Qwen Layered 条件 prompt
-
-用途是给 Qwen Layered 一个整图语义和当前任务意图。写法应像训练 caption: 简洁、视觉描述明确、不要命令式过强。
-
-A 路径推荐模板:
+B 路径模板：
 
 ```text
-A cute cartoon cat photo frame with pastel pink and blue colors. Extract the visible [TARGET] as a clean separate layer with transparent background.
+A {scene description}. Reconstruct the clean underlying {BASE_OBJECT} after removing the {OCCLUDERS}.
 ```
 
-B 路径推荐模板:
-
-```text
-A cute cartoon cat photo frame with pastel pink and blue colors. Reconstruct the clean underlying [BASE_OBJECT] after removing the selected foreground occluders.
-```
-
-示例:
+示例：
 
 ```text
 A cute cartoon cat photo frame with pastel pink and blue colors. Extract the visible three cats as a clean separate layer with transparent background.
@@ -241,246 +177,216 @@ A cute cartoon cat photo frame with pastel pink and blue colors. Extract the vis
 A cute cartoon cat photo frame with pastel pink and blue colors. Reconstruct the clean underlying photo frame body after removing the cats and sticker decorations.
 ```
 
-不推荐:
+---
+
+## 5. 输出与诊断节点
+
+### 5.1 输出
+
+| 路径 | 节点 | `filename_prefix` 默认 | 内容 |
+|---|---|---|---|
+| A | `63 SaveImage` | `v8_A_foreground_RGBA` | 抽出的可见前景层 RGBA |
+| B | `214 SaveImage` | `v8_B_background_RGBA` | 重建的干净底层 RGBA |
+
+未选中的路径被 ExecutionBlocker 阻断，对应 SaveImage 不会写文件。
+
+### 5.2 诊断 Preview（按 ID 排序）
+
+| 节点 | 标题 | 用途 |
+|---:|---|---|
+| `101` | 诊断1 缩放后输入图 | 确认 LoadImage 正确 |
+| `102` | 诊断2 SAM3 原始 mask | 看 SAM3 #1 是否命中 |
+| `103` | 诊断3 MaskFix+ 后 mask | 看清理后是否还有目标 |
+| `104` | 诊断4 SAM3 分割可视化 | mask 叠加到原图 |
+| `105` | 诊断6 红色正向画笔图 | brush 红色区域是否在目标上 |
+| `106` | 诊断 A 前景输出预览 | KSampler A 原始解码图 |
+| `206` | 诊断7 绿色负向 mask | brush 绿色（膨胀取反）区域 |
+| `209` | 诊断8 最终红绿 Brush 图 | V2 LoRA 拿到的画笔图 |
+| `213` | 诊断 B 重建输出 | KSampler B 原始解码图 |
+| `221` | 诊断10 LA 矩形框（正向） | LA #1 bbox 预览 |
+| `223` | 诊断11 Resolver 最终目标 mask | 喂给 brush / RMBG / pipeline 的 mask |
+| `226` | 诊断12 LA 矩形框（Cutout） | LA #2 bbox 预览 |
+| `229` | 诊断13 Cutout SAM3+MaskFix mask | 镂空链最终 mask |
+| `231` | 诊断14 MaskSubtract 最终 alpha | 正 − 镂空后的最终 alpha |
+| `238` | 诊断9 Brush 是否送入 Qwen | 绿=送入，红=跳过 |
+
+Agent 调度时**不需要读 preview**，但调试或异常重跑前可以请求 ComfyUI 的 `/history` 接口拿对应节点的中间产物。
+
+---
+
+## 6. 常用 API Payload 范例
+
+下面三个示例假设你已经把 UI workflow 转为 API 格式（包含所有节点的 `class_type` 与不变的 `inputs`），这里只列出 **patch（agent 需覆盖的字段）**。实际提交时把 patch 合并进完整 payload。
+
+### 6.1 A 路径 · 抽三只猫（实心主体）
+
+```json
+{
+  "1":   {"inputs": {"image": "design.png"}},
+  "215": {"inputs": {"value": true}},
+  "219": {"inputs": {"value": "three cats"}},
+  "11":  {"inputs": {"text":  "three cats"}},
+  "224": {"inputs": {"value": ""}},
+  "227": {"inputs": {"text":  ""}},
+  "40":  {"inputs": {"text":  "A cute cartoon cat photo frame with pastel pink and blue colors. Extract the visible three cats as a clean separate layer with transparent background."}},
+  "63":  {"inputs": {"filename_prefix": "layer_A_three_cats"}}
+}
+```
+
+### 6.2 A 路径 · 抽卡套框体（含中央镂空）
+
+```json
+{
+  "1":   {"inputs": {"image": "design.png"}},
+  "215": {"inputs": {"value": true}},
+  "219": {"inputs": {"value": "card holder frame body"}},
+  "11":  {"inputs": {"text":  "card holder frame body"}},
+  "224": {"inputs": {"value": "rectangular photo window inside the card holder"}},
+  "227": {"inputs": {"text":  ""}},
+  "40":  {"inputs": {"text":  "A pastel card holder with cat-ear top decorations. Extract the card holder frame body as a clean RGBA layer with the inner photo slot transparent."}},
+  "63":  {"inputs": {"filename_prefix": "layer_A_card_frame"}}
+}
+```
+
+### 6.3 B 路径 · 重建干净框体
+
+```json
+{
+  "1":   {"inputs": {"image": "design.png"}},
+  "215": {"inputs": {"value": false}},
+  "219": {"inputs": {"value": "the cat decorations and sticker decorations on the frame"}},
+  "11":  {"inputs": {"text":  "cats and stickers"}},
+  "224": {"inputs": {"value": ""}},
+  "227": {"inputs": {"text":  ""}},
+  "40":  {"inputs": {"text":  "A cute cartoon cat photo frame with pastel pink and blue colors. Reconstruct the clean underlying photo frame body after removing the cats and sticker decorations."}},
+  "214": {"inputs": {"filename_prefix": "layer_B_clean_frame_body"}}
+}
+```
+
+> B 路径里 `219 / 11` 描述的是「**要移除的遮挡物**」（猫和贴纸），不是「保留的主体」。Qwen Layered 用 mask 区域作为"重绘提示"，所以 mask 必须落在遮挡物上才能正确补全底层。
+
+---
+
+## 7. 节点契约（按 pipeline 顺序）
+
+### 7.1 输入与分割
+
+| 节点 | class_type | 关键 inputs | 输出 |
+|---:|---|---|---|
+| `1`   | `LoadImage` | `image` | `IMAGE` |
+| `5`   | `ImageScaleToMaxDimension` | `max_dim=1024` | scaled `IMAGE` |
+| `10`  | `easy sam3ModelLoader` | `model_name="sam3-fp16.safetensors"` | `SAM3_MODEL` |
+| `220` | `VR_LocateAnythingBox` (Target) | `query`←219, `model_id`, `prompt_mode="single"` | mask, **bbox**, preview |
+| `11`  | `easy sam3ImageSegmentation` (Target) | `text`(widget), `bboxes`←220 | mask, vis |
+| `20`  | `MaskFix+` | SAM3 mask | cleaned target mask |
+| `225` | `VR_LocateAnythingBox` (Cutout) | `query`←224, `prompt_mode="multi"` | mask, bbox |
+| `227` | `easy sam3ImageSegmentation` (Cutout) | `text=""`, `bboxes`←225 | mask |
+| `228` | `MaskFix+` | SAM3 #2 mask | cleaned cutout mask |
+| `222` | `VR_TargetMaskResolver` | `sam_mask`←20, `fallback_mask`←220.mask, `threshold=0.5, min_area_ratio=0.002, max_area_ratio=0.90, min_iou_with_fallback=0.02, fallback_dilate_px=0, keep_largest_component=true` | resolved target mask |
+| `230` | `VR_MaskSubtract` | `outer`←222, `inner`←228, `inner_dilate_px=2, min_inner_area_ratio=0.0005` | **最终 alpha** |
+
+### 7.2 Brush 与条件
+
+| 节点 | class_type | 作用 |
+|---:|---|---|
+| `40`  | `CLIPTextEncode` | Qwen 文本条件（agent 写） |
+| `54`  | `ConditioningZeroOut` | 负向 ZeroOut |
+| `52`  | `ReferenceLatent` | 追加原图 latent 作为 ref |
+| `53`  | `VR_ReferenceLatentIfMaskUsable` | `threshold=0.5, min_area_ratio=0.002, max_area_ratio=0.9, max_dim=64`；mask 不可用时**跳过**追加 brush latent |
+| `201`–`208` | `VR_EmptyImageLike / ImageCompositeMasked / GrowMask / InvertMask` | 拼红/绿 brush 图，`GrowMask` 膨胀 18 px |
+
+### 7.3 A 路径
+
+| 节点 | class_type | 关键 inputs | 备注 |
+|---:|---|---|---|
+| `217` | `VR_GatedPassthrough` | `enable`←215, `invert=false` | A gate |
+| `60`  | `KSampler` | `seed, steps=7, cfg=0.8, sampler="euler", scheduler="simple", denoise=1.0` | 前景 extraction |
+| `62`  | `VAEDecode` | — | A 解码 |
+| `232` | `VR_HFMattingAlpha` | `model_id="/root/ComfyUI/models/RMBG-2.0", max_dim=1024, fp_mode="auto"` | RMBG alpha refinement |
+| `233` | `VR_PipelineLight` | `bilateral_passes=0, alpha_stepify_steps=3, min_component_px=1500, alpha_source="mask_socket", matting_source="external_matte"` | A 后处理（Light） |
+| `235` | `VR_JoinRGBA` | RGB ← 233, alpha ← 232 | A RGBA 合成 |
+| `63`  | `SaveImage` | `filename_prefix` | A 输出 |
+
+### 7.4 B 路径
+
+| 节点 | class_type | 关键 inputs | 备注 |
+|---:|---|---|---|
+| `218` | `VR_GatedPassthrough` | `enable`←215, `invert=true` | B gate（A/B 互斥的关键） |
+| `210` | `KSampler` | `seed, steps=16, cfg=1.0, sampler="euler", scheduler="simple", denoise=1.0` | 背景/主体 reconstruction |
+| `212` | `VAEDecode` | — | B 解码 |
+| `234` | `VR_PipelineStrong` | `kmeans_colors=12, bilateral_passes=6, alpha_stepify_steps=3, min_component_px=1500, alpha_source="auto"` | B 后处理（Strong） |
+| `236` | `VR_JoinRGBA` | RGB ← 234, alpha ← Resolver mask 链 | B RGBA 合成 |
+| `214` | `SaveImage` | `filename_prefix` | B 输出 |
+
+---
+
+## 8. 模型路径
+
+| 模型 | 节点 | 默认路径 |
+|---|---|---|
+| LocateAnything 3B | `220` / `225` `model_id` | `/root/ComfyUI/models/LocateAnything-3B` |
+| RMBG-2.0 | `232` `model_id` | `/root/ComfyUI/models/RMBG-2.0` |
+| SAM3 fp16 | `10` `model_name` | `sam3-fp16.safetensors`（ComfyUI models 目录） |
+| Qwen Image Layered UNet | `30` `unet_name` | `qwen_image_layered_control_bf16.safetensors` |
+| Qwen Image Layered V2 LoRA | `31` `lora_name` | `qwen_image_layered_control_v2.safetensors` |
+| Qwen 2.5 VL CLIP | `33` `clip_name` | `qwen_2.5_vl_7b_fp8_scaled.safetensors` |
+| Qwen Image Layered VAE | `34` `vae_name` | `qwen_image_layered_vae.safetensors` |
+
+LocateAnything 下载：
+
+```bash
+modelscope download --model nv-community/LocateAnything-3B \
+    --local_dir /root/ComfyUI/models/LocateAnything-3B
+```
+
+如果路径不同，改 `220.inputs.model_id` 和 `225.inputs.model_id`（两处都要改）。
+
+---
+
+## 9. 默认参数 & 调优指南
+
+| 场景 | 改哪 | 默认 | 建议 |
+|---|---|---:|---|
+| SAM3 漏检小目标（星星 / 贴纸） | `11.threshold` | `0.4` | 降到 `0.25–0.35` |
+| LA 框得太松 / 太紧 | `220.padding_px` | `8` | 紧贴主体用 `0–4`，留 ramp 用 `12–24` |
+| Resolver 把 SAM3 判定为不可用 | `222.min_area_ratio` | `0.002` | 极小目标降到 `0.0005` |
+| Resolver 把超大主体当不可用 | `222.max_area_ratio` | `0.90` | 满版主体放宽到 `0.99` |
+| MaskSubtract 留下 1-2 px 残边 | `230.inner_dilate_px` | `2` | 放到 `4-6` |
+| 误删整个主体（cutout 误命中） | `230.min_inner_area_ratio` | `0.0005` | 提高到 `0.005` 让 cutout 必须够大才生效 |
+| A 路径细节糊 | `60.steps` / `60.cfg` | `7 / 0.8` | 提到 `10 / 1.0` |
+| B 路径补全不干净 | `210.steps` / `210.cfg` | `16 / 1.0` | 提到 `24 / 1.2` |
+| B 路径色块碎 | `234.kmeans_colors` | `12` | 单色主体降到 `6–8`，多色降到 `16` |
+
+---
+
+## 10. Agent Checklist
+
+每次提交 prompt 前自检：
 
 ```text
-cutout
-remove
-make it good
-抠出主体
-只要框架不要猫其他都别要
+[ ] 1.image 已上传到 ComfyUI input 目录
+[ ] 215.value 已按目标设好（A=true / B=false）
+[ ] 219.value 与 11.text 同义（不要只改一个）
+[ ] 224.value 与镂空意图一致；无镂空填 ""
+[ ] 40.text 是英文 caption + 当前任务句
+[ ] B 路径时 219/11 描述的是"遮挡物"而不是"主体"
+[ ] 选中路径对应的 SaveImage filename_prefix 能区分层名
+[ ] LA / RMBG / SAM3 模型路径都存在
 ```
 
-规则:
-
-- 用英文自然句。
-- 先描述整图，再说明当前目标。
-- A 路径使用 `Extract the visible ... as a clean separate layer`。
-- B 路径使用 `Reconstruct the clean underlying ... after removing ...`。
-- 不要要求多图层一次性输出；当前 workflow 一次只产一个目标层。
-
-## 路径任务映射
-
-| 目标层 | `11.prompt` | `40.text` 任务短语 | 路径 |
-|---|---|---|---|
-| 完整可见相框 | `cute cat photo frame` | `Extract the visible cute cat photo frame...` | A |
-| 三只猫装饰 | `three cats` | `Extract the visible three cats...` | A |
-| 单只猫 | `left cat` / `middle cat` / `right cat` | `Extract the visible left cat...` | A |
-| 星星贴纸 | `star sticker` | `Extract the visible star stickers...` | A |
-| 爱心贴纸 | `heart sticker` | `Extract the visible heart stickers...` | A |
-| 黑色线稿 | `black outline` | `Extract the visible black outline details...` | A，但 SAM3 可能不稳 |
-| 可见框体 | `photo frame body` | `Extract the visible photo frame body...` | A |
-| 干净框体补全 | 遮挡物 prompt，例如 `three cats` 或 `sticker decorations` | `Reconstruct the clean underlying photo frame body after removing...` | B |
-| 中间窗口扣洞 | 走 `224.value` (Cutout Query) | 同主体 prompt | 任意路径，由 `230 MaskSubtract` 在 alpha 上扣除 |
-
-## API 修改示例
-
-A 路径抽三只猫（实心主体，无镂空）:
-
-```json
-{
-  "1": {
-    "inputs": {
-      "image": "input.png"
-    }
-  },
-  "219": {
-    "inputs": {
-      "value": "the three cat decorations on top"
-    }
-  },
-  "224": {
-    "inputs": {
-      "value": ""
-    }
-  },
-  "40": {
-    "inputs": {
-      "text": "A cute cartoon cat photo frame with pastel pink and blue colors. Extract the visible three cats as a clean separate layer with transparent background."
-    }
-  },
-  "217": {
-    "inputs": {
-      "enable": true
-    }
-  },
-  "218": {
-    "inputs": {
-      "enable": true
-    }
-  },
-  "63": {
-    "inputs": {
-      "filename_prefix": "layer_A_three_cats"
-    }
-  }
-}
-```
-
-A 路径抽卡套框体（有镂空 — 中间是照片窗口）:
-
-```json
-{
-  "1": {
-    "inputs": {
-      "image": "input.png"
-    }
-  },
-  "219": {
-    "inputs": {
-      "value": "card holder frame body"
-    }
-  },
-  "224": {
-    "inputs": {
-      "value": "rectangular photo window inside the card holder"
-    }
-  },
-  "40": {
-    "inputs": {
-      "text": "A pastel card holder with cat-ear top decorations. Extract the card holder frame body as a clean RGBA layer, with the inner photo slot transparent."
-    }
-  },
-  "217": {
-    "inputs": {
-      "enable": true
-    }
-  },
-  "218": {
-    "inputs": {
-      "enable": true
-    }
-  },
-  "63": {
-    "inputs": {
-      "filename_prefix": "layer_A_card_frame"
-    }
-  }
-}
-```
-
-B 路径重建干净框体:
-
-```json
-{
-  "1": {
-    "inputs": {
-      "image": "input.png"
-    }
-  },
-  "219": {
-    "inputs": {
-      "value": "the cat decorations and small sticker decorations on the frame"
-    }
-  },
-  "224": {
-    "inputs": {
-      "value": ""
-    }
-  },
-  "40": {
-    "inputs": {
-      "text": "A cute cartoon cat photo frame with pastel pink and blue colors. Reconstruct the clean underlying photo frame body after removing the cats and sticker decorations."
-    }
-  },
-  "217": {
-    "inputs": {
-      "enable": false
-    }
-  },
-  "218": {
-    "inputs": {
-      "enable": false
-    }
-  },
-  "214": {
-    "inputs": {
-      "filename_prefix": "layer_B_clean_frame_body"
-    }
-  }
-}
-```
-
-## Node Contract
-
-### Input and segmentation
-
-| 节点 | class | 输入 | 输出 |
-|---|---|---|---|
-| `1` | `LoadImage` | image filename | source `IMAGE` |
-| `5` | `ImageScaleToMaxDimension` | source image | scaled `IMAGE` |
-| `10` | `easy sam3ModelLoader` | `sam3-fp16.safetensors` | `sam3_model` |
-| `11` | `easy sam3ImageSegmentation` | scaled image + LocateAnything bbox, prompt 留空 | box-guided mask, preview image |
-| `20` | `MaskFix+` | SAM3 mask | cleaned SAM target mask |
-| `219` | `VR_LocateAnythingBox` | scaled image + query | coarse rectangle mask, bbox, box preview |
-| `221` | `VR_TargetMaskResolver` | image + SAM mask + rectangle mask | final target mask for brush construction |
-
-### Brush and conditioning
-
-| 节点 | class | 作用 |
-|---|---|---|
-| `203` | `ImageCompositeMasked` | 黑底 + 红色目标区，目标 mask 来自 resolver |
-| `204` | `GrowMask` | 扩张 resolver 目标 mask |
-| `205` | `InvertMask` | 生成绿色负向区域；也是 B 路径 alpha |
-| `208` | `ImageCompositeMasked` | 红色目标 + 绿色负向 brush |
-| `40` | `CLIPTextEncode` | Qwen 文本条件 |
-| `52` | `ReferenceLatent` | 追加原图 latent |
-| `53` | `VR_ReferenceLatentIfMaskUsable` | resolver 后 mask 可用时追加 brush latent；SAM 空时可由 LocateAnything 矩形兜底 |
-
-### A path
-
-| 节点 | class | 作用 |
-|---|---|---|
-| `217` | `VR_GatedPassthrough` | A gate |
-| `60` | `KSampler` | Qwen foreground extraction |
-| `62` | `VAEDecode` | A RGB/RGBA decode |
-| `219` | `VR_HFMattingAlpha` | RMBG-2.0 alpha refinement |
-| `220` | `VR_PipelineLight` | A 路径 VectorReady 后处理 |
-| `222` | `VR_JoinRGBA` | 合成 RGBA |
-| `239` | `VR_VectorReadyReport` | A 层质量诊断（直通） |
-| `63` | `SaveImage` | 保存 A 输出 |
-
-### B path
-
-| 节点 | class | 作用 |
-|---|---|---|
-| `218` | `VR_GatedPassthrough` | B gate，`invert=true` |
-| `210` | `KSampler` | Qwen background/body reconstruction |
-| `212` | `VAEDecode` | B RGB/RGBA decode |
-| `221` | `VR_PipelineStrong` | B 路径 VectorReady 后处理 |
-| `223` | `VR_JoinRGBA` | 合成 RGBA |
-| `240` | `VR_VectorReadyReport` | B 层质量诊断（直通） |
-| `214` | `SaveImage` | 保存 B 输出 |
-
-## 默认参数建议
-
-| 场景 | SAM3 threshold | A steps/cfg | B steps/cfg | 备注 |
-|---|---:|---:|---:|---|
-| 明确物体，如猫、相框 | `0.4` | `7 / 0.8` | - | 默认即可 |
-| 小贴纸、星星 | `0.25-0.4` | `7 / 0.8` | - | mask 漏检时降低 threshold |
-| 细线、黑色描边 | 不稳定 | `7 / 0.8` | - | 优先考虑颜色阈值 mask |
-| 框体补全 | `0.35-0.5` | - | `16 / 1.0` | prompt 应描述要移除的遮挡物 |
-
-## Agent Checklist
-
-生成 API payload 前，agent 应检查:
+返回结果后检查：
 
 ```text
-1. image 是否已上传到 ComfyUI input 目录
-2. 11.prompt 是否为英文短名词短语
-3. 40.text 是否为英文视觉 caption + 当前任务
-4. A/B gate 是否成对设置
-5. 输出 filename_prefix 是否能区分层名
-6. 若目标是底层补全，必须走 B
-7. 若目标是可见装饰/前景，必须走 A
-8. 拿到结果后读 `239 / 240 VR_VectorReadyReport.report_json`，`verdict != "clean"` 时按 flag 表决定是否重跑或换 prompt
+[ ] /history 里对应 prompt_id 状态 success
+[ ] 63 或 214 SaveImage 文件已生成
+[ ] 若可视化异常，对照第 5.2 节诊断 preview 节点定位是哪一段断
 ```
 
-## 版本变化速查 (v0.12 → v0.15)
+---
 
-Agent 升级到新工作流时关注以下行为差异：
+## 11. 已知限制（此 API 快照）
 
-- **v0.12.0**：`VR_MaskUnion(SAM3_refined, LA_box_union)` 接入 negative-cutout 链；当主体含 N 个内部镂空（多窗相册、多卡槽），Cutout Query 用复数集合短语（`"all photo windows"`、`"rectangular photo slots"`）SAM3 能覆盖；剩余 instance 由 LA #2 的 box union 补齐。
-- **v0.13.0**：`VR_PipelineLight` / `VR_PipelineStrong` 末尾新增 `clean_transparent_rgb`，A 路径不再有 `alpha=0` 区的 Qwen 噪点；B 路径不再有 stepify 之后 1–2 px 颜色 halo。
-- **v0.14.0**：在 v0.13 defringe 之后再加 `_edge_color_inpaint(ring_px=2, radius=3)`，把 alpha 边缘 1–2 px 抗锯齿环 inpaint 成内部色，输出 PNG 不再有背景色描边。
-- **v0.15.0**：新增 `VR_VectorReadyReport`（节点 239 / 240），用于让 orchestrating agent 直接拿到层质量裁判。
+- **不带 `VR_VectorReadyReport`**：本快照里没有质量诊断节点。如果上游编排需要 verdict + flags，请在 `235.output → 63.input` 之间插入 `VR_VectorReadyReport`，或换用 `qwen_layered_v8_ab_vector_ready.json`（带 239/240）。
+- **不带 `VR_MaskUnion`**：本快照的镂空链是 `LA → SAM3 → MaskFix+ → MaskSubtract` 单路。多镂空时只能依赖 LA `prompt_mode="multi"` 一次输出多框，SAM3 文本不参与。若需要 "SAM3 refined ∪ LA boxes" 的多镂空兜底，升级到带 `VR_MaskUnion` 的工作流版本。
+- **PrimitiveNode 不覆盖 SAM3 text**：219/224 只接 LA。Agent 必须**同时**写 `11.text`（Target Query 时），否则 SAM3 还会按上一次的 prompt 跑。
+- **A/B gate 不要直接改 widget**：217/218 的 `enable` 已被 215 的 link 覆盖，改它们没用；只动 215。
