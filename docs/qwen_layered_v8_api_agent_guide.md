@@ -24,6 +24,8 @@ qwen_layered_v8_ab_vector_ready.json
 | `210 KSampler` | `inputs.seed` | 可选 | B 路径 seed |
 | `63 SaveImage` | `inputs.filename_prefix` | 可选 | A 输出文件名前缀 |
 | `214 SaveImage` | `inputs.filename_prefix` | 可选 | B 输出文件名前缀 |
+| `239 VR_VectorReadyReport (A)` | `inputs.layer_label` | 可选 | A 层诊断标签，默认 `A_foreground` |
+| `240 VR_VectorReadyReport (B)` | `inputs.layer_label` | 可选 | B 层诊断标签，默认 `B_background` |
 
 不要把中文写进模型 prompt。中文可以用于 agent 内部备注，但实际写入 query / `40.text` 时建议使用英文。
 
@@ -76,6 +78,65 @@ API JSON 里没有 UI workflow 的 `foreground_mode` 节点。路径由两个 ga
 | `225 PreviewImage` | Brush 是否实际送入 Qwen；绿色=使用，红色=跳过 |
 | `106 PreviewImage` | A 路径 Qwen 原始输出 |
 | `213 PreviewImage` | B 路径 Qwen 原始输出 |
+
+## VR_VectorReadyReport — 层质量诊断 (v0.15.0+)
+
+`239`（A）和 `240`（B）是新增的 `VR_VectorReadyReport` 直通节点，挂在 `VR_JoinRGBA → SaveImage` 之间。它会对最终 RGBA 做一次轻量统计并通过 `vr_log` 输出一行 JSON 摘要（同时通过 `report_json` 输出口暴露完整 JSON），用于**让 orchestrating agent 自动判断这一层是否需要重跑**。
+
+每次调用都会产出一个 JSON：
+
+```json
+{
+  "layer_label": "A_foreground",
+  "canvas": {"w": 1024, "h": 1024},
+  "content_bbox": {"x": 120, "y": 80, "w": 760, "h": 880},
+  "content_ratio": 0.6354,
+  "transparent_ratio": 0.3142,
+  "unique_colors": 24,
+  "alpha_levels": 3,
+  "connected_components": {
+    "count": 3,
+    "top_areas": [482190, 1284, 312],
+    "largest_ratio": 0.4600,
+    "small_island_ratio": 0.0033
+  },
+  "flags": [],
+  "verdict": "clean"
+}
+```
+
+字段含义和 agent 决策规则：
+
+| 字段 | 含义 | Agent 如何用 |
+|---|---|---|
+| `verdict` | `clean` / `needs_review` | 直接读取，`needs_review` 触发兜底分支 |
+| `flags[]` | 失败标签列表 | 见下表，每个 flag 都建议特定补救动作 |
+| `content_ratio` | 内容 bbox 占整幅画面比例 | `< 0.001` 通常说明 SAM3 没找到目标 |
+| `unique_colors` | alpha>0 区域内不同 RGB 数 | `> max_colors_clean (32)` 说明 k-means 量化失败 |
+| `alpha_levels` | 不同 alpha 值数量 | `> 4` 说明 stepify 没跑或被跳过 |
+| `connected_components.small_island_ratio` | 非最大 CC 总面积 / 最大 CC 面积 | `> 0.05` 说明残留斑点未清理 |
+| `content_bbox` | 内容真实 bbox | 用来给下游 SVG 服务做 canvas 裁剪 |
+
+常见 flag 与对应建议：
+
+| flag 前缀 | 触发条件 | 建议补救 |
+|---|---|---|
+| `empty_layer` | 没有 alpha>0 像素 | Target Query 没命中 — 换更具体的英文名词短语，必要时降低 SAM3 threshold |
+| `low_content:...` | content_ratio 低于阈值 | 同上；或检查 LA bbox 预览（节点 220）是否落在错误位置 |
+| `too_many_colors:N>32` | 颜色数超阈值 | 降低 `VR_PipelineLight/Strong` 内 k-means 的 `n_colors`，或检查 bilateral 是否被跳过 |
+| `alpha_not_stepified:N` | alpha 级数 > 4 | 检查 `VR_AlphaStepify` 是否在 pipeline 链路中，多半是上游 RGB-only 没拼 alpha |
+| `small_islands:r` | 残留小连通块比例高 | 提高 alpha cleanup 强度，或对原图先做一次去噪 |
+
+调参字段（widget 输入）：
+
+| 字段 | 默认值 | 调整建议 |
+|---|---:|---|
+| `layer_label` | `layer` | 多层流水线建议传 `A_<name>` / `B_<name>` 以便日志聚合 |
+| `max_colors_clean` | `32` | 矢量化服务能处理 ~32 色；若下游能吃更多色，可放宽 |
+| `min_content_ratio` | `0.001` | 微小贴纸建议下调到 `0.0002`；大物体保持默认 |
+| `small_island_warn_ratio` | `0.05` | 多 instance（多猫、多星星）目标层建议放宽到 `0.2` |
+
+> 节点是直通的（`image` 进 → `image` 出），插入不会改变 `SaveImage` 写出的 PNG。`report_json` 输出口当前在 UI workflow 里**没有连线**——如果要把 JSON 取回 agent，建议在 API 调用时加一个 `SaveText`/`PreviewAny` 节点接到 `239.outputs[0]` 和 `240.outputs[0]`，或直接读取 ComfyUI server 端的 `vr_debug.log`（每次执行一行 `VR_VectorReadyReport label=... verdict=... flags=[...]`）。
 
 ## Local LocateAnything Model
 
@@ -376,6 +437,7 @@ B 路径重建干净框体:
 | `219` | `VR_HFMattingAlpha` | RMBG-2.0 alpha refinement |
 | `220` | `VR_PipelineLight` | A 路径 VectorReady 后处理 |
 | `222` | `VR_JoinRGBA` | 合成 RGBA |
+| `239` | `VR_VectorReadyReport` | A 层质量诊断（直通） |
 | `63` | `SaveImage` | 保存 A 输出 |
 
 ### B path
@@ -387,6 +449,7 @@ B 路径重建干净框体:
 | `212` | `VAEDecode` | B RGB/RGBA decode |
 | `221` | `VR_PipelineStrong` | B 路径 VectorReady 后处理 |
 | `223` | `VR_JoinRGBA` | 合成 RGBA |
+| `240` | `VR_VectorReadyReport` | B 层质量诊断（直通） |
 | `214` | `SaveImage` | 保存 B 输出 |
 
 ## 默认参数建议
@@ -410,4 +473,14 @@ B 路径重建干净框体:
 5. 输出 filename_prefix 是否能区分层名
 6. 若目标是底层补全，必须走 B
 7. 若目标是可见装饰/前景，必须走 A
+8. 拿到结果后读 `239 / 240 VR_VectorReadyReport.report_json`，`verdict != "clean"` 时按 flag 表决定是否重跑或换 prompt
 ```
+
+## 版本变化速查 (v0.12 → v0.15)
+
+Agent 升级到新工作流时关注以下行为差异：
+
+- **v0.12.0**：`VR_MaskUnion(SAM3_refined, LA_box_union)` 接入 negative-cutout 链；当主体含 N 个内部镂空（多窗相册、多卡槽），Cutout Query 用复数集合短语（`"all photo windows"`、`"rectangular photo slots"`）SAM3 能覆盖；剩余 instance 由 LA #2 的 box union 补齐。
+- **v0.13.0**：`VR_PipelineLight` / `VR_PipelineStrong` 末尾新增 `clean_transparent_rgb`，A 路径不再有 `alpha=0` 区的 Qwen 噪点；B 路径不再有 stepify 之后 1–2 px 颜色 halo。
+- **v0.14.0**：在 v0.13 defringe 之后再加 `_edge_color_inpaint(ring_px=2, radius=3)`，把 alpha 边缘 1–2 px 抗锯齿环 inpaint 成内部色，输出 PNG 不再有背景色描边。
+- **v0.15.0**：新增 `VR_VectorReadyReport`（节点 239 / 240），用于让 orchestrating agent 直接拿到层质量裁判。
