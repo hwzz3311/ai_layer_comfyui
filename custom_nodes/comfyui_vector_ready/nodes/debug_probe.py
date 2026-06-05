@@ -40,9 +40,23 @@ def _write_file(line: str):
         print(f"[VR_DEBUG_FILE_WRITE_FAILED] {LOG_PATH}: {e}", file=sys.stderr, flush=True)
 
 
+# Per-request correlation id. Set by VR_RequestBanner at workflow entry so all
+# subsequent vr_log lines for that request can be grepped together. ComfyUI
+# executes one prompt at a time per process, so a module-level global is safe.
+_CURRENT_REQUEST_ID: str = "-"
+
+
+def set_request_id(req_id: str) -> None:
+    global _CURRENT_REQUEST_ID
+    _CURRENT_REQUEST_ID = str(req_id) if req_id else "-"
+
+
 def vr_log(label: str, message: str):
     """Single entry point — fans out to logging, stdout, and disk."""
-    line = f"[VR_DEBUG {_dt.datetime.now().strftime('%H:%M:%S.%f')[:-3]}] {label} :: {message}"
+    line = (
+        f"[VR_DEBUG {_dt.datetime.now().strftime('%H:%M:%S.%f')[:-3]}] "
+        f"[req={_CURRENT_REQUEST_ID}] {label} :: {message}"
+    )
     logger.info(line)
     print(line, flush=True)
     _write_file(line)
@@ -164,6 +178,46 @@ class VR_DebugProbeMask(_Base):
     def probe(self, mask, label):
         self._log(label, mask)
         return (mask,)
+
+
+class VR_RequestBanner:
+    """Workflow-entry marker — passes IMAGE through unchanged and stamps a
+    short request-id into the module-level state so every subsequent vr_log
+    line carries `[req=<id>]`. Wire this just after the LoadImage at the top
+    of the workflow.
+
+    The id is auto-generated as HHMMSS_<rand4> unless the caller provides one
+    (agents that already track their own request id can pass it through)."""
+
+    CATEGORY = "VectorReady/debug"
+    RETURN_TYPES = ("IMAGE", "STRING")
+    RETURN_NAMES = ("image", "request_id")
+    FUNCTION = "banner"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "image": ("IMAGE",),
+                "tag": ("STRING", {"default": ""}),
+            },
+            "optional": {
+                "request_id": ("STRING", {"default": ""}),
+            },
+        }
+
+    def banner(self, image, tag, request_id=""):
+        import random as _r
+        rid = str(request_id).strip()
+        if not rid:
+            rid = f"{_dt.datetime.now().strftime('%H%M%S')}_{_r.randint(0, 0xFFFF):04x}"
+        set_request_id(rid)
+        shape = tuple(image.shape) if hasattr(image, "shape") else "?"
+        vr_log(
+            "VR_RequestBanner",
+            f"=== REQUEST START tag={tag!r} id={rid} image_shape={shape} ===",
+        )
+        return (image, rid)
 
 
 class VR_SplitRGBA:

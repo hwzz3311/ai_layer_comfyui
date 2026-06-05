@@ -25,8 +25,8 @@ import sys
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parent.parent
-V7 = PROJECT / "qwen_layered_v7_ab_dual_path.json"
-V8 = PROJECT / "qwen_layered_v8_ab_vector_ready.json"
+V7 = PROJECT / "workflows/layered/v7_ab_dual_path.json"
+V8 = PROJECT / "workflows/layered/v8_ab_vector_ready.json"
 DEFAULT_RMBG_MODEL_PATH = "/root/ComfyUI/models/RMBG-2.0"
 DEFAULT_LOCATE_MODEL_ID = "/root/ComfyUI/models/LocateAnything-3B"
 DEFAULT_LOCATE_QUERY = "main target object"
@@ -38,6 +38,15 @@ DEFAULT_LOCATE_QUERY = "main target object"
 DEFAULT_CUTOUT_QUERY = ""
 CUTOUT_INNER_DILATE_PX = 2
 CUTOUT_MIN_INNER_AREA_RATIO = 0.0005
+# Fill the positive subject's interior holes before subtracting the cutout, so
+# SAM3 under-segmentation (white line-art interiors) doesn't leak as spurious
+# transparency. Gated inside the node on the cutout chain being non-empty, so
+# subjects without a cutout query keep their genuine holes (donuts, frames).
+CUTOUT_FILL_OUTER_HOLES = True
+# Revert to the (hole-filled) outer mask when the cutout subtraction would
+# erase more of the subject than this fraction leaves behind — guards against
+# SAM3 #2 over-grounding the whole subject as the "window".
+CUTOUT_MIN_RETAINED_RATIO = 0.2
 
 # Width (in pixels) of the "unknown" black band between red positive and green
 # negative brush regions sent to V2. v7 inherited 48, which leaves giant holes
@@ -177,7 +186,7 @@ def main():
             {"name": "enable", "type": "BOOLEAN", "link": None, "widget": {"name": "enable"}},
         ],
         outputs=[{"name": "value", "type": "LATENT", "links": []}],
-        widgets=[True, False],  # enable, invert
+        widgets=[True, False, "foreground_mode_A"],  # enable, invert, label
     )
     gate_b_id = add_node(
         g,
@@ -189,7 +198,7 @@ def main():
             {"name": "enable", "type": "BOOLEAN", "link": None, "widget": {"name": "enable"}},
         ],
         outputs=[{"name": "value", "type": "LATENT", "links": []}],
-        widgets=[True, True],  # enable, invert=true
+        widgets=[True, True, "foreground_mode_B"],  # enable, invert=true, label
     )
 
     # Rewire: 55.LATENT → gate_a.value → 60.latent_image
@@ -258,6 +267,8 @@ def main():
             8,
             2048,
             0.7,
+            "keep",        # attn_implementation
+            "positive",    # label (distinguishes the two LA instances in vr_debug.log)
         ],
     )
     add_link(g, SCALED_INPUT_NODE, 0, locate_id, 0, "IMAGE")
@@ -385,6 +396,8 @@ def main():
             8,
             2048,
             0.7,
+            "keep",              # attn_implementation
+            "negative-cutout",   # label
         ],
     )
     add_link(g, SCALED_INPUT_NODE, 0, locate_neg_id, 0, "IMAGE")
@@ -494,7 +507,12 @@ def main():
             {"name": "inner", "type": "MASK", "link": None},
         ],
         outputs=[{"name": "mask", "type": "MASK", "links": []}],
-        widgets=[CUTOUT_INNER_DILATE_PX, CUTOUT_MIN_INNER_AREA_RATIO],
+        widgets=[
+            CUTOUT_INNER_DILATE_PX,
+            CUTOUT_MIN_INNER_AREA_RATIO,
+            CUTOUT_FILL_OUTER_HOLES,
+            CUTOUT_MIN_RETAINED_RATIO,
+        ],
     )
     add_link(g, resolver_id, 0, mask_subtract_id, 0, "MASK")
     add_link(g, cutout_union_id, 0, mask_subtract_id, 1, "MASK")

@@ -14,8 +14,8 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = ROOT / "qwen_layered_v8_ab_vector_ready.json"
-DST = ROOT / "qwen_layered_v8_debug.json"
+SRC = ROOT / "workflows/layered/v8_ab_vector_ready.json"
+DST = ROOT / "workflows/layered/v8_debug.json"
 
 
 def find_node(g, nid):

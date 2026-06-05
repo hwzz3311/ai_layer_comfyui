@@ -310,6 +310,9 @@ class VR_LocateAnythingBox:
                 # to sdpa/eager if you're debugging or know what you're doing;
                 # overriding will run but may produce wrong outputs.
                 "attn_implementation": (ATTN_IMPLS, {"default": "keep"}),
+                # Free-text tag to distinguish multiple LA instances in logs
+                # (e.g. "positive" vs "negative-cutout" chains).
+                "label": ("STRING", {"default": "LA"}),
             },
         }
 
@@ -325,8 +328,23 @@ class VR_LocateAnythingBox:
         max_new_tokens,
         temperature,
         attn_implementation="keep",
+        label="LA",
     ):
         frames = torch_image_to_np(image)
+        log_tag = f"VR_LocateAnythingBox[{label}]"
+        # Log the request inputs BEFORE inference so a crash still leaves a
+        # trace of what the caller asked for. Truncate very long queries so
+        # the log line stays readable.
+        q_disp = str(query)
+        if len(q_disp) > 200:
+            q_disp = q_disp[:200] + f"...(+{len(q_disp) - 200} chars)"
+        vr_log(
+            log_tag,
+            f"REQUEST query={q_disp!r} prompt_mode={prompt_mode} "
+            f"gen_mode={generation_mode} padding_px={padding_px} "
+            f"max_new_tokens={max_new_tokens} temperature={temperature} "
+            f"frames={frames.shape}",
+        )
 
         # Empty-query short-circuit: when the caller (or the shared
         # PrimitiveNode that drives both LA and SAM3) passes an empty string,
@@ -339,7 +357,7 @@ class VR_LocateAnythingBox:
             empty_mask_t = np_to_torch_mask(empty_mask)
             empty_preview_t = np_to_torch_image(frames)
             vr_log(
-                "VR_LocateAnythingBox",
+                log_tag,
                 f"empty query → short-circuit (no inference) shape={tuple(empty_mask.shape)}",
             )
             return (empty_mask_t, empty_preview_t, "[]", False, [])
@@ -390,7 +408,27 @@ class VR_LocateAnythingBox:
             answer = response[0] if isinstance(response, tuple) else response
             if not isinstance(answer, str):
                 answer = str(answer)
+            # Log the raw model output (truncated) so caller-side issues
+            # (vague query → vague answer) can be distinguished from
+            # parsing / downstream issues.
+            ans_disp = answer if len(answer) <= 500 else answer[:500] + f"...(+{len(answer) - 500} chars)"
+            vr_log(
+                log_tag,
+                f"frame={i} answer={ans_disp!r}",
+            )
             boxes = _parse_boxes(answer, w, h)
+            # Caller-side smell: model returned multiple boxes but the caller
+            # asked for "single" / "raw" mode, so all but the first will be
+            # silently dropped. Surface this clearly so log readers can spot
+            # the misconfiguration immediately.
+            if len(boxes) > 1 and str(prompt_mode) != "multi":
+                vr_log(
+                    log_tag,
+                    f"WARN [CALLER] model returned {len(boxes)} boxes but "
+                    f"prompt_mode={prompt_mode!r} — keeping only the first, "
+                    f"{len(boxes) - 1} box(es) dropped. If the query describes "
+                    f"multiple instances, set prompt_mode='multi'.",
+                )
             if not boxes:
                 previews[i] = frame
                 all_results.append({"answer": answer, "boxes": []})
@@ -424,9 +462,10 @@ class VR_LocateAnythingBox:
         mask_t = np_to_torch_mask(masks)
         preview_t = np_to_torch_image(previews)
         vr_log(
-            "VR_LocateAnythingBox",
-            f"query={query!r} model={model_id} device={resolved_device} "
-            f"mode={generation_mode} usable={any_usable} {_stats(mask_t)}",
+            log_tag,
+            f"RESULT query={q_disp!r} model={model_id} device={resolved_device} "
+            f"mode={generation_mode} boxes_found={len(all_bboxes)} "
+            f"usable={any_usable} {_stats(mask_t)}",
         )
         return (
             mask_t,

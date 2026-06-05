@@ -386,7 +386,7 @@ modelscope download --model nv-community/LocateAnything-3B \
 
 ## 11. 已知限制（此 API 快照）
 
-- **不带 `VR_VectorReadyReport`**：本快照里没有质量诊断节点。如果上游编排需要 verdict + flags，请在 `235.output → 63.input` 之间插入 `VR_VectorReadyReport`，或换用 `qwen_layered_v8_ab_vector_ready.json`（带 239/240）。
+- **不带 `VR_VectorReadyReport`**：本快照里没有质量诊断节点。如果上游编排需要 verdict + flags，请在 `235.output → 63.input` 之间插入 `VR_VectorReadyReport`，或换用 `workflows/layered/v8_ab_vector_ready.json`（带 239/240）。
 - **不带 `VR_MaskUnion`**：本快照的镂空链是 `LA → SAM3 → MaskFix+ → MaskSubtract` 单路。多镂空时只能依赖 LA `prompt_mode="multi"` 一次输出多框，SAM3 文本不参与。若需要 "SAM3 refined ∪ LA boxes" 的多镂空兜底，升级到带 `VR_MaskUnion` 的工作流版本。
 - **PrimitiveNode 不覆盖 SAM3 text**：219/224 只接 LA。Agent 必须**同时**写 `11.text`（Target Query 时），否则 SAM3 还会按上一次的 prompt 跑。
 - **A/B gate 不要直接改 widget**：217/218 的 `enable` 已被 215 的 link 覆盖，改它们没用；只动 215。

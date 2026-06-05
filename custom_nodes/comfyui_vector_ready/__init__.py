@@ -10,7 +10,13 @@ from .nodes.alpha_edge_refine import VR_AlphaEdgeRefine
 from .nodes.alpha_stepify import VR_AlphaStepify
 from .nodes.bilateral import VR_Bilateral
 from .nodes.canny_edge import VR_CannyEdge
-from .nodes.debug_probe import VR_DebugProbeImage, VR_DebugProbeMask, VR_SplitRGBA, vr_log
+from .nodes.debug_probe import (
+    VR_DebugProbeImage,
+    VR_DebugProbeMask,
+    VR_RequestBanner,
+    VR_SplitRGBA,
+    vr_log,
+)
 from .nodes.edge_aware_merge import VR_EdgeAwareMerge
 from .nodes.edge_consistency_restore import VR_EdgeConsistencyRestore
 from .nodes.empty_image_like import VR_EmptyImageLike
@@ -65,6 +71,7 @@ NODE_CLASS_MAPPINGS = {
     "VR_PipelineStrongDebug": VR_PipelineStrongDebug,
     "VR_DebugProbeImage": VR_DebugProbeImage,
     "VR_DebugProbeMask": VR_DebugProbeMask,
+    "VR_RequestBanner": VR_RequestBanner,
     "VR_SplitRGBA": VR_SplitRGBA,
 }
 
@@ -99,6 +106,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "VR_PipelineStrongDebug": "VR · Pipeline Strong (DEBUG, 11 outputs)",
     "VR_DebugProbeImage": "VR · Debug Probe (IMAGE)",
     "VR_DebugProbeMask": "VR · Debug Probe (MASK)",
+    "VR_RequestBanner": "VR · Request Banner (log entry-point)",
     "VR_SplitRGBA": "VR · Split RGBA → RGB + Alpha",
 }
 
