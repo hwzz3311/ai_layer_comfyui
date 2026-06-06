@@ -18,7 +18,10 @@ import os
 import sys
 from pathlib import Path
 
-import torch
+try:
+    import torch
+except ImportError:  # pragma: no cover - allows unit tests outside ComfyUI
+    torch = None  # type: ignore
 
 logger = logging.getLogger("comfyui_vector_ready")
 logger.setLevel(logging.INFO)
@@ -28,6 +31,22 @@ logger.setLevel(logging.INFO)
 _PLUGIN_DIR = Path(__file__).resolve().parent.parent
 _DEFAULT_LOG_PATH = _PLUGIN_DIR / "vr_debug.log"
 LOG_PATH = Path(os.environ.get("VR_DEBUG_LOG", str(_DEFAULT_LOG_PATH)))
+
+
+def set_log_path(name_or_path: str) -> None:
+    """Rebind the active log file for the current workflow run.
+
+    Called by VR_RequestBanner at workflow entry. A bare filename routes next
+    to the plugin dir (e.g. "vr_ip_consistent.log"); an absolute path is used
+    as-is; empty string resets to the VR_DEBUG_LOG env / default path. ComfyUI
+    runs one prompt at a time per process, so this module-level rebind is
+    request-safe — same contract as set_request_id()."""
+    global LOG_PATH
+    if not name_or_path:
+        LOG_PATH = Path(os.environ.get("VR_DEBUG_LOG", str(_DEFAULT_LOG_PATH)))
+        return
+    p = Path(name_or_path)
+    LOG_PATH = p if p.is_absolute() else (_PLUGIN_DIR / p)
 
 
 def _write_file(line: str):
@@ -203,10 +222,13 @@ class VR_RequestBanner:
             },
             "optional": {
                 "request_id": ("STRING", {"default": ""}),
+                "log_file": ("STRING", {"default": ""}),
             },
         }
 
-    def banner(self, image, tag, request_id=""):
+    def banner(self, image, tag, request_id="", log_file=""):
+        if log_file:
+            set_log_path(log_file)
         import random as _r
         rid = str(request_id).strip()
         if not rid:
