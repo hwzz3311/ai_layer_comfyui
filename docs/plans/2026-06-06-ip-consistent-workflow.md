@@ -28,7 +28,9 @@
 | `scripts/tests/test_build_ip_consistent.py` | **新**：生产版结构校验 |
 | `scripts/tests/test_patch_ip_to_debug.py` | **新**：debug 版结构校验 |
 
-**注**：AGENTS.md 记录本仓库原本无测试套件、无 lint 配置。本计划引入 `scripts/tests/`（pytest）作为构图脚本的自动化校验层；最终验收仍是在 ComfyUI 画布加载（spec 第 8 节）。pytest 在 ComfyUI 的 .venv 里运行（含 torch，`test_log_routing` 需要）。
+**注**：AGENTS.md 记录本仓库原本无测试套件、无 lint 配置。本计划引入 `scripts/tests/`（pytest）作为构图脚本的自动化校验层；最终验收仍是在 ComfyUI 画布加载（spec 第 8 节）。
+
+**测试环境（执行期确认）**：本机 `.venv`（`LayerForge/.venv`）是后端环境，**无 torch**（ComfyUI 远程运行）。因此 `debug_probe.py` 的 `import torch` 必须改成**防御式导入**（`try/except ImportError` → `torch = None`），与 `gated_passthrough.py` 对 `ExecutionBlocker` 的处理同款（该处注释即 "allows unit tests outside ComfyUI"）。日志相关函数（`set_log_path`/`vr_log`/banner 日志）本就不依赖 torch；torch 仅在 `_stats*`/`VR_SplitRGBA` 被实际张量调用时用到（ComfyUI 运行时）。测试用 `python -m pytest`（pytest 已装入 `.venv`），banner 测试用带 `.shape` 的桩对象、不造真张量。
 
 ---
 
@@ -95,11 +97,14 @@ def test_empty_resets_to_default(isolate_plugin_dir):
     assert "back-to-default" in (isolate_plugin_dir / "vr_debug.log").read_text()
 
 
+class _ImgStub:
+    """torch-free stand-in: banner() only reads image.shape for the log line."""
+    shape = (1, 4, 4, 3)
+
+
 def test_banner_sets_log_file_before_first_line(isolate_plugin_dir):
     banner = dp.VR_RequestBanner()
-    import torch
-    img = torch.zeros((1, 4, 4, 3))
-    banner.banner(img, tag="ip_consistent", log_file="vr_ip_consistent.log")
+    banner.banner(_ImgStub(), tag="ip_consistent", log_file="vr_ip_consistent.log")
     text = (isolate_plugin_dir / "vr_ip_consistent.log").read_text()
     assert "REQUEST START" in text and "ip_consistent" in text
 ```
@@ -108,6 +113,19 @@ def test_banner_sets_log_file_before_first_line(isolate_plugin_dir):
 
 Run: `cd comfyui_workflows && python -m pytest scripts/tests/test_log_routing.py -v`
 Expected: FAIL — `AttributeError: module ... has no attribute 'set_log_path'` / `banner() got unexpected keyword 'log_file'`
+
+- [ ] **Step 3b: 让 `import torch` 防御化（使模块在无 torch 环境可导入）**
+
+把 `debug_probe.py` 顶部的 `import torch` 改为（紧跟现有 import 块）：
+
+```python
+try:
+    import torch
+except ImportError:  # pragma: no cover - allows unit tests outside ComfyUI
+    torch = None  # type: ignore
+```
+
+这是 enabler：`set_log_path`/`vr_log`/banner 日志不依赖 torch，仅 `_stats*`/`VR_SplitRGBA` 在 ComfyUI 运行时用张量调用。与 `gated_passthrough.py` 同款防御式导入。
 
 - [ ] **Step 4: 改 `debug_probe.py` 的 LOG_PATH 区块**
 
