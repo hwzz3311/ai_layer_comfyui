@@ -1,0 +1,537 @@
+{
+  "1": {
+    "inputs": {
+      "image": "3104e1ae-b297-46bf-bb98-2b8d7c5193c8_input.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "[输入] 设计稿图像"
+    }
+  },
+  "5": {
+    "inputs": {
+      "upscale_method": "lanczos",
+      "largest_size": 1024,
+      "image": [
+        "1",
+        0
+      ]
+    },
+    "class_type": "ImageScaleToMaxDimension",
+    "_meta": {
+      "title": "缩放到 ≤1024"
+    }
+  },
+  "10": {
+    "inputs": {
+      "model": "sam3-fp16.safetensors",
+      "segmentor": "image",
+      "device": "cuda",
+      "precision": "fp16"
+    },
+    "class_type": "easy sam3ModelLoader",
+    "_meta": {
+      "title": "[SAM3] 加载模型"
+    }
+  },
+  "11": {
+    "inputs": {
+      "prompt": "the main character / subject",
+      "threshold": 0.4,
+      "keep_model_loaded": false,
+      "add_background": "none",
+      "detection_limit": -1,
+      "sam3_model": [
+        "10",
+        0
+      ],
+      "images": [
+        "301",
+        0
+      ],
+      "bboxes": [
+        "220",
+        4
+      ]
+    },
+    "class_type": "easy sam3ImageSegmentation",
+    "_meta": {
+      "title": "[SAM3] 分割"
+    }
+  },
+  "20": {
+    "inputs": {
+      "erode_dilate": 3,
+      "fill_holes": 1,
+      "remove_isolated_pixels": 5,
+      "smooth": 4,
+      "blur": 4,
+      "mask": [
+        "11",
+        0
+      ]
+    },
+    "class_type": "MaskFix+",
+    "_meta": {
+      "title": "[Mask] MaskFix+ 修复"
+    }
+  },
+  "220": {
+    "inputs": {
+      "query": "the main character / subject to keep unchanged",
+      "model_id": "/root/ComfyUI/models/LocateAnything-3B",
+      "device": "auto",
+      "generation_mode": "hybrid",
+      "prompt_mode": "single",
+      "padding_px": 8,
+      "max_new_tokens": 2048,
+      "temperature": 0.7,
+      "attn_implementation": "keep",
+      "label": "positive",
+      "image": [
+        "301",
+        0
+      ]
+    },
+    "class_type": "VR_LocateAnythingBox",
+    "_meta": {
+      "title": "📍 LocateAnything · 角色定位(保护)"
+    }
+  },
+  "222": {
+    "inputs": {
+      "threshold": 0.5,
+      "min_area_ratio": 0.002,
+      "max_area_ratio": 0.9,
+      "min_iou_with_fallback": 0.02,
+      "fallback_dilate_px": 0,
+      "keep_largest_component": true,
+      "image": [
+        "301",
+        0
+      ],
+      "sam_mask": [
+        "20",
+        0
+      ],
+      "fallback_mask": [
+        "220",
+        0
+      ]
+    },
+    "class_type": "VR_TargetMaskResolver",
+    "_meta": {
+      "title": "🎯 Target Mask Resolver (SAM优先/矩形兜底)"
+    }
+  },
+  "225": {
+    "inputs": {
+      "query": "",
+      "model_id": "/root/ComfyUI/models/LocateAnything-3B",
+      "device": "auto",
+      "generation_mode": "hybrid",
+      "prompt_mode": "multi",
+      "padding_px": 8,
+      "max_new_tokens": 2048,
+      "temperature": 0.7,
+      "attn_implementation": "keep",
+      "label": "negative-cutout",
+      "image": [
+        "301",
+        0
+      ]
+    },
+    "class_type": "VR_LocateAnythingBox",
+    "_meta": {
+      "title": "📍 LocateAnything · Cutout Box (negative)"
+    }
+  },
+  "227": {
+    "inputs": {
+      "prompt": "",
+      "threshold": 0.4,
+      "keep_model_loaded": false,
+      "add_background": "none",
+      "detection_limit": -1,
+      "sam3_model": [
+        "10",
+        0
+      ],
+      "images": [
+        "301",
+        0
+      ],
+      "bboxes": [
+        "225",
+        4
+      ]
+    },
+    "class_type": "easy sam3ImageSegmentation",
+    "_meta": {
+      "title": "[SAM3] 分割 (Cutout / negative)"
+    }
+  },
+  "228": {
+    "inputs": {
+      "erode_dilate": 3,
+      "fill_holes": 1,
+      "remove_isolated_pixels": 5,
+      "smooth": 4,
+      "blur": 4,
+      "mask": [
+        "227",
+        0
+      ]
+    },
+    "class_type": "MaskFix+",
+    "_meta": {
+      "title": "[Mask] MaskFix+ 修复 (Cutout / negative)"
+    }
+  },
+  "230": {
+    "inputs": {
+      "mask_a": [
+        "228",
+        0
+      ],
+      "mask_b": [
+        "225",
+        0
+      ]
+    },
+    "class_type": "VR_MaskUnion",
+    "_meta": {
+      "title": "∪ Cutout Union (LA boxes ∪ SAM3 refined)"
+    }
+  },
+  "232": {
+    "inputs": {
+      "inner_dilate_px": 2,
+      "min_inner_area_ratio": 0.0005,
+      "outer": [
+        "222",
+        0
+      ],
+      "inner": [
+        "230",
+        0
+      ]
+    },
+    "class_type": "VR_MaskSubtract",
+    "_meta": {
+      "title": "🎯− Mask Subtract (positive − cutout union)"
+    }
+  },
+  "301": {
+    "inputs": {
+      "image": [
+        "5",
+        0
+      ]
+    },
+    "class_type": "FluxKontextImageScale",
+    "_meta": {
+      "title": "[输入] 统一工作图 (Qwen对齐尺寸)"
+    }
+  },
+  "302": {
+    "inputs": {
+      "unet_name": "qwen_image_edit_2511_fp8mixed.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "[模型] Qwen-Image-Edit-2511 UNet (可换GGUF)"
+    }
+  },
+  "303": {
+    "inputs": {
+      "clip_name": "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+      "type": "qwen_image",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "[模型] Qwen2.5-VL CLIP"
+    }
+  },
+  "304": {
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "[模型] Qwen Image VAE"
+    }
+  },
+  "305": {
+    "inputs": {
+      "lora_name": "Qwen-Image-Edit-2511-Lightning-4steps-V1.0-fp32.safetensors",
+      "strength_model": 1,
+      "model": [
+        "302",
+        0
+      ]
+    },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": {
+      "title": "[模型] 2511 Lightning 4步 LoRA"
+    }
+  },
+  "306": {
+    "inputs": {
+      "shift": 3,
+      "model": [
+        "305",
+        0
+      ]
+    },
+    "class_type": "ModelSamplingAuraFlow",
+    "_meta": {
+      "title": "[模型] AuraFlow Shift"
+    }
+  },
+  "307": {
+    "inputs": {
+      "strength": 1,
+      "model": [
+        "306",
+        0
+      ]
+    },
+    "class_type": "CFGNorm",
+    "_meta": {
+      "title": "[模型] CFG归一化"
+    }
+  },
+  "308": {
+    "inputs": {
+      "value": "在保持画面主体角色完全不变的前提下，根据设计需求重绘背景与周边设计元素，高质量、清晰、风格统一。"
+    },
+    "class_type": "PrimitiveStringMultiline",
+    "_meta": {
+      "title": "[条件] 设计 Prompt (正向)"
+    }
+  },
+  "309": {
+    "inputs": {
+      "prompt": [
+        "308",
+        0
+      ],
+      "clip": [
+        "303",
+        0
+      ],
+      "vae": [
+        "304",
+        0
+      ],
+      "image1": [
+        "301",
+        0
+      ]
+    },
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "_meta": {
+      "title": "[条件] 正向编码 (QwenImageEditPlus)"
+    }
+  },
+  "310": {
+    "inputs": {
+      "prompt": "",
+      "clip": [
+        "303",
+        0
+      ],
+      "vae": [
+        "304",
+        0
+      ],
+      "image1": [
+        "301",
+        0
+      ]
+    },
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "_meta": {
+      "title": "[条件] 负向编码 (空)"
+    }
+  },
+  "311": {
+    "inputs": {
+      "pixels": [
+        "301",
+        0
+      ],
+      "vae": [
+        "304",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "[Latent] 原图编码"
+    }
+  },
+  "313": {
+    "inputs": {
+      "mask": [
+        "232",
+        0
+      ]
+    },
+    "class_type": "InvertMask",
+    "_meta": {
+      "title": "[Mask] 取反 → 可编辑区"
+    }
+  },
+  "318": {
+    "inputs": {
+      "expand": 6,
+      "tapered_corners": true,
+      "mask": [
+        "313",
+        0
+      ]
+    },
+    "class_type": "GrowMask",
+    "_meta": {
+      "title": "[Mask] 可编辑区轻微膨胀(消除接缝光晕)"
+    }
+  },
+  "314": {
+    "inputs": {
+      "samples": [
+        "311",
+        0
+      ],
+      "mask": [
+        "318",
+        0
+      ]
+    },
+    "class_type": "SetLatentNoiseMask",
+    "_meta": {
+      "title": "[Latent] 仅在可编辑区加噪"
+    }
+  },
+  "312": {
+    "inputs": {
+      "seed": 170049393055201,
+      "steps": 4,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "307",
+        0
+      ],
+      "positive": [
+        "309",
+        0
+      ],
+      "negative": [
+        "310",
+        0
+      ],
+      "latent_image": [
+        "314",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "[采样] KSampler 4步"
+    }
+  },
+  "315": {
+    "inputs": {
+      "samples": [
+        "312",
+        0
+      ],
+      "vae": [
+        "304",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "[输出] VAE解码"
+    }
+  },
+  "316": {
+    "inputs": {
+      "x": 0,
+      "y": 0,
+      "resize_source": false,
+      "destination": [
+        "315",
+        0
+      ],
+      "source": [
+        "301",
+        0
+      ],
+      "mask": [
+        "232",
+        0
+      ]
+    },
+    "class_type": "ImageCompositeMasked",
+    "_meta": {
+      "title": "[保护] 角色原始像素盖回 (字节级零变动)"
+    }
+  },
+  "317": {
+    "inputs": {
+      "filename_prefix": "ip_consistent",
+      "images": [
+        "316",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "📤 保存 IP一致设计图"
+    }
+  },
+  "319": {
+    "inputs": {
+      "images": [
+        "316",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "🔍 最终结果预览"
+    }
+  },
+  "320": {
+    "inputs": {
+      "mask": [
+        "232",
+        0
+      ]
+    },
+    "class_type": "MaskPreview+",
+    "_meta": {
+      "title": "🔍 角色保护蒙版 (232)"
+    }
+  },
+  "321": {
+    "inputs": {
+      "mask": [
+        "318",
+        0
+      ]
+    },
+    "class_type": "MaskPreview+",
+    "_meta": {
+      "title": "🔍 可编辑区蒙版"
+    }
+  }
+}
