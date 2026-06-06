@@ -41,6 +41,29 @@ def test_assert_graph_valid_catches_dangling():
     raise AssertionError("expected dangling link to be caught")
 
 
+def test_clone_node_copies_widgets_and_clears_links():
+    g = _mini_graph()
+    u.add_link(g, 1, "MASK", 2, "mask", "MASK")
+    g["nodes"][1]["widgets_values"] = ["keep-me"]
+    cid = u.clone_node(g, 2, pos=[99, 99], title="clone")
+    clone = u.find_by_id(g, cid)
+    assert cid == 3 and clone["type"] == "InvertMask"
+    assert clone["widgets_values"] == ["keep-me"]      # canonical widgets preserved
+    assert clone["inputs"][0]["link"] is None           # link refs cleared
+    assert clone["outputs"][0]["links"] == []
+    assert clone["pos"] == [99, 99] and clone["title"] == "clone"
+
+
+def test_remove_node_drops_node_and_its_links():
+    g = _mini_graph()
+    u.add_link(g, 1, "MASK", 2, "mask", "MASK")
+    u.remove_node(g, 2)
+    assert not any(n["id"] == 2 for n in g["nodes"])
+    assert g["links"] == []
+    assert u.find_by_type(g, "LoadImage")["outputs"][1]["links"] == []
+    u.assert_graph_valid(g)
+
+
 def test_add_node_allocates_id_and_increments():
     g = _mini_graph()
     nid = u.add_node(g, ntype="EmptyImage", title="white", pos=[10, 10],

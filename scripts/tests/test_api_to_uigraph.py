@@ -38,14 +38,22 @@ def test_every_api_link_becomes_a_ui_link():
     assert len(g["links"]) == len(expected)
 
 
-def test_widgets_preserved_for_ksampler():
+def test_widgets_preserved_for_ksampler_with_seed_control():
     api = _api()
     g = conv.convert(api)
     ks = u.find_by_type(g, "KSampler")
-    # scalar (non-link) inputs of KSampler, in order
     ks_api = next(n for n in api.values() if n["class_type"] == "KSampler")
-    expected = [v for v in ks_api["inputs"].values() if not conv.is_link(v)]
+    # scalar inputs in order, with "control_after_generate" inserted after seed
+    expected = []
+    for name, v in ks_api["inputs"].items():
+        if conv.is_link(v):
+            continue
+        expected.append(v)
+        if name in ("seed", "noise_seed"):
+            expected.append("fixed")
     assert ks["widgets_values"] == expected
+    # seed value preserved, control slot present right after it
+    assert expected[1] == "fixed" and isinstance(expected[0], int)
 
 
 def test_mask_subtract_output_name_is_lowercase_mask():

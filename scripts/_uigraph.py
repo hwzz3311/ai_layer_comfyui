@@ -76,6 +76,44 @@ def add_node(g, *, ntype, title, pos, inputs=None, outputs=None,
     return nid
 
 
+def clone_node(g, src_id, *, pos, title=None) -> int:
+    """Deep-copy an existing node (preserving its canonical widgets_values and
+    slot layout), assign a fresh id, clear all link references so the caller
+    rewires explicitly. Used to duplicate a sampler tail without re-authoring
+    widget arrays by hand (error-prone for nodes like KSampler that carry a
+    control_after_generate slot)."""
+    import copy
+    src = find_by_id(g, src_id)
+    nid = _new_node_id(g)
+    node = copy.deepcopy(src)
+    node["id"] = nid
+    node["pos"] = list(pos)
+    node["order"] = len(g["nodes"])
+    if title is not None:
+        node["title"] = title
+    for inp in node.get("inputs", []):
+        inp["link"] = None
+    for out in node.get("outputs", []):
+        out["links"] = []
+    g["nodes"].append(node)
+    return nid
+
+
+def remove_node(g, nid) -> None:
+    """Delete a node and every link touching it (used to strip the base's
+    inherited preview nodes from the lean production graph)."""
+    g["nodes"] = [n for n in g["nodes"] if n["id"] != nid]
+    g["links"] = [l for l in g["links"] if l[1] != nid and l[3] != nid]
+    for n in g["nodes"]:
+        for out in n.get("outputs", []):
+            if out.get("links"):
+                out["links"] = [lid for lid in out["links"]
+                                if any(l[0] == lid for l in g["links"])]
+        for inp in n.get("inputs", []):
+            if inp.get("link") is not None and not any(l[0] == inp["link"] for l in g["links"]):
+                inp["link"] = None
+
+
 def add_link(g, src_id, src_out_name, dst_id, dst_in_name, link_type) -> int:
     src, dst = find_by_id(g, src_id), find_by_id(g, dst_id)
     so, di = out_slot(src, src_out_name), in_slot(dst, dst_in_name)

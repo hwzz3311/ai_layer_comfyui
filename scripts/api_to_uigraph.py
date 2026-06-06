@@ -116,6 +116,12 @@ def convert(api: dict) -> dict:
                 inputs.append({"name": name, "type": itype, "link": None})
             else:
                 widgets.append(v)
+                # ComfyUI's frontend renders a hidden "control_after_generate"
+                # combo right after a seed widget; its value occupies a slot in
+                # widgets_values. Emit it so positional widget mapping stays aligned
+                # (otherwise KSampler's steps/cfg/... shift by one on load).
+                if name in ("seed", "noise_seed"):
+                    widgets.append("fixed")
         d = _depth(nid, api, memo)
         col = depth_count.get(d, 0)
         depth_count[d] = col + 1
