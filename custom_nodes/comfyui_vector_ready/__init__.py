@@ -7,6 +7,7 @@ __version__ = "0.15.0"
 
 from .nodes.alpha_cleanup import VR_AlphaCleanup
 from .nodes.alpha_edge_refine import VR_AlphaEdgeRefine
+from .nodes.alpha_resolve import VR_AlphaResolve
 from .nodes.alpha_stepify import VR_AlphaStepify
 from .nodes.bilateral import VR_Bilateral
 from .nodes.canny_edge import VR_CannyEdge
@@ -48,6 +49,7 @@ NODE_CLASS_MAPPINGS = {
     "VR_EdgeConsistencyRestore": VR_EdgeConsistencyRestore,
     "VR_AlphaCleanup": VR_AlphaCleanup,
     "VR_AlphaEdgeRefine": VR_AlphaEdgeRefine,
+    "VR_AlphaResolve": VR_AlphaResolve,
     "VR_AlphaStepify": VR_AlphaStepify,
     "VR_ROIUnsharpMask": VR_ROIUnsharpMask,
     "VR_CannyEdge": VR_CannyEdge,
@@ -83,6 +85,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "VR_EdgeConsistencyRestore": "VR · Edge Consistency Restore",
     "VR_AlphaCleanup": "VR · Alpha Cleanup (median + open/close)",
     "VR_AlphaEdgeRefine": "VR · Alpha Edge Refine",
+    "VR_AlphaResolve": "VR · Alpha Resolve (tiered fallback)",
     "VR_AlphaStepify": "VR · Alpha Stepify",
     "VR_ROIUnsharpMask": "VR · ROI Unsharp Mask",
     "VR_CannyEdge": "VR · Canny Edge",
