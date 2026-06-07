@@ -566,12 +566,54 @@ def main():
         outputs=[
             {"name": "matte_alpha", "type": "MASK", "links": []},
             {"name": "confidence", "type": "MASK", "links": []},
+            {"name": "raw_matte", "type": "MASK", "links": []},
         ],
         # model_id, input_size, device.
         widgets=[DEFAULT_RMBG_MODEL_PATH, 1024, "auto"],
     )
     add_link(g, SCALED_INPUT_NODE, 0, hf_matte_id, 0, "IMAGE")
     add_link(g, final_mask_id, 0, hf_matte_id, 1, "MASK")
+
+    # ── Tiered alpha fallback (防线一) ──────────────────────────────
+    # When SAM3+LocateAnything both fail, the resolver(final_mask_id) is empty
+    # and would zero out the whole A path. VR_AlphaResolve degrades gracefully:
+    #   resolved (SAM3/LA) → rmbg raw_matte (unclipped) → Qwen native alpha.
+    # Native alpha is split out of node 62 (A-path VAEDecode RGBA).
+    native_alpha_id = add_node(
+        g,
+        ntype="VR_SplitRGBA",
+        title="[兜底] Qwen 原生 alpha (A path)",
+        pos=[3100, 80],
+        inputs=[
+            {"name": "image", "type": "IMAGE", "link": None},
+        ],
+        outputs=[
+            {"name": "rgb", "type": "IMAGE", "links": []},
+            {"name": "alpha", "type": "MASK", "links": []},
+        ],
+    )
+    add_link(g, 62, 0, native_alpha_id, 0, "IMAGE")
+
+    alpha_resolve_id = add_node(
+        g,
+        ntype="VR_AlphaResolve",
+        title="🪜 Alpha 分级兜底 (A path)",
+        pos=[3260, 100],
+        inputs=[
+            {"name": "resolved_alpha", "type": "MASK", "link": None},
+            {"name": "rmbg_alpha", "type": "MASK", "link": None},
+            {"name": "native_alpha", "type": "MASK", "link": None},
+        ],
+        outputs=[
+            {"name": "alpha", "type": "MASK", "links": []},
+            {"name": "source_used", "type": "STRING", "links": []},
+        ],
+        # min_area_ratio
+        widgets=[0.002],
+    )
+    add_link(g, final_mask_id, 0, alpha_resolve_id, 0, "MASK")  # resolved (SAM3/LA)
+    add_link(g, hf_matte_id, 2, alpha_resolve_id, 1, "MASK")  # rmbg raw_matte (unclipped)
+    add_link(g, native_alpha_id, 1, alpha_resolve_id, 2, "MASK")  # Qwen native alpha
 
     # A pipeline node
     vr_light_id = add_node(
@@ -601,7 +643,7 @@ def main():
         widgets=[0, 3, 1500, "mask_socket", "external_matte"],
     )
     add_link(g, 62, 0, vr_light_id, 0, "IMAGE")
-    add_link(g, final_mask_id, 0, vr_light_id, 1, "MASK")
+    add_link(g, alpha_resolve_id, 0, vr_light_id, 1, "MASK")  # tiered fallback (防线一)
     add_link(g, SCALED_INPUT_NODE, 0, vr_light_id, 2, "IMAGE")
     add_link(g, hf_matte_id, 0, vr_light_id, 3, "MASK")
     add_link(g, hf_matte_id, 1, vr_light_id, 4, "MASK")

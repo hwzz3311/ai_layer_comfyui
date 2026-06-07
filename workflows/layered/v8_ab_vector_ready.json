@@ -1,6 +1,6 @@
 {
-  "last_node_id": 242,
-  "last_link_id": 174,
+  "last_node_id": 244,
+  "last_link_id": 178,
   "nodes": [
     {
       "id": 1,
@@ -77,10 +77,10 @@
             136,
             140,
             153,
-            157,
-            170,
-            171,
-            172
+            161,
+            174,
+            175,
+            176
           ],
           "slot_index": 0
         }
@@ -438,7 +438,7 @@
         {
           "name": "reference",
           "type": "IMAGE",
-          "link": 170
+          "link": 174
         }
       ],
       "outputs": [
@@ -479,7 +479,7 @@
         {
           "name": "reference",
           "type": "IMAGE",
-          "link": 171
+          "link": 175
         }
       ],
       "outputs": [
@@ -962,7 +962,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 173
+          "link": 177
         }
       ],
       "outputs": [
@@ -983,7 +983,7 @@
           "name": "status_image",
           "type": "IMAGE",
           "links": [
-            174
+            178
           ]
         }
       ],
@@ -1222,7 +1222,8 @@
           "type": "IMAGE",
           "links": [
             102,
-            155
+            155,
+            159
           ],
           "slot_index": 0
         }
@@ -1279,7 +1280,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 168
+          "link": 172
         }
       ],
       "outputs": [],
@@ -1383,7 +1384,7 @@
           "links": [
             106,
             109,
-            161
+            165
           ],
           "slot_index": 0
         }
@@ -1440,7 +1441,7 @@
         {
           "name": "reference",
           "type": "IMAGE",
-          "link": 172
+          "link": 176
         }
       ],
       "outputs": [
@@ -1676,7 +1677,7 @@
           "type": "IMAGE",
           "links": [
             119,
-            160
+            164
           ],
           "slot_index": 0
         }
@@ -1733,7 +1734,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 169
+          "link": 173
         }
       ],
       "outputs": [],
@@ -2542,7 +2543,7 @@
             152,
             154,
             156,
-            173
+            177
           ]
         }
       ],
@@ -2616,14 +2617,21 @@
           "name": "matte_alpha",
           "type": "MASK",
           "links": [
-            158
+            162
           ]
         },
         {
           "name": "confidence",
           "type": "MASK",
           "links": [
-            159
+            163
+          ]
+        },
+        {
+          "name": "raw_matte",
+          "type": "MASK",
+          "links": [
+            157
           ]
         }
       ],
@@ -2638,6 +2646,100 @@
     },
     {
       "id": 235,
+      "type": "VR_SplitRGBA",
+      "pos": [
+        3100,
+        80
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "[兜底] Qwen 原生 alpha (A path)",
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 155
+        }
+      ],
+      "outputs": [
+        {
+          "name": "rgb",
+          "type": "IMAGE",
+          "links": []
+        },
+        {
+          "name": "alpha",
+          "type": "MASK",
+          "links": [
+            158
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_SplitRGBA"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 236,
+      "type": "VR_AlphaResolve",
+      "pos": [
+        3260,
+        100
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🪜 Alpha 分级兜底 (A path)",
+      "inputs": [
+        {
+          "name": "resolved_alpha",
+          "type": "MASK",
+          "link": 156
+        },
+        {
+          "name": "rmbg_alpha",
+          "type": "MASK",
+          "link": 157
+        },
+        {
+          "name": "native_alpha",
+          "type": "MASK",
+          "link": 158
+        }
+      ],
+      "outputs": [
+        {
+          "name": "alpha",
+          "type": "MASK",
+          "links": [
+            160
+          ]
+        },
+        {
+          "name": "source_used",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_AlphaResolve"
+      },
+      "widgets_values": [
+        0.002
+      ]
+    },
+    {
+      "id": 237,
       "type": "VR_PipelineLight",
       "pos": [
         3400,
@@ -2655,27 +2757,27 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 155
+          "link": 159
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 156
+          "link": 160
         },
         {
           "name": "source_image",
           "type": "IMAGE",
-          "link": 157
+          "link": 161
         },
         {
           "name": "external_matte_alpha",
           "type": "MASK",
-          "link": 158
+          "link": 162
         },
         {
           "name": "external_confidence",
           "type": "MASK",
-          "link": 159
+          "link": 163
         }
       ],
       "outputs": [
@@ -2683,14 +2785,14 @@
           "name": "image",
           "type": "IMAGE",
           "links": [
-            162
+            166
           ]
         },
         {
           "name": "alpha",
           "type": "MASK",
           "links": [
-            163
+            167
           ]
         }
       ],
@@ -2706,7 +2808,7 @@
       ]
     },
     {
-      "id": 236,
+      "id": 238,
       "type": "VR_PipelineStrong",
       "pos": [
         3400,
@@ -2724,12 +2826,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 160
+          "link": 164
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 161
+          "link": 165
         }
       ],
       "outputs": [
@@ -2737,14 +2839,14 @@
           "name": "image",
           "type": "IMAGE",
           "links": [
-            164
+            168
           ]
         },
         {
           "name": "alpha",
           "type": "MASK",
           "links": [
-            165
+            169
           ]
         }
       ],
@@ -2760,7 +2862,7 @@
       ]
     },
     {
-      "id": 237,
+      "id": 239,
       "type": "VR_JoinRGBA",
       "pos": [
         3800,
@@ -2778,12 +2880,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 162
+          "link": 166
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 163
+          "link": 167
         }
       ],
       "outputs": [
@@ -2791,7 +2893,7 @@
           "name": "rgba",
           "type": "IMAGE",
           "links": [
-            166
+            170
           ]
         }
       ],
@@ -2801,7 +2903,7 @@
       "widgets_values": []
     },
     {
-      "id": 238,
+      "id": 240,
       "type": "VR_JoinRGBA",
       "pos": [
         3800,
@@ -2819,12 +2921,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 164
+          "link": 168
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 165
+          "link": 169
         }
       ],
       "outputs": [
@@ -2832,7 +2934,7 @@
           "name": "rgba",
           "type": "IMAGE",
           "links": [
-            167
+            171
           ]
         }
       ],
@@ -2842,7 +2944,7 @@
       "widgets_values": []
     },
     {
-      "id": 239,
+      "id": 241,
       "type": "VR_VectorReadyReport",
       "pos": [
         4080,
@@ -2860,7 +2962,7 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 166
+          "link": 170
         }
       ],
       "outputs": [
@@ -2873,7 +2975,7 @@
           "name": "image",
           "type": "IMAGE",
           "links": [
-            168
+            172
           ]
         }
       ],
@@ -2888,7 +2990,7 @@
       ]
     },
     {
-      "id": 240,
+      "id": 242,
       "type": "VR_VectorReadyReport",
       "pos": [
         4080,
@@ -2906,7 +3008,7 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 167
+          "link": 171
         }
       ],
       "outputs": [
@@ -2919,7 +3021,7 @@
           "name": "image",
           "type": "IMAGE",
           "links": [
-            169
+            173
           ]
         }
       ],
@@ -2934,7 +3036,7 @@
       ]
     },
     {
-      "id": 241,
+      "id": 243,
       "type": "MarkdownNote",
       "pos": [
         2200,
@@ -2958,7 +3060,7 @@
       ]
     },
     {
-      "id": 242,
+      "id": 244,
       "type": "PreviewImage",
       "pos": [
         2550,
@@ -2976,7 +3078,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 174
+          "link": 178
         }
       ],
       "outputs": [],
@@ -3639,69 +3741,69 @@
       156,
       232,
       0,
-      235,
-      1,
+      236,
+      0,
       "MASK"
     ],
     [
       157,
-      5,
-      0,
-      235,
+      234,
       2,
-      "IMAGE"
+      236,
+      1,
+      "MASK"
     ],
     [
       158,
-      234,
-      0,
       235,
-      3,
+      1,
+      236,
+      2,
       "MASK"
     ],
     [
       159,
+      62,
+      0,
+      237,
+      0,
+      "IMAGE"
+    ],
+    [
+      160,
+      236,
+      0,
+      237,
+      1,
+      "MASK"
+    ],
+    [
+      161,
+      5,
+      0,
+      237,
+      2,
+      "IMAGE"
+    ],
+    [
+      162,
+      234,
+      0,
+      237,
+      3,
+      "MASK"
+    ],
+    [
+      163,
       234,
       1,
-      235,
+      237,
       4,
       "MASK"
     ],
     [
-      160,
-      212,
-      0,
-      236,
-      0,
-      "IMAGE"
-    ],
-    [
-      161,
-      205,
-      0,
-      236,
-      1,
-      "MASK"
-    ],
-    [
-      162,
-      235,
-      0,
-      237,
-      0,
-      "IMAGE"
-    ],
-    [
-      163,
-      235,
-      1,
-      237,
-      1,
-      "MASK"
-    ],
-    [
       164,
-      236,
+      212,
       0,
       238,
       0,
@@ -3709,8 +3811,8 @@
     ],
     [
       165,
-      236,
-      1,
+      205,
+      0,
       238,
       1,
       "MASK"
@@ -3725,6 +3827,14 @@
     ],
     [
       167,
+      237,
+      1,
+      239,
+      1,
+      "MASK"
+    ],
+    [
+      168,
       238,
       0,
       240,
@@ -3732,23 +3842,47 @@
       "IMAGE"
     ],
     [
-      168,
+      169,
+      238,
+      1,
+      240,
+      1,
+      "MASK"
+    ],
+    [
+      170,
       239,
+      0,
+      241,
+      0,
+      "IMAGE"
+    ],
+    [
+      171,
+      240,
+      0,
+      242,
+      0,
+      "IMAGE"
+    ],
+    [
+      172,
+      241,
       1,
       63,
       0,
       "IMAGE"
     ],
     [
-      169,
-      240,
+      173,
+      242,
       1,
       214,
       0,
       "IMAGE"
     ],
     [
-      170,
+      174,
       5,
       0,
       201,
@@ -3756,7 +3890,7 @@
       "IMAGE"
     ],
     [
-      171,
+      175,
       5,
       0,
       202,
@@ -3764,7 +3898,7 @@
       "IMAGE"
     ],
     [
-      172,
+      176,
       5,
       0,
       207,
@@ -3772,7 +3906,7 @@
       "IMAGE"
     ],
     [
-      173,
+      177,
       232,
       0,
       53,
@@ -3780,10 +3914,10 @@
       "MASK"
     ],
     [
-      174,
+      178,
       53,
       2,
-      242,
+      244,
       0,
       "IMAGE"
     ]
