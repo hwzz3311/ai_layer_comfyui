@@ -104,7 +104,7 @@ v0.7.1 实测:`alpha_cleanup pct>0.95` 只从 4.2% → 4.0%(预期 ≥ 0.5% 降�
 
 v0.8.0 把 alpha 源切到 SAM3 后,日志 OK(pct>0.95=10.1% 对应两只猫面积),但保存的 RGBA 是"猫位置反而是空洞"——alpha 被反相了。
 
-**根因**:build 脚本最终的 RGBA 合成节点用的是 ComfyUI **核心** `JoinImageWithAlpha`,而该节点把 MASK 当 selection 用,写入 `1 - alpha`(`comfyui_vector_ready/nodes/join_rgba.py` 顶部的注释 2026-05-27 就已经记录了这个坑)。VR 早就准备好了 `VR_JoinRGBA` 用 opacity 规范,但 build 脚本没用上。
+**根因**:build 脚本最终的 RGBA 合成节点用的是 ComfyUI **核心** `JoinImageWithAlpha`,而该节点把 MASK 当 selection 用,写入 `1 - alpha`(`custom_nodes/comfyui_vector_ready/nodes/join_rgba.py` 顶部的注释 2026-05-27 就已经记录了这个坑)。VR 早就准备好了 `VR_JoinRGBA` 用 opacity 规范,但 build 脚本没用上。
 
 **修法**:`build_v8_json.py` 把两条路径的 `JoinImageWithAlpha` → `VR_JoinRGBA`,output port 名 `IMAGE` → `rgba` 对齐 VR_JoinRGBA 的 `RETURN_NAMES`。
 

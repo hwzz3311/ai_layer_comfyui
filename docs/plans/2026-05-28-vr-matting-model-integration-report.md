@@ -31,7 +31,7 @@ ComfyUI Python 环境需要安装 `transformers`,并能从本地目录加载 RMB
 
 ## 验证
 
-- `python3 -m compileall comfyui_vector_ready scripts` 通过
+- `python3 -m compileall custom_nodes/comfyui_vector_ready scripts` 通过
 - `qwen_layered_v8_ab_vector_ready.json`:53 nodes,72 links
 - `qwen_layered_v8_debug.json`:87 nodes,105 links
 - production/debug 均包含 `VR_HFMattingAlpha`

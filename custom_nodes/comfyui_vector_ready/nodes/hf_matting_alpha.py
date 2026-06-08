@@ -87,8 +87,8 @@ def _extract_prediction(output) -> torch.Tensor:
 
 class VR_HFMattingAlpha:
     CATEGORY = "VectorReady/matting"
-    RETURN_TYPES = ("MASK", "MASK")
-    RETURN_NAMES = ("matte_alpha", "confidence")
+    RETURN_TYPES = ("MASK", "MASK", "MASK")
+    RETURN_NAMES = ("matte_alpha", "confidence", "raw_matte")
     FUNCTION = "matte"
 
     @classmethod
@@ -111,19 +111,24 @@ class VR_HFMattingAlpha:
         batch = max(frames.shape[0], candidates.shape[0])
         h, w = frames.shape[1:3]
         out = np.zeros((batch, h, w), dtype=np.float32)
+        raw = np.zeros((batch, h, w), dtype=np.float32)
 
         for i in range(batch):
             frame = frames[i if frames.shape[0] > i else 0]
             cand = candidates[i if candidates.shape[0] > i else 0]
             inp = _preprocess(frame, int(input_size), resolved_device)
             with torch.no_grad():
-                raw = _extract_prediction(model(inp))
-                pred = torch.sigmoid(raw)
+                pred_raw = _extract_prediction(model(inp))
+                pred = torch.sigmoid(pred_raw)
                 pred = F.interpolate(pred, size=(h, w), mode="bilinear", align_corners=False)
             alpha = pred[0, 0].detach().float().cpu().numpy()
+            # raw_matte: unclipped full-image foreground matte (for tiered fallback)
+            raw[i] = np.clip(alpha, 0.0, 1.0)
+            # matte_alpha: clipped by candidate so the model can't select unrelated objects
             out[i] = np.clip(alpha * np.clip(cand, 0.0, 1.0), 0.0, 1.0)
 
         matte_t = np_to_torch_mask(out)
+        raw_t = np_to_torch_mask(raw)
         # For current BRIA/BiRefNet-style models there is no separate confidence.
         conf_t = matte_t
         vr_log(
@@ -131,4 +136,5 @@ class VR_HFMattingAlpha:
             f"model_id={model_id} device={resolved_device} input_size={input_size}",
         )
         vr_log("VR_HFMattingAlpha matte_alpha", _stats(matte_t))
-        return (matte_t, conf_t)
+        vr_log("VR_HFMattingAlpha raw_matte", _stats(raw_t))
+        return (matte_t, conf_t, raw_t)

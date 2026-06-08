@@ -7,10 +7,17 @@ __version__ = "0.15.0"
 
 from .nodes.alpha_cleanup import VR_AlphaCleanup
 from .nodes.alpha_edge_refine import VR_AlphaEdgeRefine
+from .nodes.alpha_resolve import VR_AlphaResolve
 from .nodes.alpha_stepify import VR_AlphaStepify
 from .nodes.bilateral import VR_Bilateral
 from .nodes.canny_edge import VR_CannyEdge
-from .nodes.debug_probe import VR_DebugProbeImage, VR_DebugProbeMask, VR_SplitRGBA, vr_log
+from .nodes.debug_probe import (
+    VR_DebugProbeImage,
+    VR_DebugProbeMask,
+    VR_RequestBanner,
+    VR_SplitRGBA,
+    vr_log,
+)
 from .nodes.edge_aware_merge import VR_EdgeAwareMerge
 from .nodes.edge_consistency_restore import VR_EdgeConsistencyRestore
 from .nodes.empty_image_like import VR_EmptyImageLike
@@ -31,8 +38,12 @@ from .nodes.target_trimap_builder import VR_TargetTrimapBuilder
 from .nodes.vector_ready_report import VR_VectorReadyReport
 
 vr_log("PLUGIN_VERSION", f"comfyui_vector_ready v{__version__}")
-from .presets.pipeline import VR_PipelineLight, VR_PipelineStrong
-from .presets.pipeline_debug import VR_PipelineLightDebug, VR_PipelineStrongDebug
+from .presets.pipeline import VR_PipelineLayered, VR_PipelineLight, VR_PipelineStrong
+from .presets.pipeline_debug import (
+    VR_PipelineLayeredDebug,
+    VR_PipelineLightDebug,
+    VR_PipelineStrongDebug,
+)
 
 NODE_CLASS_MAPPINGS = {
     "VR_LABConvert": VR_LABConvert,
@@ -42,6 +53,7 @@ NODE_CLASS_MAPPINGS = {
     "VR_EdgeConsistencyRestore": VR_EdgeConsistencyRestore,
     "VR_AlphaCleanup": VR_AlphaCleanup,
     "VR_AlphaEdgeRefine": VR_AlphaEdgeRefine,
+    "VR_AlphaResolve": VR_AlphaResolve,
     "VR_AlphaStepify": VR_AlphaStepify,
     "VR_ROIUnsharpMask": VR_ROIUnsharpMask,
     "VR_CannyEdge": VR_CannyEdge,
@@ -61,10 +73,13 @@ NODE_CLASS_MAPPINGS = {
     "VR_VectorReadyReport": VR_VectorReadyReport,
     "VR_PipelineLight": VR_PipelineLight,
     "VR_PipelineStrong": VR_PipelineStrong,
+    "VR_PipelineLayered": VR_PipelineLayered,
     "VR_PipelineLightDebug": VR_PipelineLightDebug,
     "VR_PipelineStrongDebug": VR_PipelineStrongDebug,
+    "VR_PipelineLayeredDebug": VR_PipelineLayeredDebug,
     "VR_DebugProbeImage": VR_DebugProbeImage,
     "VR_DebugProbeMask": VR_DebugProbeMask,
+    "VR_RequestBanner": VR_RequestBanner,
     "VR_SplitRGBA": VR_SplitRGBA,
 }
 
@@ -76,6 +91,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "VR_EdgeConsistencyRestore": "VR · Edge Consistency Restore",
     "VR_AlphaCleanup": "VR · Alpha Cleanup (median + open/close)",
     "VR_AlphaEdgeRefine": "VR · Alpha Edge Refine",
+    "VR_AlphaResolve": "VR · Alpha Resolve (tiered fallback)",
     "VR_AlphaStepify": "VR · Alpha Stepify",
     "VR_ROIUnsharpMask": "VR · ROI Unsharp Mask",
     "VR_CannyEdge": "VR · Canny Edge",
@@ -95,10 +111,13 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "VR_VectorReadyReport": "VR · VectorReady Report (quality JSON sidecar)",
     "VR_PipelineLight": "VR · Pipeline (Light, A-path)",
     "VR_PipelineStrong": "VR · Pipeline (Strong, B-path)",
+    "VR_PipelineLayered": "VR · Pipeline (Layered, base multi-layer)",
     "VR_PipelineLightDebug": "VR · Pipeline Light (DEBUG, 26 outputs)",
     "VR_PipelineStrongDebug": "VR · Pipeline Strong (DEBUG, 11 outputs)",
+    "VR_PipelineLayeredDebug": "VR · Pipeline Layered (DEBUG, 7 outputs)",
     "VR_DebugProbeImage": "VR · Debug Probe (IMAGE)",
     "VR_DebugProbeMask": "VR · Debug Probe (MASK)",
+    "VR_RequestBanner": "VR · Request Banner (log entry-point)",
     "VR_SplitRGBA": "VR · Split RGBA → RGB + Alpha",
 }
 

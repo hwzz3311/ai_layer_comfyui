@@ -1,6 +1,6 @@
 {
-  "last_node_id": 282,
-  "last_link_id": 222,
+  "last_node_id": 284,
+  "last_link_id": 226,
   "nodes": [
     {
       "id": 1,
@@ -77,10 +77,10 @@
             136,
             140,
             153,
-            170,
-            171,
-            172,
-            177
+            174,
+            175,
+            176,
+            181
           ],
           "slot_index": 0
         }
@@ -438,7 +438,7 @@
         {
           "name": "reference",
           "type": "IMAGE",
-          "link": 170
+          "link": 174
         }
       ],
       "outputs": [
@@ -479,7 +479,7 @@
         {
           "name": "reference",
           "type": "IMAGE",
-          "link": 171
+          "link": 175
         }
       ],
       "outputs": [
@@ -962,7 +962,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 173
+          "link": 177
         }
       ],
       "outputs": [
@@ -983,7 +983,7 @@
           "name": "status_image",
           "type": "IMAGE",
           "links": [
-            174
+            178
           ]
         }
       ],
@@ -1142,8 +1142,8 @@
       "widgets_values": [
         351393078324112,
         "randomize",
-        7,
-        0.8,
+        16,
+        1.0,
         "euler",
         "simple",
         1.0
@@ -1222,7 +1222,8 @@
           "type": "IMAGE",
           "links": [
             102,
-            175
+            155,
+            179
           ],
           "slot_index": 0
         }
@@ -1279,7 +1280,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 168
+          "link": 172
         }
       ],
       "outputs": [],
@@ -1383,7 +1384,7 @@
           "links": [
             106,
             109,
-            209
+            213
           ],
           "slot_index": 0
         }
@@ -1440,7 +1441,7 @@
         {
           "name": "reference",
           "type": "IMAGE",
-          "link": 172
+          "link": 176
         }
       ],
       "outputs": [
@@ -1676,7 +1677,7 @@
           "type": "IMAGE",
           "links": [
             119,
-            208
+            212
           ],
           "slot_index": 0
         }
@@ -1733,7 +1734,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 169
+          "link": 173
         }
       ],
       "outputs": [],
@@ -1847,7 +1848,8 @@
       },
       "widgets_values": [
         true,
-        false
+        false,
+        "foreground_mode_A"
       ]
     },
     {
@@ -1894,7 +1896,8 @@
       },
       "widgets_values": [
         true,
-        true
+        true,
+        "foreground_mode_B"
       ]
     },
     {
@@ -2007,7 +2010,9 @@
         "single",
         8,
         2048,
-        0.7
+        0.7,
+        "keep",
+        "positive"
       ]
     },
     {
@@ -2246,7 +2251,9 @@
         "multi",
         8,
         2048,
-        0.7
+        0.7,
+        "keep",
+        "negative-cutout"
       ]
     },
     {
@@ -2535,8 +2542,8 @@
             151,
             152,
             154,
-            173,
-            176
+            156,
+            177
           ]
         }
       ],
@@ -2545,7 +2552,9 @@
       },
       "widgets_values": [
         2,
-        0.0005
+        0.0005,
+        true,
+        0.2
       ]
     },
     {
@@ -2608,14 +2617,21 @@
           "name": "matte_alpha",
           "type": "MASK",
           "links": [
-            178
+            182
           ]
         },
         {
           "name": "confidence",
           "type": "MASK",
           "links": [
-            179
+            183
+          ]
+        },
+        {
+          "name": "raw_matte",
+          "type": "MASK",
+          "links": [
+            157
           ]
         }
       ],
@@ -2629,7 +2645,101 @@
       ]
     },
     {
-      "id": 237,
+      "id": 235,
+      "type": "VR_SplitRGBA",
+      "pos": [
+        3100,
+        80
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "[兜底] Qwen 原生 alpha (A path)",
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 155
+        }
+      ],
+      "outputs": [
+        {
+          "name": "rgb",
+          "type": "IMAGE",
+          "links": []
+        },
+        {
+          "name": "alpha",
+          "type": "MASK",
+          "links": [
+            158
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_SplitRGBA"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 236,
+      "type": "VR_AlphaResolve",
+      "pos": [
+        3260,
+        100
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "🪜 Alpha 分级兜底 (A path)",
+      "inputs": [
+        {
+          "name": "resolved_alpha",
+          "type": "MASK",
+          "link": 156
+        },
+        {
+          "name": "rmbg_alpha",
+          "type": "MASK",
+          "link": 157
+        },
+        {
+          "name": "native_alpha",
+          "type": "MASK",
+          "link": 158
+        }
+      ],
+      "outputs": [
+        {
+          "name": "alpha",
+          "type": "MASK",
+          "links": [
+            180
+          ]
+        },
+        {
+          "name": "source_used",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VR_AlphaResolve"
+      },
+      "widgets_values": [
+        0.002
+      ]
+    },
+    {
+      "id": 239,
       "type": "VR_JoinRGBA",
       "pos": [
         3800,
@@ -2647,12 +2757,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 180
+          "link": 184
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 181
+          "link": 185
         }
       ],
       "outputs": [
@@ -2660,7 +2770,7 @@
           "name": "rgba",
           "type": "IMAGE",
           "links": [
-            166
+            170
           ]
         }
       ],
@@ -2670,7 +2780,7 @@
       "widgets_values": []
     },
     {
-      "id": 238,
+      "id": 240,
       "type": "VR_JoinRGBA",
       "pos": [
         3800,
@@ -2688,12 +2798,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 210
+          "link": 214
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 211
+          "link": 215
         }
       ],
       "outputs": [
@@ -2701,7 +2811,7 @@
           "name": "rgba",
           "type": "IMAGE",
           "links": [
-            167
+            171
           ]
         }
       ],
@@ -2711,7 +2821,7 @@
       "widgets_values": []
     },
     {
-      "id": 239,
+      "id": 241,
       "type": "VR_VectorReadyReport",
       "pos": [
         4080,
@@ -2729,7 +2839,7 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 166
+          "link": 170
         }
       ],
       "outputs": [
@@ -2742,7 +2852,7 @@
           "name": "image",
           "type": "IMAGE",
           "links": [
-            168
+            172
           ]
         }
       ],
@@ -2757,7 +2867,7 @@
       ]
     },
     {
-      "id": 240,
+      "id": 242,
       "type": "VR_VectorReadyReport",
       "pos": [
         4080,
@@ -2775,7 +2885,7 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 167
+          "link": 171
         }
       ],
       "outputs": [
@@ -2788,7 +2898,7 @@
           "name": "image",
           "type": "IMAGE",
           "links": [
-            169
+            173
           ]
         }
       ],
@@ -2803,7 +2913,7 @@
       ]
     },
     {
-      "id": 241,
+      "id": 243,
       "type": "MarkdownNote",
       "pos": [
         2200,
@@ -2827,7 +2937,7 @@
       ]
     },
     {
-      "id": 242,
+      "id": 244,
       "type": "PreviewImage",
       "pos": [
         2550,
@@ -2845,7 +2955,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 174
+          "link": 178
         }
       ],
       "outputs": [],
@@ -2855,7 +2965,7 @@
       "widgets_values": []
     },
     {
-      "id": 243,
+      "id": 245,
       "type": "VR_PipelineLightDebug",
       "pos": [
         3500,
@@ -2873,27 +2983,27 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 175
+          "link": 179
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 176
+          "link": 180
         },
         {
           "name": "source_image",
           "type": "IMAGE",
-          "link": 177
+          "link": 181
         },
         {
           "name": "external_matte_alpha",
           "type": "MASK",
-          "link": 178
+          "link": 182
         },
         {
           "name": "external_confidence",
           "type": "MASK",
-          "link": 179
+          "link": 183
         }
       ],
       "outputs": [
@@ -2901,184 +3011,184 @@
           "name": "input_rgb",
           "type": "IMAGE",
           "links": [
-            182
+            186
           ]
         },
         {
           "name": "native_alpha_viz",
           "type": "IMAGE",
           "links": [
-            183
+            187
           ]
         },
         {
           "name": "alpha_cleaned_viz",
           "type": "IMAGE",
           "links": [
-            184
+            188
           ]
         },
         {
           "name": "sure_foreground_viz",
           "type": "IMAGE",
           "links": [
-            185
+            189
           ]
         },
         {
           "name": "sure_background_viz",
           "type": "IMAGE",
           "links": [
-            186
+            190
           ]
         },
         {
           "name": "trimap_unknown_viz",
           "type": "IMAGE",
           "links": [
-            187
+            191
           ]
         },
         {
           "name": "trimap_viz",
           "type": "IMAGE",
           "links": [
-            188
+            192
           ]
         },
         {
           "name": "matting_rgb",
           "type": "IMAGE",
           "links": [
-            189
+            193
           ]
         },
         {
           "name": "visible_alpha_viz",
           "type": "IMAGE",
           "links": [
-            190
+            194
           ]
         },
         {
           "name": "unknown_region_viz",
           "type": "IMAGE",
           "links": [
-            191
+            195
           ]
         },
         {
           "name": "matte_confidence_viz",
           "type": "IMAGE",
           "links": [
-            192
+            196
           ]
         },
         {
           "name": "source_composed",
           "type": "IMAGE",
           "links": [
-            193
+            197
           ]
         },
         {
           "name": "original_region_viz",
           "type": "IMAGE",
           "links": [
-            194
+            198
           ]
         },
         {
           "name": "qwen_region_viz",
           "type": "IMAGE",
           "links": [
-            195
+            199
           ]
         },
         {
           "name": "transparent_region_viz",
           "type": "IMAGE",
           "links": [
-            196
+            200
           ]
         },
         {
           "name": "low_confidence_viz",
           "type": "IMAGE",
           "links": [
-            197
+            201
           ]
         },
         {
           "name": "hole_viz",
           "type": "IMAGE",
           "links": [
-            198
+            202
           ]
         },
         {
           "name": "detail_viz",
           "type": "IMAGE",
           "links": [
-            199
+            203
           ]
         },
         {
           "name": "line_viz",
           "type": "IMAGE",
           "links": [
-            200
+            204
           ]
         },
         {
           "name": "bilateral_smooth",
           "type": "IMAGE",
           "links": [
-            201
+            205
           ]
         },
         {
           "name": "palette_quantized",
           "type": "IMAGE",
           "links": [
-            202
+            206
           ]
         },
         {
           "name": "canny_edges_viz",
           "type": "IMAGE",
           "links": [
-            203
+            207
           ]
         },
         {
           "name": "roi_sharpened",
           "type": "IMAGE",
           "links": [
-            204
+            208
           ]
         },
         {
           "name": "final_defringed",
           "type": "IMAGE",
           "links": [
-            205
+            209
           ]
         },
         {
           "name": "edge_inpainted",
           "type": "IMAGE",
           "links": [
-            180,
-            206
+            184,
+            210
           ]
         },
         {
           "name": "alpha_stepified",
           "type": "MASK",
           "links": [
-            181,
-            207
+            185,
+            211
           ]
         }
       ],
@@ -3094,7 +3204,7 @@
       ]
     },
     {
-      "id": 244,
+      "id": 246,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -3112,7 +3222,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 182
+          "link": 186
         }
       ],
       "outputs": [],
@@ -3122,7 +3232,7 @@
       "widgets_values": []
     },
     {
-      "id": 245,
+      "id": 247,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -3140,7 +3250,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 183
+          "link": 187
         }
       ],
       "outputs": [],
@@ -3150,7 +3260,7 @@
       "widgets_values": []
     },
     {
-      "id": 246,
+      "id": 248,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -3168,7 +3278,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 184
+          "link": 188
         }
       ],
       "outputs": [],
@@ -3178,7 +3288,7 @@
       "widgets_values": []
     },
     {
-      "id": 247,
+      "id": 249,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -3196,7 +3306,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 185
+          "link": 189
         }
       ],
       "outputs": [],
@@ -3206,7 +3316,7 @@
       "widgets_values": []
     },
     {
-      "id": 248,
+      "id": 250,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -3224,7 +3334,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 186
+          "link": 190
         }
       ],
       "outputs": [],
@@ -3234,7 +3344,7 @@
       "widgets_values": []
     },
     {
-      "id": 249,
+      "id": 251,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -3252,7 +3362,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 187
+          "link": 191
         }
       ],
       "outputs": [],
@@ -3262,7 +3372,7 @@
       "widgets_values": []
     },
     {
-      "id": 250,
+      "id": 252,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -3280,7 +3390,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 188
+          "link": 192
         }
       ],
       "outputs": [],
@@ -3290,7 +3400,7 @@
       "widgets_values": []
     },
     {
-      "id": 251,
+      "id": 253,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -3308,7 +3418,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 189
+          "link": 193
         }
       ],
       "outputs": [],
@@ -3318,7 +3428,7 @@
       "widgets_values": []
     },
     {
-      "id": 252,
+      "id": 254,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -3336,7 +3446,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 190
+          "link": 194
         }
       ],
       "outputs": [],
@@ -3346,7 +3456,7 @@
       "widgets_values": []
     },
     {
-      "id": 253,
+      "id": 255,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -3364,7 +3474,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 191
+          "link": 195
         }
       ],
       "outputs": [],
@@ -3374,7 +3484,7 @@
       "widgets_values": []
     },
     {
-      "id": 254,
+      "id": 256,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -3392,7 +3502,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 192
+          "link": 196
         }
       ],
       "outputs": [],
@@ -3402,7 +3512,7 @@
       "widgets_values": []
     },
     {
-      "id": 255,
+      "id": 257,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -3420,7 +3530,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 193
+          "link": 197
         }
       ],
       "outputs": [],
@@ -3430,7 +3540,7 @@
       "widgets_values": []
     },
     {
-      "id": 256,
+      "id": 258,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -3448,7 +3558,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 194
+          "link": 198
         }
       ],
       "outputs": [],
@@ -3458,7 +3568,7 @@
       "widgets_values": []
     },
     {
-      "id": 257,
+      "id": 259,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -3476,7 +3586,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 195
+          "link": 199
         }
       ],
       "outputs": [],
@@ -3486,7 +3596,7 @@
       "widgets_values": []
     },
     {
-      "id": 258,
+      "id": 260,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -3504,7 +3614,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 196
+          "link": 200
         }
       ],
       "outputs": [],
@@ -3514,7 +3624,7 @@
       "widgets_values": []
     },
     {
-      "id": 259,
+      "id": 261,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -3532,7 +3642,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 197
+          "link": 201
         }
       ],
       "outputs": [],
@@ -3542,7 +3652,7 @@
       "widgets_values": []
     },
     {
-      "id": 260,
+      "id": 262,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -3560,7 +3670,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 198
+          "link": 202
         }
       ],
       "outputs": [],
@@ -3570,7 +3680,7 @@
       "widgets_values": []
     },
     {
-      "id": 261,
+      "id": 263,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -3588,7 +3698,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 199
+          "link": 203
         }
       ],
       "outputs": [],
@@ -3598,7 +3708,7 @@
       "widgets_values": []
     },
     {
-      "id": 262,
+      "id": 264,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -3616,7 +3726,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 200
+          "link": 204
         }
       ],
       "outputs": [],
@@ -3626,7 +3736,7 @@
       "widgets_values": []
     },
     {
-      "id": 263,
+      "id": 265,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -3644,7 +3754,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 201
+          "link": 205
         }
       ],
       "outputs": [],
@@ -3654,7 +3764,7 @@
       "widgets_values": []
     },
     {
-      "id": 264,
+      "id": 266,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -3672,7 +3782,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 202
+          "link": 206
         }
       ],
       "outputs": [],
@@ -3682,7 +3792,7 @@
       "widgets_values": []
     },
     {
-      "id": 265,
+      "id": 267,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -3700,7 +3810,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 203
+          "link": 207
         }
       ],
       "outputs": [],
@@ -3710,7 +3820,7 @@
       "widgets_values": []
     },
     {
-      "id": 266,
+      "id": 268,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -3728,7 +3838,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 204
+          "link": 208
         }
       ],
       "outputs": [],
@@ -3738,7 +3848,7 @@
       "widgets_values": []
     },
     {
-      "id": 267,
+      "id": 269,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -3756,7 +3866,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 205
+          "link": 209
         }
       ],
       "outputs": [],
@@ -3766,7 +3876,7 @@
       "widgets_values": []
     },
     {
-      "id": 268,
+      "id": 270,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -3784,7 +3894,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 206
+          "link": 210
         }
       ],
       "outputs": [],
@@ -3794,7 +3904,7 @@
       "widgets_values": []
     },
     {
-      "id": 269,
+      "id": 271,
       "type": "MaskPreview+",
       "pos": [
         4120,
@@ -3812,7 +3922,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 207
+          "link": 211
         }
       ],
       "outputs": [],
@@ -3822,7 +3932,7 @@
       "widgets_values": []
     },
     {
-      "id": 270,
+      "id": 272,
       "type": "VR_PipelineStrongDebug",
       "pos": [
         3500,
@@ -3840,12 +3950,12 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 208
+          "link": 212
         },
         {
           "name": "alpha",
           "type": "MASK",
-          "link": 209
+          "link": 213
         }
       ],
       "outputs": [
@@ -3853,79 +3963,79 @@
           "name": "input_rgb",
           "type": "IMAGE",
           "links": [
-            212
+            216
           ]
         },
         {
           "name": "native_alpha_viz",
           "type": "IMAGE",
           "links": [
-            213
+            217
           ]
         },
         {
           "name": "alpha_cleaned_viz",
           "type": "IMAGE",
           "links": [
-            214
+            218
           ]
         },
         {
           "name": "bilateral_smooth",
           "type": "IMAGE",
           "links": [
-            215
+            219
           ]
         },
         {
           "name": "canny_edges_viz",
           "type": "IMAGE",
           "links": [
-            216
+            220
           ]
         },
         {
           "name": "kmeans_quantized",
           "type": "IMAGE",
           "links": [
-            217
+            221
           ]
         },
         {
           "name": "region_merged",
           "type": "IMAGE",
           "links": [
-            218
+            222
           ]
         },
         {
           "name": "roi_sharpened",
           "type": "IMAGE",
           "links": [
-            219
+            223
           ]
         },
         {
           "name": "final_defringed",
           "type": "IMAGE",
           "links": [
-            220
+            224
           ]
         },
         {
           "name": "edge_inpainted",
           "type": "IMAGE",
           "links": [
-            210,
-            221
+            214,
+            225
           ]
         },
         {
           "name": "alpha_stepified",
           "type": "MASK",
           "links": [
-            211,
-            222
+            215,
+            226
           ]
         }
       ],
@@ -3941,7 +4051,7 @@
       ]
     },
     {
-      "id": 271,
+      "id": 273,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -3959,7 +4069,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 212
+          "link": 216
         }
       ],
       "outputs": [],
@@ -3969,7 +4079,7 @@
       "widgets_values": []
     },
     {
-      "id": 272,
+      "id": 274,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -3987,7 +4097,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 213
+          "link": 217
         }
       ],
       "outputs": [],
@@ -3997,7 +4107,7 @@
       "widgets_values": []
     },
     {
-      "id": 273,
+      "id": 275,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -4015,7 +4125,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 214
+          "link": 218
         }
       ],
       "outputs": [],
@@ -4025,7 +4135,7 @@
       "widgets_values": []
     },
     {
-      "id": 274,
+      "id": 276,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -4043,7 +4153,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 215
+          "link": 219
         }
       ],
       "outputs": [],
@@ -4053,7 +4163,7 @@
       "widgets_values": []
     },
     {
-      "id": 275,
+      "id": 277,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -4071,7 +4181,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 216
+          "link": 220
         }
       ],
       "outputs": [],
@@ -4081,7 +4191,7 @@
       "widgets_values": []
     },
     {
-      "id": 276,
+      "id": 278,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -4099,7 +4209,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 217
+          "link": 221
         }
       ],
       "outputs": [],
@@ -4109,7 +4219,7 @@
       "widgets_values": []
     },
     {
-      "id": 277,
+      "id": 279,
       "type": "PreviewImage",
       "pos": [
         4440,
@@ -4127,7 +4237,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 218
+          "link": 222
         }
       ],
       "outputs": [],
@@ -4137,7 +4247,7 @@
       "widgets_values": []
     },
     {
-      "id": 278,
+      "id": 280,
       "type": "PreviewImage",
       "pos": [
         4760,
@@ -4155,7 +4265,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 219
+          "link": 223
         }
       ],
       "outputs": [],
@@ -4165,7 +4275,7 @@
       "widgets_values": []
     },
     {
-      "id": 279,
+      "id": 281,
       "type": "PreviewImage",
       "pos": [
         3800,
@@ -4183,7 +4293,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 220
+          "link": 224
         }
       ],
       "outputs": [],
@@ -4193,7 +4303,7 @@
       "widgets_values": []
     },
     {
-      "id": 280,
+      "id": 282,
       "type": "PreviewImage",
       "pos": [
         4120,
@@ -4211,7 +4321,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 221
+          "link": 225
         }
       ],
       "outputs": [],
@@ -4221,7 +4331,7 @@
       "widgets_values": []
     },
     {
-      "id": 281,
+      "id": 283,
       "type": "MaskPreview+",
       "pos": [
         4440,
@@ -4239,7 +4349,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 222
+          "link": 226
         }
       ],
       "outputs": [],
@@ -4249,7 +4359,7 @@
       "widgets_values": []
     },
     {
-      "id": 282,
+      "id": 284,
       "type": "MarkdownNote",
       "pos": [
         3400,
@@ -4915,458 +5025,490 @@
       "MASK"
     ],
     [
-      166,
-      237,
+      155,
+      62,
       0,
-      239,
+      235,
       0,
       "IMAGE"
     ],
     [
-      167,
-      238,
+      156,
+      232,
       0,
+      236,
+      0,
+      "MASK"
+    ],
+    [
+      157,
+      234,
+      2,
+      236,
+      1,
+      "MASK"
+    ],
+    [
+      158,
+      235,
+      1,
+      236,
+      2,
+      "MASK"
+    ],
+    [
+      170,
+      239,
+      0,
+      241,
+      0,
+      "IMAGE"
+    ],
+    [
+      171,
       240,
       0,
+      242,
+      0,
       "IMAGE"
     ],
     [
-      168,
-      239,
+      172,
+      241,
       1,
       63,
       0,
       "IMAGE"
     ],
     [
-      169,
-      240,
+      173,
+      242,
       1,
       214,
       0,
       "IMAGE"
     ],
     [
-      170,
+      174,
       5,
       0,
       201,
-      0,
-      "IMAGE"
-    ],
-    [
-      171,
-      5,
-      0,
-      202,
-      0,
-      "IMAGE"
-    ],
-    [
-      172,
-      5,
-      0,
-      207,
-      0,
-      "IMAGE"
-    ],
-    [
-      173,
-      232,
-      0,
-      53,
-      2,
-      "MASK"
-    ],
-    [
-      174,
-      53,
-      2,
-      242,
       0,
       "IMAGE"
     ],
     [
       175,
-      62,
+      5,
       0,
-      243,
+      202,
       0,
       "IMAGE"
     ],
     [
       176,
-      232,
+      5,
       0,
-      243,
-      1,
-      "MASK"
+      207,
+      0,
+      "IMAGE"
     ],
     [
       177,
-      5,
+      232,
       0,
-      243,
+      53,
       2,
-      "IMAGE"
+      "MASK"
     ],
     [
       178,
-      234,
-      0,
-      243,
-      3,
-      "MASK"
-    ],
-    [
-      179,
-      234,
-      1,
-      243,
-      4,
-      "MASK"
-    ],
-    [
-      180,
-      243,
-      24,
-      237,
-      0,
-      "IMAGE"
-    ],
-    [
-      181,
-      243,
-      25,
-      237,
-      1,
-      "MASK"
-    ],
-    [
-      182,
-      243,
-      0,
+      53,
+      2,
       244,
       0,
       "IMAGE"
     ],
     [
-      183,
-      243,
-      1,
+      179,
+      62,
+      0,
       245,
       0,
       "IMAGE"
     ],
     [
-      184,
-      243,
+      180,
+      236,
+      0,
+      245,
+      1,
+      "MASK"
+    ],
+    [
+      181,
+      5,
+      0,
+      245,
       2,
-      246,
+      "IMAGE"
+    ],
+    [
+      182,
+      234,
+      0,
+      245,
+      3,
+      "MASK"
+    ],
+    [
+      183,
+      234,
+      1,
+      245,
+      4,
+      "MASK"
+    ],
+    [
+      184,
+      245,
+      24,
+      239,
       0,
       "IMAGE"
     ],
     [
       185,
-      243,
-      3,
-      247,
-      0,
-      "IMAGE"
+      245,
+      25,
+      239,
+      1,
+      "MASK"
     ],
     [
       186,
-      243,
-      4,
-      248,
+      245,
+      0,
+      246,
       0,
       "IMAGE"
     ],
     [
       187,
-      243,
-      5,
-      249,
+      245,
+      1,
+      247,
       0,
       "IMAGE"
     ],
     [
       188,
-      243,
-      6,
-      250,
+      245,
+      2,
+      248,
       0,
       "IMAGE"
     ],
     [
       189,
-      243,
-      7,
-      251,
+      245,
+      3,
+      249,
       0,
       "IMAGE"
     ],
     [
       190,
-      243,
-      8,
-      252,
+      245,
+      4,
+      250,
       0,
       "IMAGE"
     ],
     [
       191,
-      243,
-      9,
-      253,
+      245,
+      5,
+      251,
       0,
       "IMAGE"
     ],
     [
       192,
-      243,
-      10,
-      254,
+      245,
+      6,
+      252,
       0,
       "IMAGE"
     ],
     [
       193,
-      243,
-      11,
-      255,
+      245,
+      7,
+      253,
       0,
       "IMAGE"
     ],
     [
       194,
-      243,
-      12,
-      256,
+      245,
+      8,
+      254,
       0,
       "IMAGE"
     ],
     [
       195,
-      243,
-      13,
-      257,
+      245,
+      9,
+      255,
       0,
       "IMAGE"
     ],
     [
       196,
-      243,
-      14,
-      258,
+      245,
+      10,
+      256,
       0,
       "IMAGE"
     ],
     [
       197,
-      243,
-      15,
-      259,
+      245,
+      11,
+      257,
       0,
       "IMAGE"
     ],
     [
       198,
-      243,
-      16,
-      260,
+      245,
+      12,
+      258,
       0,
       "IMAGE"
     ],
     [
       199,
-      243,
-      17,
-      261,
+      245,
+      13,
+      259,
       0,
       "IMAGE"
     ],
     [
       200,
-      243,
-      18,
-      262,
+      245,
+      14,
+      260,
       0,
       "IMAGE"
     ],
     [
       201,
-      243,
-      19,
-      263,
+      245,
+      15,
+      261,
       0,
       "IMAGE"
     ],
     [
       202,
-      243,
-      20,
-      264,
+      245,
+      16,
+      262,
       0,
       "IMAGE"
     ],
     [
       203,
-      243,
-      21,
-      265,
+      245,
+      17,
+      263,
       0,
       "IMAGE"
     ],
     [
       204,
-      243,
-      22,
-      266,
+      245,
+      18,
+      264,
       0,
       "IMAGE"
     ],
     [
       205,
-      243,
-      23,
-      267,
+      245,
+      19,
+      265,
       0,
       "IMAGE"
     ],
     [
       206,
-      243,
-      24,
-      268,
+      245,
+      20,
+      266,
       0,
       "IMAGE"
     ],
     [
       207,
-      243,
-      25,
-      269,
+      245,
+      21,
+      267,
       0,
-      "MASK"
+      "IMAGE"
     ],
     [
       208,
-      212,
-      0,
-      270,
+      245,
+      22,
+      268,
       0,
       "IMAGE"
     ],
     [
       209,
-      205,
+      245,
+      23,
+      269,
       0,
-      270,
-      1,
-      "MASK"
+      "IMAGE"
     ],
     [
       210,
+      245,
+      24,
       270,
-      9,
-      238,
       0,
       "IMAGE"
     ],
     [
       211,
-      270,
-      10,
-      238,
-      1,
+      245,
+      25,
+      271,
+      0,
       "MASK"
     ],
     [
       212,
-      270,
+      212,
       0,
-      271,
-      0,
-      "IMAGE"
-    ],
-    [
-      213,
-      270,
-      1,
       272,
       0,
       "IMAGE"
     ],
     [
+      213,
+      205,
+      0,
+      272,
+      1,
+      "MASK"
+    ],
+    [
       214,
-      270,
-      2,
-      273,
+      272,
+      9,
+      240,
       0,
       "IMAGE"
     ],
     [
       215,
-      270,
-      3,
-      274,
-      0,
-      "IMAGE"
+      272,
+      10,
+      240,
+      1,
+      "MASK"
     ],
     [
       216,
-      270,
-      4,
-      275,
+      272,
+      0,
+      273,
       0,
       "IMAGE"
     ],
     [
       217,
-      270,
-      5,
-      276,
+      272,
+      1,
+      274,
       0,
       "IMAGE"
     ],
     [
       218,
-      270,
-      6,
-      277,
+      272,
+      2,
+      275,
       0,
       "IMAGE"
     ],
     [
       219,
-      270,
-      7,
-      278,
+      272,
+      3,
+      276,
       0,
       "IMAGE"
     ],
     [
       220,
-      270,
-      8,
-      279,
+      272,
+      4,
+      277,
       0,
       "IMAGE"
     ],
     [
       221,
-      270,
-      9,
-      280,
+      272,
+      5,
+      278,
       0,
       "IMAGE"
     ],
     [
       222,
-      270,
-      10,
+      272,
+      6,
+      279,
+      0,
+      "IMAGE"
+    ],
+    [
+      223,
+      272,
+      7,
+      280,
+      0,
+      "IMAGE"
+    ],
+    [
+      224,
+      272,
+      8,
       281,
+      0,
+      "IMAGE"
+    ],
+    [
+      225,
+      272,
+      9,
+      282,
+      0,
+      "IMAGE"
+    ],
+    [
+      226,
+      272,
+      10,
+      283,
       0,
       "MASK"
     ]

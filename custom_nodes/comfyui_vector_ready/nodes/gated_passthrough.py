@@ -16,6 +16,8 @@ except ImportError:  # pragma: no cover - allows unit tests outside ComfyUI
         def __init__(self, msg=None):
             self.msg = msg
 
+from .debug_probe import vr_log
+
 
 _ANY = ("*",)  # ComfyUI accepts the wildcard tuple as "any socket type"
 
@@ -45,11 +47,28 @@ class VR_GatedPassthrough:
                 "value": (ANY_TYPE,),
                 "enable": ("BOOLEAN", {"default": True}),
                 "invert": ("BOOLEAN", {"default": False}),
-            }
+            },
+            "optional": {
+                "label": ("STRING", {"default": "gate"}),
+            },
         }
 
-    def gate(self, value, enable, invert):
+    @classmethod
+    def IS_CHANGED(cls, *args, **kwargs):
+        # Force re-execution every run so the gate's PASS/BLOCK decision is
+        # logged on every request, not cached by ComfyUI when upstream inputs
+        # happen to hash-match a prior run. The cost is negligible: gate just
+        # forwards a tensor or emits ExecutionBlocker.
+        import time
+        return time.time()
+
+    def gate(self, value, enable, invert, label="gate"):
         active = (not enable) if invert else enable
+        vr_log(
+            "VR_GatedPassthrough",
+            f"label={label!r} enable={bool(enable)} invert={bool(invert)} "
+            f"→ {'PASS' if active else 'BLOCK'}",
+        )
         if active:
             return (value,)
         return (ExecutionBlocker(None),)
