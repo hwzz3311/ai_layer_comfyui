@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import torch
 
+from ..nodes._utils import split_rgba
 from ..nodes.alpha_cleanup import VR_AlphaCleanup
 from ..nodes.alpha_edge_refine import VR_AlphaEdgeRefine
 from ..nodes.alpha_stepify import VR_AlphaStepify
@@ -19,9 +20,11 @@ from ..nodes.roi_unsharp import VR_ROIUnsharpMask
 from ..nodes.target_trimap_builder import VR_TargetTrimapBuilder
 from .pipeline import (
     ALPHA_SOURCE_CHOICES,
+    _HARD_TRANSPARENT_ALPHA,
     MATTING_BACKEND_CHOICES,
     _clean_transparent_rgb,
     _edge_color_inpaint,
+    _align_to_alpha_hw,
     _resolve_alpha,
 )
 
@@ -70,6 +73,7 @@ class VR_PipelineStrongDebug:
 
         alpha = _resolve_alpha(image, alpha, alpha_source)
         vr_log(f"StrongDebug resolved alpha (source={alpha_source})", _stats(alpha))
+        image, alpha, _, _, _ = _align_to_alpha_hw(image, alpha, label="StrongDebug")
         native_alpha_viz = _mask_to_image(alpha)
 
         (alpha,) = VR_AlphaCleanup().clean(alpha, 3, 5, int(alpha_min_area))
@@ -185,6 +189,14 @@ class VR_PipelineLightDebug:
 
         alpha = _resolve_alpha(image, alpha, alpha_source)
         vr_log(f"LightDebug resolved alpha (source={alpha_source})", _stats(alpha))
+        image, alpha, source_image, external_matte_alpha, external_confidence = _align_to_alpha_hw(
+            image,
+            alpha,
+            source_image=source_image,
+            external_matte_alpha=external_matte_alpha,
+            external_confidence=external_confidence,
+            label="LightDebug",
+        )
         native_alpha_viz = _mask_to_image(alpha)
 
         (alpha,) = VR_AlphaCleanup().clean(alpha, 3, 5, int(alpha_min_area))
@@ -302,4 +314,71 @@ class VR_PipelineLightDebug:
             final_defringed,
             edge_inpainted,
             alpha_clean,
+        )
+
+
+class VR_PipelineLayeredDebug:
+    """Mirrors VR_PipelineLayered; emits every stage for PreviewImage inspection."""
+
+    CATEGORY = "VectorReady/debug"
+    RETURN_TYPES = ("IMAGE",) * 6 + ("MASK",)
+    RETURN_NAMES = (
+        "input_rgb",
+        "native_alpha_viz",
+        "alpha_cleaned_viz",
+        "edge_roi_viz",
+        "roi_sharpened",
+        "edge_inpainted",
+        "alpha_out",
+    )
+    FUNCTION = "run"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "image": ("IMAGE",),
+                "median_ksize": ("INT", {"default": 1, "min": 1, "max": 11, "step": 2}),
+                "morph_ksize": ("INT", {"default": 1, "min": 1, "max": 11, "step": 2}),
+                "alpha_min_area": ("INT", {"default": 16, "min": 0, "max": 100000, "step": 8}),
+                "sharpen_strength": ("FLOAT", {"default": 0.9, "min": 0.0, "max": 3.0, "step": 0.05}),
+            },
+        }
+
+    def run(self, image, median_ksize=1, morph_ksize=1, alpha_min_area=16,
+            sharpen_strength=0.9):
+        vr_log("LayeredDBG INPUT image", _stats(image))
+        alpha = _resolve_alpha(image, None, "native")
+        native_viz = _mask_to_image(alpha)
+
+        (alpha,) = VR_AlphaCleanup().clean(
+            alpha, int(median_ksize), int(morph_ksize), int(alpha_min_area)
+        )
+        alpha_cleaned_viz = _mask_to_image(alpha)
+
+        rgb_np, _ = split_rgba(image)
+        rgb = torch.from_numpy(rgb_np)
+        input_rgb = rgb
+
+        (rgb_edges,) = VR_CannyEdge().detect(rgb, 60, 160, 1)
+        visible = (alpha >= _HARD_TRANSPARENT_ALPHA).to(rgb_edges.dtype)
+        if visible.shape[0] != rgb_edges.shape[0] and visible.shape[0] == 1:
+            visible = visible.expand(rgb_edges.shape[0], -1, -1)
+        edges = torch.minimum(rgb_edges, visible)
+        edge_roi_viz = _mask_to_image(edges)
+
+        (sharpened,) = VR_ROIUnsharpMask().sharpen(rgb, edges, float(sharpen_strength), 3, 2)
+        roi_sharpened = sharpened
+
+        sharpened = _clean_transparent_rgb(sharpened, alpha)
+        sharpened = _edge_color_inpaint(sharpened, alpha, ring_px=2, radius=3)
+
+        return (
+            input_rgb,
+            native_viz,
+            alpha_cleaned_viz,
+            edge_roi_viz,
+            roi_sharpened,
+            sharpened,
+            alpha,
         )

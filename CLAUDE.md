@@ -33,8 +33,10 @@ Both paths share the same upstream silhouette pipeline:
   - `nodes/debug_probe.py` — `vr_log()` and the `VR_DebugProbe*` passthrough nodes. Logs go to stdout AND `vr_debug.log` next to the plugin (override with `VR_DEBUG_LOG` env var).
 - `scripts/build_v8_json.py` — generates `workflows/layered/v8_ab_vector_ready.json` from the v7 base by injecting `VR_GatedPassthrough` switches and VectorReady tails on both paths.
 - `scripts/patch_v8_to_debug.py` — derives `workflows/layered/v8_debug.json` by swapping production pipelines for their `*Debug` variants and wiring `PreviewImage` to every stage.
-- `workflows/layered/v*.json` — ComfyUI workflow files. Treat `v8_ab_vector_ready` as the production workflow and `v8_debug` as the diagnostic one; regenerate them via the scripts rather than hand-editing.
+- `workflows/layered/v*.json` — ComfyUI workflow files for layer decomposition (A/B path). Treat `v8_ab_vector_ready` as the production workflow and `v8_debug` as the diagnostic one; regenerate them via the scripts rather than hand-editing.
+- `workflows/inpaint/` — ComfyUI workflow files for img2img / redrawing tasks.
 - `docs/layered/` — long-form project context covering design philosophy, A/B path rationale, and Qwen model behaviors.
+- `docs/inpaint/` — design docs for inpainting / img2img workflows.
 - `docs/plans/` — design docs for in-progress reconstruction work.
 - `references/` — reference documentation for Qwen-Image-Layered model variants.
 

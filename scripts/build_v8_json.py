@@ -62,6 +62,22 @@ BRUSH_MIN_AREA_RATIO = 0.002
 BRUSH_MAX_AREA_RATIO = 0.90
 BRUSH_MIN_AREA_PX = 64
 
+# ── KSampler tuning (2026-06-07) ────────────────────────────────────────
+# v7 inherited A-path steps=7 / cfg=0.8, which is BELOW even the Qwen-Image-
+# Layered-Control-V2 brush-mode recommendation (≥10 steps, cfg≈1.0; "raise
+# steps when the target is occluded"). The official ComfyUI control template
+# uses 20 / 2.5 (no LoRA/brush). v8 runs control_bf16 + V2 brush LoRA, so cfg≈1
+# is correct, but 7 steps under-samples — the same under-stepping that ruined
+# the base workflow before we matched the model's real settings. Bump A to
+# 16 / 1.0: generous step budget for 1024-px output + occluded layers, brush-
+# appropriate low cfg. B-path (background reconstruction) keeps its 16 / 1.0.
+A_KSAMPLER_NODE = 60
+B_KSAMPLER_NODE = 210
+A_KSAMPLER_STEPS = 16
+A_KSAMPLER_CFG = 1.0
+B_KSAMPLER_STEPS = 16
+B_KSAMPLER_CFG = 1.0
+
 RESOLVER_MASK_THRESHOLD = 0.5
 RESOLVER_MIN_AREA_RATIO = 0.002
 RESOLVER_MAX_AREA_RATIO = 0.90
@@ -777,6 +793,18 @@ def main():
             "- B: v8_B_background_RGBA_*.png (附 report JSON)"
         ],
     )
+
+    # ─────────────── Stage 3.5: tune KSampler sampling params ───────────────
+    # KSampler widgets: [seed, seed_mode, steps, cfg, sampler, scheduler, denoise].
+    # Fix A-path under-stepping (7→16) and align cfg to V2 brush mode (0.8→1.0).
+    for nid, steps, cfg in (
+        (A_KSAMPLER_NODE, A_KSAMPLER_STEPS, A_KSAMPLER_CFG),
+        (B_KSAMPLER_NODE, B_KSAMPLER_STEPS, B_KSAMPLER_CFG),
+    ):
+        ks = find_node(g, nid)
+        assert ks["type"] == "KSampler", f"node {nid} is {ks['type']}, not KSampler"
+        ks["widgets_values"][2] = int(steps)
+        ks["widgets_values"][3] = float(cfg)
 
     # ─────────────── Stage 4: tune brush GrowMask (node 204) ───────────────
     grow_node = find_node(g, 204)

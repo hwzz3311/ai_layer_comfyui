@@ -12,6 +12,7 @@ from __future__ import annotations
 import cv2
 import numpy as np
 import torch
+import torch.nn.functional as F
 
 from ..nodes._utils import split_rgba
 from ..nodes.alpha_cleanup import VR_AlphaCleanup
@@ -35,6 +36,101 @@ _HARD_TRANSPARENT_ALPHA = 0.05
 
 ALPHA_SOURCE_CHOICES = ["auto", "native", "mask_socket"]
 MATTING_BACKEND_CHOICES = ["opencv_fallback", "external_matte"]
+
+
+def _resize_image_to_hw(image: torch.Tensor, hw: tuple[int, int], label: str) -> torch.Tensor:
+    """Resize ComfyUI IMAGE [B,H,W,C] to target HxW when upstream drifts by 1px."""
+    h, w = hw
+    if tuple(image.shape[1:3]) == (h, w):
+        return image
+    vr_log(label, f"resize IMAGE HxW {tuple(image.shape[1:3])} -> {(h, w)}")
+    x = image.permute(0, 3, 1, 2)
+    x = F.interpolate(x, size=(h, w), mode="bilinear", align_corners=False)
+    return x.permute(0, 2, 3, 1).clamp(0.0, 1.0)
+
+
+def _resize_mask_to_hw(mask: torch.Tensor, hw: tuple[int, int], label: str) -> torch.Tensor:
+    """Resize ComfyUI MASK [B,H,W] to target HxW when upstream drifts by 1px."""
+    h, w = hw
+    if tuple(mask.shape[1:3]) == (h, w):
+        return mask
+    vr_log(label, f"resize MASK HxW {tuple(mask.shape[1:3])} -> {(h, w)}")
+    x = mask.unsqueeze(1)
+    x = F.interpolate(x, size=(h, w), mode="bilinear", align_corners=False)
+    return x[:, 0].clamp(0.0, 1.0)
+
+
+def _align_image_batch(image: torch.Tensor, batch: int, label: str) -> torch.Tensor:
+    if image.shape[0] == batch:
+        return image
+    if image.shape[0] == 1:
+        vr_log(label, f"expand IMAGE batch 1 -> {batch}")
+        return image.expand(batch, -1, -1, -1)
+    vr_log(label, f"trim IMAGE batch {image.shape[0]} -> {batch}")
+    if image.shape[0] > batch:
+        return image[:batch]
+    repeat = int(np.ceil(batch / float(image.shape[0])))
+    return image.repeat((repeat, 1, 1, 1))[:batch]
+
+
+def _align_mask_batch(mask: torch.Tensor, batch: int, label: str) -> torch.Tensor:
+    if mask.shape[0] == batch:
+        return mask
+    if mask.shape[0] == 1:
+        vr_log(label, f"expand MASK batch 1 -> {batch}")
+        return mask.expand(batch, -1, -1)
+    if batch == 1:
+        vr_log(label, f"union MASK batch {mask.shape[0]} -> 1")
+        return mask.max(dim=0, keepdim=True).values
+    vr_log(label, f"union/expand MASK batch {mask.shape[0]} -> {batch}")
+    union = mask.max(dim=0, keepdim=True).values
+    return union.expand(batch, -1, -1)
+
+
+def _align_to_alpha_hw(
+    image: torch.Tensor,
+    alpha: torch.Tensor,
+    *,
+    source_image: torch.Tensor | None = None,
+    external_matte_alpha: torch.Tensor | None = None,
+    external_confidence: torch.Tensor | None = None,
+    label: str = "Pipeline",
+) -> tuple[
+    torch.Tensor,
+    torch.Tensor,
+    torch.Tensor | None,
+    torch.Tensor | None,
+    torch.Tensor | None,
+]:
+    """Normalize all A/B pipeline inputs to the resolved alpha HxW.
+
+    Qwen latent/image paths and segmentation/matting paths can differ by a
+    single pixel after max-dimension scaling (for example 760 vs 761 width).
+    The alpha socket is the layer silhouette contract, so the preset pipelines
+    use it as the canonical canvas for downstream RGB/mask arithmetic.
+    """
+    hw = tuple(alpha.shape[1:3])
+    image = _resize_image_to_hw(image, hw, f"{label} align image")
+    target_batch = image.shape[0]
+    alpha = _align_mask_batch(alpha, target_batch, f"{label} align alpha")
+    if source_image is not None:
+        source_image = _resize_image_to_hw(source_image, hw, f"{label} align source_image")
+        source_image = _align_image_batch(source_image, target_batch, f"{label} align source_image")
+    if external_matte_alpha is not None:
+        external_matte_alpha = _resize_mask_to_hw(
+            external_matte_alpha, hw, f"{label} align external_matte_alpha"
+        )
+        external_matte_alpha = _align_mask_batch(
+            external_matte_alpha, target_batch, f"{label} align external_matte_alpha"
+        )
+    if external_confidence is not None:
+        external_confidence = _resize_mask_to_hw(
+            external_confidence, hw, f"{label} align external_confidence"
+        )
+        external_confidence = _align_mask_batch(
+            external_confidence, target_batch, f"{label} align external_confidence"
+        )
+    return image, alpha, source_image, external_matte_alpha, external_confidence
 
 
 def _resolve_alpha(image: torch.Tensor, alpha_input: torch.Tensor,
@@ -159,6 +255,14 @@ class VR_PipelineLight:
             vr_log("Light INPUT external_confidence", _stats(external_confidence))
         alpha = _resolve_alpha(image, alpha, alpha_source)
         vr_log(f"Light resolved alpha (source={alpha_source})", _stats(alpha))
+        image, alpha, source_image, external_matte_alpha, external_confidence = _align_to_alpha_hw(
+            image,
+            alpha,
+            source_image=source_image,
+            external_matte_alpha=external_matte_alpha,
+            external_confidence=external_confidence,
+            label="Light",
+        )
 
         (alpha,) = VR_AlphaCleanup().clean(alpha, 3, 5, int(alpha_min_area))
         vr_log("Light [0.3] alpha_cleanup", _stats(alpha))
@@ -286,6 +390,7 @@ class VR_PipelineStrong:
         vr_log("Strong INPUT alpha (MASK socket)", _stats(alpha))
         alpha = _resolve_alpha(image, alpha, alpha_source)
         vr_log(f"Strong resolved alpha (source={alpha_source})", _stats(alpha))
+        image, alpha, _, _, _ = _align_to_alpha_hw(image, alpha, label="Strong")
 
         (alpha,) = VR_AlphaCleanup().clean(alpha, 3, 5, int(alpha_min_area))
         vr_log("Strong [0.3] alpha_cleanup", _stats(alpha))
@@ -337,3 +442,100 @@ class VR_PipelineStrong:
         vr_log("Strong OUTPUT alpha", _stats(alpha_clean))
 
         return (sharp, alpha_clean)
+
+
+class VR_PipelineLayered:
+    """Base-layered archetype: clean each native-RGBA layer emitted by the
+    Qwen-Image-Layered *base* (multi-layer) model.
+
+    Unlike the Control single-layer path (VR_PipelineLight / VR_PipelineStrong),
+    the base model's per-layer RGB *is* the designed layer color and its native
+    RGBA alpha *is* the intended silhouette — both trustworthy. So this preset
+    does the narrow cleanup the base output actually needs and nothing more:
+
+      [1] native alpha           — use each layer's own RGBA alpha
+      [2] alpha cleanup          — drop semi-transparent specks / fill pinholes
+      [3] edge ROI (visible)     — canny on RGB, masked to the opaque region
+      [4] edge sharpening        — ROI unsharp along edges, flat fills untouched
+      [5] defringe               — zero RGB in alpha≈0 decoder-noise regions
+      [6] edge color inpaint     — rewrite the 1-2px boundary ring's color
+
+    Deliberately NO k-means / bilateral (would flatten / dirty the trustworthy
+    base colors) and NO VR_AlphaStepify (keeps anti-aliased soft edges, since
+    the output lands as raster canvas PNG layers, not vectorizer input).
+
+    Consumes a batch of N RGBA layers ([B,H,W,4]); every stage loops over the
+    batch internally, so all N layers are cleaned in one call.
+    """
+
+    CATEGORY = "VectorReady/preset"
+    RETURN_TYPES = ("IMAGE", "MASK")
+    RETURN_NAMES = ("image", "alpha")
+    FUNCTION = "run"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "image": ("IMAGE",),
+                # Line-art-safe cleanup defaults. Unlike the v8 Light/Strong
+                # paths (SAM3 silhouette → aggressive despeckle is fine), the
+                # base model's native alpha already encodes the designed layer
+                # INCLUDING thin line-art (eyes / whiskers / outlines). median
+                # blur and morph-open ERASE sub-kernel-width lines, and a large
+                # min_area deletes whole thin components by pixel area. So we
+                # default median/morph OFF and use a tiny min_area that only
+                # drops isolated speckle dots (whose area ≪ a thin line's).
+                # Raise median_ksize / morph_ksize only if a layer is speckly.
+                "median_ksize": ("INT", {"default": 1, "min": 1, "max": 11, "step": 2}),
+                "morph_ksize": ("INT", {"default": 1, "min": 1, "max": 11, "step": 2}),
+                "alpha_min_area": ("INT", {"default": 16, "min": 0, "max": 100000, "step": 8}),
+                "sharpen_strength": ("FLOAT", {"default": 0.9, "min": 0.0, "max": 3.0, "step": 0.05}),
+            },
+        }
+
+    def run(self, image, median_ksize=1, morph_ksize=1, alpha_min_area=16,
+            sharpen_strength=0.9):
+        vr_log("Layered INPUT image", _stats(image))
+
+        # [1] native alpha — each base-model layer carries its own RGBA alpha as
+        # the intended silhouette (trustworthy here, unlike the Control path).
+        alpha = _resolve_alpha(image, None, "native")
+        vr_log("Layered [1] native_alpha", _stats(alpha))
+
+        # [2] alpha cleanup: line-art-safe by default (median/morph off,
+        # min_area drops only isolated speckle). If fine lines vanish, compare
+        # native_alpha_viz vs alpha_cleaned_viz in the DEBUG workflow.
+        (alpha,) = VR_AlphaCleanup().clean(
+            alpha, int(median_ksize), int(morph_ksize), int(alpha_min_area)
+        )
+        vr_log("Layered [2] alpha_cleanup", _stats(alpha))
+
+        rgb_np, _ = split_rgba(image)
+        rgb = torch.from_numpy(rgb_np)
+
+        # [3] edge ROI from RGB canny, restricted to the visible (opaque) region
+        # so we never sharpen transparent-region decoder noise.
+        (rgb_edges,) = VR_CannyEdge().detect(rgb, 60, 160, 1)
+        visible = (alpha >= _HARD_TRANSPARENT_ALPHA).to(rgb_edges.dtype)
+        if visible.shape[0] != rgb_edges.shape[0] and visible.shape[0] == 1:
+            visible = visible.expand(rgb_edges.shape[0], -1, -1)
+        edges = torch.minimum(rgb_edges, visible)
+        vr_log("Layered [3] edge_roi", _stats(edges))
+
+        # [4] edge sharpening — ROI unsharp only along edges.
+        (sharpened,) = VR_ROIUnsharpMask().sharpen(rgb, edges, float(sharpen_strength), 3, 2)
+        vr_log("Layered [4] roi_sharpened", _stats(sharpened))
+
+        # [5] defringe: zero RGB wherever alpha≈0 (Qwen decoder noise).
+        sharpened = _clean_transparent_rgb(sharpened, alpha)
+        vr_log("Layered [5] defringe", _stats(sharpened))
+
+        # [6] edge color inpaint: rewrite the 1-2px alpha-boundary ring with the
+        # nearest interior color, killing the background-tinted halo.
+        sharpened = _edge_color_inpaint(sharpened, alpha, ring_px=2, radius=3)
+        vr_log("Layered [6] edge_color_inpaint", _stats(sharpened))
+
+        vr_log("Layered OUTPUT image", _stats(sharpened))
+        vr_log("Layered OUTPUT alpha", _stats(alpha))
+        return (sharpened, alpha)

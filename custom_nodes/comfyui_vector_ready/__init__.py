@@ -38,8 +38,12 @@ from .nodes.target_trimap_builder import VR_TargetTrimapBuilder
 from .nodes.vector_ready_report import VR_VectorReadyReport
 
 vr_log("PLUGIN_VERSION", f"comfyui_vector_ready v{__version__}")
-from .presets.pipeline import VR_PipelineLight, VR_PipelineStrong
-from .presets.pipeline_debug import VR_PipelineLightDebug, VR_PipelineStrongDebug
+from .presets.pipeline import VR_PipelineLayered, VR_PipelineLight, VR_PipelineStrong
+from .presets.pipeline_debug import (
+    VR_PipelineLayeredDebug,
+    VR_PipelineLightDebug,
+    VR_PipelineStrongDebug,
+)
 
 NODE_CLASS_MAPPINGS = {
     "VR_LABConvert": VR_LABConvert,
@@ -69,8 +73,10 @@ NODE_CLASS_MAPPINGS = {
     "VR_VectorReadyReport": VR_VectorReadyReport,
     "VR_PipelineLight": VR_PipelineLight,
     "VR_PipelineStrong": VR_PipelineStrong,
+    "VR_PipelineLayered": VR_PipelineLayered,
     "VR_PipelineLightDebug": VR_PipelineLightDebug,
     "VR_PipelineStrongDebug": VR_PipelineStrongDebug,
+    "VR_PipelineLayeredDebug": VR_PipelineLayeredDebug,
     "VR_DebugProbeImage": VR_DebugProbeImage,
     "VR_DebugProbeMask": VR_DebugProbeMask,
     "VR_RequestBanner": VR_RequestBanner,
@@ -105,8 +111,10 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "VR_VectorReadyReport": "VR · VectorReady Report (quality JSON sidecar)",
     "VR_PipelineLight": "VR · Pipeline (Light, A-path)",
     "VR_PipelineStrong": "VR · Pipeline (Strong, B-path)",
+    "VR_PipelineLayered": "VR · Pipeline (Layered, base multi-layer)",
     "VR_PipelineLightDebug": "VR · Pipeline Light (DEBUG, 26 outputs)",
     "VR_PipelineStrongDebug": "VR · Pipeline Strong (DEBUG, 11 outputs)",
+    "VR_PipelineLayeredDebug": "VR · Pipeline Layered (DEBUG, 7 outputs)",
     "VR_DebugProbeImage": "VR · Debug Probe (IMAGE)",
     "VR_DebugProbeMask": "VR · Debug Probe (MASK)",
     "VR_RequestBanner": "VR · Request Banner (log entry-point)",
