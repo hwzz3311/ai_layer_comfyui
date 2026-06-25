@@ -525,7 +525,7 @@
       "flags": {},
       "order": 0,
       "mode": 0,
-      "title": "KSampler (steps=20, cfg=2.5)",
+      "title": "KSampler (steps=50, cfg=4.0)",
       "inputs": [
         {
           "name": "model",
@@ -641,7 +641,8 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            21
+            21,
+            22
           ]
         }
       ],
@@ -652,6 +653,34 @@
     },
     {
       "id": 17,
+      "type": "PreviewImage",
+      "pos": [
+        720,
+        -160
+      ],
+      "size": [
+        300,
+        110
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "title": "Preview Layers (raw RGBA)",
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 21
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 18,
       "type": "SaveImage",
       "pos": [
         720,
@@ -669,7 +698,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 21
+          "link": 22
         }
       ],
       "outputs": [],
@@ -681,7 +710,7 @@
       ]
     },
     {
-      "id": 18,
+      "id": 19,
       "type": "MarkdownNote",
       "pos": [
         720,
@@ -873,12 +902,20 @@
       17,
       0,
       "IMAGE"
+    ],
+    [
+      22,
+      16,
+      0,
+      18,
+      0,
+      "IMAGE"
     ]
   ],
   "groups": [],
   "config": {},
   "extra": {},
   "version": 0.4,
-  "last_node_id": 18,
-  "last_link_id": 21
+  "last_node_id": 19,
+  "last_link_id": 22
 }

@@ -12,7 +12,7 @@ CRITICAL parameters copied verbatim from the official template (earlier
 hand-derived-from-v8 values were wrong and produced garbage):
   - UNETLoader = qwen_image_layered_fp8mixed.safetensors, weight_dtype "default"
     (NOT fp8_e4m3fn; NO control LoRA).
-  - KSampler steps=20, cfg=2.5 (the model's fast preset; original is 50 / 4.0).
+  - KSampler steps=50, cfg=4.0 (quality preset; lower steps for preview speed).
     The old v8 control values (7 / 0.8) are for control+LoRA and ruin base output.
   - EmptyQwenImageLayeredLatentImage widgets = [W, H, layers, 1]. The LAYER
     COUNT is widget index 2; index 3 (batch_size) stays 1. The old build put
@@ -40,11 +40,14 @@ VAE_NAME = "qwen_image_layered_vae.safetensors"
 # ComfyUI template's speed-preset (20 / 2.5 / 1024). The Space — which produces
 # the best output — uses steps=50, true_cfg_scale=4.0, resolution=640.
 #   - 640 is the model's RECOMMENDED bucket for this version; 1024 is the
-#     "high-res" bucket with worse decomposition coherence. We scale the input
-#     longest side to MAX_DIM so generation runs on the 640 bucket.
+#     "high-res" bucket with worse decomposition coherence. At 1024 the layered
+#     decomposition collapses entirely and EVERY decoded layer comes out fully
+#     transparent (alpha=0) — confirmed regression 2026-06-17. We scale the
+#     input longest side to MAX_DIM so generation runs on the 640 bucket.
+#     DO NOT raise this to 1024.
 #   - steps=50 / cfg=4.0 roughly double generation time vs the 20/2.5 preset.
 # To trade quality for speed, lower KSAMPLER_STEPS (e.g. 30) — it is the
-# biggest single quality lever. Raise MAX_DIM to 1024 only for high-res output.
+# biggest single quality lever.
 MAX_DIM = 640
 KSAMPLER_STEPS = 50
 KSAMPLER_CFG = 4.0
@@ -191,7 +194,7 @@ def main():
     g.link(imgsize, 1, empty, 1, "INT")
 
     # ── Sample → cut layered latent to batch → decode ──
-    ksampler = g.node("KSampler", title="KSampler (steps=20, cfg=2.5)", pos=[-240, 0],
+    ksampler = g.node("KSampler", title="KSampler (steps=50, cfg=4.0)", pos=[-240, 0],
                       inputs=[_in("model", "MODEL"), _in("positive", "CONDITIONING"),
                               _in("negative", "CONDITIONING"), _in("latent_image", "LATENT")],
                       outputs=[_out("LATENT", "LATENT")],
@@ -227,6 +230,10 @@ def main():
     # an extra raw "layer_raw_" save for A/B comparison) if a future use case
     # (e.g. downstream vectorization) needs the cleanup despite the color cost.
     if not ENABLE_POSTPROCESS:
+        preview = g.node("PreviewImage", title="Preview Layers (raw RGBA)",
+                         pos=[720, -160], inputs=[_in("images", "IMAGE")])
+        g.link(decode, 0, preview, 0, "IMAGE")
+
         save = g.node("SaveImage", title="Save (layer_00..NN, raw model output)",
                       pos=[720, 0], inputs=[_in("images", "IMAGE")], widgets=["layer_"])
         g.link(decode, 0, save, 0, "IMAGE")
