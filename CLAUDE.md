@@ -37,7 +37,7 @@ Both paths share the same upstream silhouette pipeline:
 - `workflows/inpaint/` — ComfyUI workflow files for img2img / redrawing tasks.
 - `docs/layered/` — long-form project context covering design philosophy, A/B path rationale, and Qwen model behaviors.
 - `docs/inpaint/` — design docs for inpainting / img2img workflows.
-- `docs/plans/` — design docs for in-progress reconstruction work.
+- `docs/superpowers/plans/` — design docs for in-progress reconstruction work.
 - `references/` — reference documentation for Qwen-Image-Layered model variants.
 
 ## Tensor conventions (matches ComfyUI core)

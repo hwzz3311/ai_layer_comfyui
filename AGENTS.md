@@ -25,7 +25,7 @@ The runtime selector is `VR_GatedPassthrough` on each KSampler's `latent_image` 
 - `scripts/patch_v8_to_debug.py` — derives `workflows/layered/v8_debug.json` by swapping production pipelines for their `*Debug` variants and wiring `PreviewImage` to every stage.
 - `workflows/layered/v*.json` — ComfyUI workflow files. Treat `v8_ab_vector_ready` as the production workflow and `v8_debug` as the diagnostic one; regenerate them via the scripts rather than hand-editing.
 - `docs/layered/` — long-form project context covering design philosophy, A/B path rationale, and Qwen model behaviors.
-- `docs/plans/` — design docs for in-progress reconstruction work.
+- `docs/superpowers/plans/` — design docs for in-progress reconstruction work.
 - `references/` — reference documentation for Qwen-Image-Layered model variants.
 
 ## Tensor conventions (matches ComfyUI core)
